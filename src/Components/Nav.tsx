@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import React, { useState } from "react";
 import styled from "styled-components";
+import { AuthModal } from "@/src/Components/AuthModal/AuthModal";
 
 const Navbar = styled.nav`
   width: 100%;
@@ -45,6 +47,17 @@ const NavbarLink = styled(Link)`
 `;
 
 export default function Nav() {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<
+    "login" | "signup" | "forgot-password"
+  >("login");
+
+  const openAuthModal = (mode: "login" | "signup" | "forgot-password") => {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => setIsAuthModalOpen(false);
   return (
     <Navbar>
       <NavbarContent>
@@ -53,16 +66,40 @@ export default function Nav() {
         </NavbarBrand>
         <NavbarItems>
           <NavbarItem>
-            <NavbarLink href="/about">About</NavbarLink>
+            <NavbarLink href="/about">關於</NavbarLink>
           </NavbarItem>
           <NavbarItem>
-            <NavbarLink href="/services">Services</NavbarLink>
+            <NavbarLink href="/services">服務</NavbarLink>
           </NavbarItem>
           <NavbarItem>
-            <NavbarLink href="/contact">Contact</NavbarLink>
+            <NavbarLink href="/contact">聯絡</NavbarLink>
           </NavbarItem>
           <NavbarItem>
-            <NavbarLink href="/login">Login</NavbarLink>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                openAuthModal("login");
+              }}
+            >
+              登入
+            </a>
+          </NavbarItem>
+          <NavbarItem>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                openAuthModal("signup");
+              }}
+            >
+              註冊
+            </a>
+            <AuthModal
+              isOpen={isAuthModalOpen}
+              onClose={closeAuthModal}
+              initialMode={authMode}
+            />
           </NavbarItem>
         </NavbarItems>
       </NavbarContent>

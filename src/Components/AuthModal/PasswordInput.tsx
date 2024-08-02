@@ -1,41 +1,47 @@
 "use client";
 
 import React, { useState } from "react";
-import styled from "styled-components";
+import {
+  Input,
+  Wrapper,
+  Label,
+  ToggleButton,
+  ErrorMessage,
+} from "@/src/Components/AuthModal/AuthModal.styles";
 
-const InputWrapper = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-`;
+export interface PasswordInputProps {
+  label: string;
+  name: string;
+  id: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+}
 
-const ToggleButton = styled.button`
-  position: absolute;
-  right: 5%;
-  bottom: 20%;
-  color: ${(props) => props.theme.colors.text};
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-export default function PasswordInput() {
+export function PasswordInput({
+  label,
+  name,
+  id,
+  placeholder,
+  value,
+  onChange,
+  error,
+}: PasswordInputProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   return (
-    <InputWrapper>
-      <label htmlFor="密碼">密碼</label>
-      <input
-        id="password"
-        placeholder="請輸入您的密碼..."
+    <Wrapper>
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        name={name}
+        placeholder={placeholder}
         type={isVisible ? "text" : "password"}
+        value={value}
+        onChange={onChange}
         required
       />
       <ToggleButton
@@ -43,13 +49,13 @@ export default function PasswordInput() {
         onClick={toggleVisibility}
         aria-label={isVisible ? "Hide password" : "Show password"}
       >
-        {isVisible ? <EyeSlashFilledIcon /> : <EyeFilledIcon />}
+        {isVisible ? <EyeFilledIcon /> : <EyeSlashFilledIcon />}
       </ToggleButton>
-    </InputWrapper>
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+    </Wrapper>
   );
 }
 
-// EyeFilledIcon 和 EyeSlashFilledIcon 組件保持不變
 export const EyeFilledIcon = () => (
   <svg
     aria-hidden="true"
