@@ -25,16 +25,15 @@ const NavbarBrand = styled.div`
 
 const NavbarItems = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: 2rem;
 `;
 
 const NavbarItem = styled.div`
-  a {
-    color: ${({ theme }) => theme.colors.text};
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
-    }
+  text-space: 0.2rem;
+  color: ${({ theme }) => theme.colors.text};
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
   }
 `;
 
@@ -69,13 +68,7 @@ export default function Nav() {
             <NavbarLink href="/about">關於</NavbarLink>
           </NavbarItem>
           <NavbarItem>
-            <NavbarLink href="/services">服務</NavbarLink>
-          </NavbarItem>
-          <NavbarItem>
-            <NavbarLink href="/contact">聯絡</NavbarLink>
-          </NavbarItem>
-          <NavbarItem>
-            <a
+            <NavbarLink
               href="#"
               onClick={(e) => {
                 e.preventDefault();
@@ -83,10 +76,10 @@ export default function Nav() {
               }}
             >
               登入
-            </a>
+            </NavbarLink>
           </NavbarItem>
           <NavbarItem>
-            <a
+            <NavbarLink
               href="#"
               onClick={(e) => {
                 e.preventDefault();
@@ -94,7 +87,7 @@ export default function Nav() {
               }}
             >
               註冊
-            </a>
+            </NavbarLink>
             <AuthModal
               isOpen={isAuthModalOpen}
               onClose={closeAuthModal}

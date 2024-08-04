@@ -1,5 +1,6 @@
 "use client";
 
+import normalize from "styled-normalize";
 import React, { useState, useCallback, useMemo, forwardRef } from "react";
 
 import {
@@ -13,52 +14,95 @@ import theme, { ThemeSet } from "styled-theming";
 
 // Define colors for different themes
 export const backgroundColor = theme("mode", {
-  light: "rgb(214, 219, 220)",
-  dark: "rgb(0, 0, 0)",
+  light: "rgb(248, 248, 248)",
+  dark: "rgb(38, 37, 36)",
 });
 
 export const textColor = theme("mode", {
-  light: "rgb(0, 0, 0)",
-  dark: "rgb(255, 255, 255)",
+  light: "rgb(38, 37, 36)",
+  dark: "rgb(248, 248, 248)",
 });
 
 export const primaryColor = theme("mode", {
-  light: "#0070f3",
-  dark: "#00a0ff",
+  light: "rgb(130, 130, 130)",
+  dark: "rgb(28, 28, 28)",
 });
 
 export const secondaryColor = theme("mode", {
-  light: "#f4e5aa",
-  dark: "#ffd700",
+  light: "rgb(233, 233, 233)",
+  dark: "rgb(67, 67, 67)",
+});
+
+export const tertiaryColor = theme("mode", {
+  light: "rgb(24, 24, 24)",
+  dark: "rgb(258, 250, 238)",
+});
+
+export const accentColor = theme("mode", {
+  light: "rgb(234, 60, 77)",
+  dark: "rgb(233, 254, 163)",
+});
+
+export const borderColor = theme("mode", {
+  light: "rgb(200, 200, 200)",
+  dark: "rgb(50, 50, 50)",
+});
+
+export const shadowColor = theme("mode", {
+  light: "rgba(0, 0, 0, 0.1)",
+  dark: "rgba(0, 0, 0, 0.7)",
 });
 
 export const buttonTextColor = {
   default: theme("mode", {
-    light: "#ffffff",
-    dark: "#ffffff",
+    light: "rgb(38, 37, 36)",
+    dark: "rgb(247, 241, 237)",
   }),
   hover: theme("mode", {
-    light: "#ffffff",
-    dark: "#000000",
+    light: "rgba(38, 37, 36,0.2)",
+    dark: "rgba(38, 37, 36,0.8)",
   }),
   active: theme("mode", {
-    light: "#ffffff",
-    dark: "#ffffff",
+    light: "rgb(38, 37, 36)",
+    dark: "rgb(247, 241, 237)",
   }),
 };
 
 export const button = {
   primary: theme("mode", {
-    light: "#ffffff",
-    dark: "#ffffff",
+    light: "rgb(247, 241, 237)",
+    dark: "rgb(247, 241, 237)",
   }),
   secondary: theme("mode", {
-    light: "#ffffff",
-    dark: "#000000",
+    light: "rgb(247, 241, 237)",
+    dark: "rgb(38, 37, 36)",
   }),
   danger: theme("mode", {
-    light: "#ffffff",
-    dark: "#ffffff",
+    light: "rgb(247, 241, 237)",
+    dark: "rgb(247, 241, 237)",
+  }),
+  accent: theme("mode", {
+    light: "rgb(247, 241, 237)",
+    dark: "rgb(247, 241, 237)",
+  }),
+};
+
+export const buttonBackgroundColors = {
+  primary: theme("mode", {
+    light: "rgb(80, 80, 80)",
+    dark: "rgb(140, 140, 140)",
+  }),
+  secondary: theme("mode", {
+    light: "rgb(240, 240, 240)",
+    dark: "rgb(70, 70, 70)",
+  }),
+  danger: theme("mode", {
+    light: "#ff4d4f",
+    dark: "#d9363e",
+  }),
+  accent: theme("mode", {
+    light: "rgb(234, 60, 77)",
+    dark: "rgb(233, 254, 163)",
   }),
 };
 
@@ -71,10 +115,12 @@ declare module "styled-components" {
       primary: ThemeSet;
       secondary: ThemeSet;
       danger: ThemeSet;
+      accent: ThemeSet;
       backgroundColor: {
         primary: ThemeSet;
         secondary: ThemeSet;
         danger: ThemeSet;
+        accent: ThemeSet;
       };
     };
     colors: {
@@ -87,6 +133,10 @@ declare module "styled-components" {
       background: ThemeSet;
       primary: ThemeSet;
       secondary: ThemeSet;
+      tertiary: ThemeSet;
+      accent: ThemeSet;
+      border: ThemeSet;
+      shadow: ThemeSet;
     };
     inputs: {
       wrapper: string;
@@ -98,6 +148,7 @@ declare module "styled-components" {
 }
 
 const GlobalStyle = createGlobalStyle`
+  ${normalize}
   body {
     color: ${(props) => props.theme.colors.text};
     background-color: ${(props) => props.theme.colors.background};
@@ -112,7 +163,7 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  $variant?: "primary" | "secondary" | "danger";
+  $variant?: "primary" | "secondary" | "danger" | "accent";
 }
 
 const buttonStyles = css<ButtonProps>`
@@ -174,20 +225,8 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
         primary: button.primary,
         secondary: button.secondary,
         danger: button.danger,
-        backgroundColor: {
-          primary: theme("mode", {
-            light: "#0070f3",
-            dark: "#00a0ff",
-          }),
-          secondary: theme("mode", {
-            light: "#f4f4f4",
-            dark: "#333333",
-          }),
-          danger: theme("mode", {
-            light: "#ff4d4f",
-            dark: "#d9363e",
-          }),
-        },
+        accent: button.accent,
+        backgroundColor: buttonBackgroundColors,
       },
       colors: {
         buttonText: buttonTextColor,
@@ -195,6 +234,10 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
         background: backgroundColor,
         primary: primaryColor,
         secondary: secondaryColor,
+        tertiary: tertiaryColor,
+        accent: accentColor,
+        border: borderColor,
+        shadow: shadowColor,
       },
       inputs: {
         wrapper: `
@@ -225,8 +268,8 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
         `,
         error: `
           color: ${theme("mode", {
-            light: "#ff4d4f",
-            dark: "#ff7875",
+            light: "rgb(203,64,66)",
+            dark: "rgb(171,59,58)",
           })};
           font-size: 0.8rem;
           margin-top: 0.25rem;

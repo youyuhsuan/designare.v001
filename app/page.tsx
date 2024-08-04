@@ -1,6 +1,8 @@
-import Nav from "@/src/Components/Nav";
-import Slogan from "@/src/Components/Slogan";
 import type { Metadata } from "next";
+import Nav from "@/src/Components/Nav";
+import HeroSection from "@/src/Components/HeroSection";
+import WebsiteTemplateShowcase from "@/src/Components/Card";
+import KeyFeaturesSection from "@/src/Components/KeyFeaturesSection";
 
 export const metadata: Metadata = {
   title: "Designare",
@@ -12,7 +14,9 @@ export default function Home() {
     <>
       <Nav />
       <main>
-        <Slogan />
+        <HeroSection />
+        <WebsiteTemplateShowcase />
+        <KeyFeaturesSection />
       </main>
     </>
   );

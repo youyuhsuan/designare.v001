@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import React, { useCallback, useRef, useState } from "react";
+import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { AuthMode } from "@/src/Components/AuthModal/AuthModal";
-import { useAuthForm } from "@/src/Components/AuthModal/AuthContext";
 import {
   Title,
   Input,
@@ -14,52 +15,47 @@ import {
   Footer,
   ErrorMessage,
 } from "@/src/Components/AuthModal/AuthModal.styles";
-import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { PasswordInput } from "@/src/Components/AuthModal/PasswordInput";
 import { Button } from "@/src/Components/Theme";
-import Link from "next/link";
 
 interface LoginFormProps {
   onModeChange: (mode: AuthMode) => void;
+  onSubmit: (formData: FormData) => Promise<void>;
+  errors: Record<string, string> | null;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onModeChange }) => {
-  const {
-    formRef,
-    handleSubmit: authHandleSubmit,
-    authState,
-    setError,
-    clearError,
-  } = useAuthForm();
-  const submitButtonRef = useRef<HTMLButtonElement>(null);
-
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onModeChange,
+  onSubmit,
+  errors,
+}) => {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      clearError();
+      setIsSubmitting(true);
       try {
-        await authHandleSubmit(e, "login");
-        console.log("登入成功");
+        if (formRef.current) {
+          await onSubmit(new FormData(formRef.current));
+        }
       } catch (error) {
-        console.error("登入失敗", error);
-        // if (error instanceof Error) {
-        //   setError(error.message);
-        // } else {
-        //   setError("登入失敗，請稍後再試");
-        // }
+        console.error("LoginForm handleSubmit error", error);
+      } finally {
+        setIsSubmitting(false);
       }
     },
-    [authHandleSubmit, clearError, setError]
+    [onSubmit]
   );
 
   return (
@@ -77,9 +73,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onModeChange }) => {
             onChange={handleChange}
             required
           />
-          {authState.error && authState.error.includes("email") && (
-            <ErrorMessage>{authState.error}</ErrorMessage>
-          )}
+          {errors?.email && <ErrorMessage>{errors.email}</ErrorMessage>}
         </Wrapper>
         <PasswordInput
           label="密碼"
@@ -89,19 +83,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onModeChange }) => {
           value={formData.password}
           onChange={handleChange}
         />
-        {authState.error && authState.error.includes("password") && (
-          <ErrorMessage>{authState.error}</ErrorMessage>
-        )}
+        {errors?.password && <ErrorMessage>{errors.password}</ErrorMessage>}
         <ForgotPasswordWrapper>
           <ForgotPassword
             href="#"
-            onClick={() => onModeChange("forgot-password")}
+            onClick={(e) => {
+              e.preventDefault();
+              onModeChange("forgot-password");
+            }}
           >
             忘記密碼？
           </ForgotPassword>
         </ForgotPasswordWrapper>
-        <Button type="submit" ref={submitButtonRef}>
-          登入
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "登入中..." : "登入"}
         </Button>
       </form>
       <Divider>
@@ -116,7 +111,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onModeChange }) => {
       <Footer>
         <span>
           還沒有帳號？
-          <Link href="#" onClick={() => onModeChange("signup")}>
+          <Link
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onModeChange("signup");
+            }}
+          >
             立即註冊
           </Link>
         </span>
