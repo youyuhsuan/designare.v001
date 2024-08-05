@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 const HeroContainer = styled.section`
   height: 100vh;
@@ -84,6 +85,10 @@ const Line = styled(motion.div)`
   transform-origin: center center;
 `;
 
+const ButtonLink = styled(Link)`
+  text-decoration: none;
+`;
+
 const BackgroundLines: React.FC = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
@@ -131,37 +136,35 @@ const BackgroundLines: React.FC = () => {
     );
   }
 
-  return (
-    <>
-      <LineContainer>{lines}</LineContainer>
-    </>
-  );
+  return <LineContainer>{lines}</LineContainer>;
 };
 
 const FrostedLiquidButton: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <ButtonContainer
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-      whileTap={{ scale: 0.95 }}
-    >
-      <LiquidBackground
-        initial={{ x: "-100%" }}
-        animate={{ x: isHovered ? 0 : "-100%" }}
-        transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-      />
-      <ButtonText>
-        開始設計
-        <ArrowIcon
-          animate={{ x: isHovered ? 5 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          →
-        </ArrowIcon>
-      </ButtonText>
-    </ButtonContainer>
+    <ButtonLink href="/dashboardTemplate">
+      <ButtonContainer
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
+        whileTap={{ scale: 0.95 }}
+      >
+        <LiquidBackground
+          initial={{ x: "-100%" }}
+          animate={{ x: isHovered ? 0 : "-100%" }}
+          transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
+        />
+        <ButtonText>
+          開始設計
+          <ArrowIcon
+            animate={{ x: isHovered ? 5 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            →
+          </ArrowIcon>
+        </ButtonText>
+      </ButtonContainer>
+    </ButtonLink>
   );
 };
 

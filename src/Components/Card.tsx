@@ -16,9 +16,9 @@ const ShowcaseContainer = styled.section`
   top: 90dvh;
   left: 0;
   right: 0;
-  height: 120dvh;
+  height: 160dvh;
   padding: 2rem;
-  overflow: hidden;
+  // overflow: hidden;
   z-index: 10;
 `;
 
@@ -28,8 +28,10 @@ const CardContainer = styled.div`
   justify-content: flex-end;
   gap: 20px;
   position: sticky;
-  top: 20dvh;
-  height: 80dvh;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 40vh;
+  margin: 0 auto;
 `;
 
 const Card = styled(motion.div)`
@@ -39,13 +41,8 @@ const Card = styled(motion.div)`
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-  @media (min-width: 1080px) {
-    width: calc((100% - 40px) / 3);
-  }
-
-  @media (min-width: 1920px) {
-    width: calc((100% - 60px) / 4);
+  @media (max-width: 1440px) {
+    max-width: 200px;
   }
 `;
 
@@ -97,7 +94,11 @@ const TemplateShowcase: React.FC = () => {
   // [0, 1], [100, -100] 向上移動 200px
 
   // Create a transform for the opacity
-  const imageOpacity = useTransform(scrollYProgress, [0, 0.4, 1], [0, 1, 1]);
+  const imageOpacity = useTransform(
+    scrollYProgress,
+    [0, 0, 0.5, 0.9, 1],
+    [0, 0, 0.9, 1, 1]
+  );
 
   useEffect(() => {
     const handleResize = () => {

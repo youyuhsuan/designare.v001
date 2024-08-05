@@ -5,12 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const KeyFeaturesContainer = styled.section`
   background-color: ${(props) => props.theme.colors.tertiary};
-  height: 200px;
+  height: 80dvh;
   padding: 2rem;
 `;
 
 const Title = styled(motion.h1)`
-  font-size: 4.5rem;
+  font-size: 1.6rem;
   color: ${(props) => props.theme.colors.buttonText.default};
 `;
 
