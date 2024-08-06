@@ -106,7 +106,7 @@ export interface ActionCard {
   href: string;
 }
 
-export interface DashboardTemplateProps {
+export interface DashboardProps {
   actionCards: ActionCard[];
   onSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onViewToggle: (view: "grid" | "list") => void;
@@ -178,7 +178,7 @@ const RecentFiles: React.FC<{
 );
 
 // Main Template Component
-const DashboardTemplate: React.FC<DashboardTemplateProps> = ({
+const Dashboard: React.FC<DashboardProps> = ({
   actionCards = [],
   onSearch,
   onViewToggle,
@@ -202,4 +202,4 @@ const DashboardTemplate: React.FC<DashboardTemplateProps> = ({
   );
 };
 
-export default DashboardTemplate;
+export default Dashboard;

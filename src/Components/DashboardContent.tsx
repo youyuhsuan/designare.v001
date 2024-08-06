@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import DashboardTemplate, {
-  ActionCard,
-} from "@/src/Components/DashboardTemplate";
+import Dashboard, { ActionCard } from "@/src/Components/Dashboard";
 
 interface Project {
   id: number;
@@ -82,7 +80,7 @@ const DashboardContent: React.FC = () => {
   if (error) return <div>Error {error}</div>;
 
   return (
-    <DashboardTemplate
+    <Dashboard
       actionCards={actionCards}
       onSearch={handleSearch}
       onViewToggle={handleViewToggle}

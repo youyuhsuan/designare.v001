@@ -144,6 +144,8 @@ declare module "styled-components" {
       label: string;
       error: string;
     };
+    transition: string;
+    transform: string;
   }
 }
 
@@ -275,6 +277,8 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
           margin-top: 0.25rem;
          `,
       },
+      transition: "all 0.3s ease",
+      transform: "none",
     }),
     [mode, toggleTheme]
   );

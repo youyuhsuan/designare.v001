@@ -143,7 +143,7 @@ const FrostedLiquidButton: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <ButtonLink href="/dashboardTemplate">
+    <ButtonLink href="/dashboard">
       <ButtonContainer
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
