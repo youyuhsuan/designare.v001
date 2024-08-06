@@ -1,9 +1,9 @@
-import { MultipleContainers } from "@/src/Components/MultipleContainers";
+import { WebsiteBuilder } from "@/src/Components/WebsiteBuilder/WebsiteBuilder";
 
 export default function Page() {
   return (
     <>
-      <MultipleContainers></MultipleContainers>
+      <WebsiteBuilder></WebsiteBuilder>
     </>
   );
 }
