@@ -144,6 +144,14 @@ declare module "styled-components" {
       label: string;
       error: string;
     };
+    borderRadius: {
+      xs: string;
+      sm: string;
+      md: string;
+      xl: string;
+      xxl: string;
+      xxxl: string;
+    };
     transition: string;
     transform: string;
   }
@@ -251,7 +259,7 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
         `,
         input: `
           padding: 0.75rem;
-          border: 1px solid #3a3a3a;
+          border: 1px solid ${border};
           border-radius: 0.5rem;
           font-size: 1rem;
           &::placeholder {
@@ -276,6 +284,14 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
           font-size: 0.8rem;
           margin-top: 0.25rem;
          `,
+      },
+      borderRadius: {
+        xs: "0.125rem",
+        sm: "0.25rem",
+        md: "0.375rem",
+        xl: "0.75rem",
+        xxl: "1rem",
+        xxxl: "1.5rem",
       },
       transition: "all 0.3s ease",
       transform: "none",

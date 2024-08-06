@@ -1,9 +1,9 @@
-import { WebsiteBuilder } from "@/src/Components/WebsiteBuilder/WebsiteBuilder";
+import { BuilderInterface } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 
 export default function Page() {
   return (
     <>
-      <WebsiteBuilder></WebsiteBuilder>
+      <BuilderInterface></BuilderInterface>
     </>
   );
 }

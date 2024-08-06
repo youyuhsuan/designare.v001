@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import styled from "styled-components";
 import { WebsiteBuilder } from "./WebsiteBuilder";
@@ -8,7 +10,7 @@ const BuilderWrapper = styled.div`
 `;
 
 const Sidebar = styled.div`
-  width: 250px;
+  width: 200px;
   background-color: #f0f0f0;
   padding: 20px;
 `;
