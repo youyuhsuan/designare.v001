@@ -11,7 +11,7 @@ const KeyFeaturesContainer = styled.section`
 
 const Title = styled(motion.h1)`
   font-size: 1.6rem;
-  color: ${(props) => props.theme.colors.buttonText.default};
+  color: ${(props) => props.theme.colors.primary};
 `;
 
 export default function KeyFeaturesSection() {

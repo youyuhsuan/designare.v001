@@ -7,7 +7,7 @@ import {
   selectAuthErrors,
   selectAuthMessage,
 } from "@/src/libs/features/auth/authSelectors";
-import { Modal } from "@/src/ui/Modal";
+import { Modal } from "@/src/Components/AuthModal/Modal";
 import { LoginForm } from "@/src/Components/AuthModal/LoginForm";
 import { SignupForm } from "@/src/Components/AuthModal/SignupForm";
 import { ForgotPasswordForm } from "@/src/Components/AuthModal/ForgotPasswordForm";

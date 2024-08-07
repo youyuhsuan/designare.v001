@@ -1,7 +1,6 @@
-import type { ReactNode } from "react";
 import { StoreProvider } from "@/app/StoreProvider";
+import { ThemeWrapper } from "@/src/theme/ThemeProvider";
 import { Inter } from "next/font/google";
-import { ThemeWrapper } from "@/src/Components/Theme";
 
 const inter = Inter({ subsets: ["latin"] });
 

@@ -23,7 +23,9 @@ import {
   resizeElement,
   reorderElements,
   addElement,
+  deleteElement,
 } from "@/src/libs/features/websiteBuilder/websiteBuilderSlice";
+import { Button } from "../Button";
 
 const AddSectionButton: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -38,14 +40,7 @@ const AddSectionButton: React.FC = () => {
     dispatch(addElement(newElement));
   }, [dispatch]);
 
-  return (
-    <button
-      onClick={handleAddSection}
-      className="bg-blue-500 text-white px-4 py-2 rounded-full mb-4"
-    >
-      + 新增區段
-    </button>
-  );
+  return <Button onClick={handleAddSection}>+ 新增區段</Button>;
 };
 
 export const WebsiteBuilder: React.FC = () => {
@@ -87,8 +82,15 @@ export const WebsiteBuilder: React.FC = () => {
     [dispatch]
   );
 
+  const handleDeleteElement = useCallback(
+    (id: string) => {
+      dispatch(deleteElement(id));
+    },
+    [dispatch]
+  );
+
   return (
-    <div className="flex flex-col items-center">
+    <>
       <AddSectionButton />
       <DndContext
         sensors={sensors}
@@ -104,14 +106,16 @@ export const WebsiteBuilder: React.FC = () => {
               <Layout
                 key={element.id}
                 id={element.id}
+                type={element.type}
                 content={element.content}
                 height={element.height}
                 onResize={handleResize}
+                onDelete={handleDeleteElement}
               />
             ))}
           </SortableContext>
         </SiteContainer>
       </DndContext>
-    </div>
+    </>
   );
 };

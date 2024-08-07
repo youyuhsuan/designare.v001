@@ -18,7 +18,6 @@ const ShowcaseContainer = styled.section`
   right: 0;
   height: 160dvh;
   padding: 2rem;
-  // overflow: hidden;
   z-index: 10;
 `;
 
@@ -40,7 +39,7 @@ const Card = styled(motion.div)`
   aspect-ratio: 3 / 4;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px ${(props) => props.theme.colors.shadow};
   @media (max-width: 1440px) {
     max-width: 200px;
   }

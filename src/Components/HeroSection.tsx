@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Button } from "@/src/Components/Button";
 
 const HeroContainer = styled.section`
   height: 100vh;
@@ -33,17 +34,12 @@ const Subtitle = styled(motion.h2)`
   margin-bottom: 2rem;
 `;
 
-const ButtonContainer = styled(motion.button)`
+const ButtonContainer = styled(motion(Button))`
   position: relative;
   padding: 1rem 2rem;
   font-size: 1.2rem;
-  border: none;
   border-radius: 50px;
-  background-color: ${(props) => props.theme.button.backgroundColor.secondary};
-  color: ${(props) => props.theme.colors.buttonText.default};
   backdrop-filter: blur(10px);
-  cursor: pointer;
-  outline: none;
   overflow: hidden;
   box-shadow: 0 4px 6px ${(props) => props.theme.colors.shadow};
 `;

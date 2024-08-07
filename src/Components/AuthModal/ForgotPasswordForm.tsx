@@ -12,7 +12,7 @@ import {
   ErrorMessage,
   SuccessMessage,
 } from "@/src/Components/AuthModal/AuthModal.styles";
-import { Button } from "@/src/Components/Theme";
+import { Button } from "@/src/Components/Button";
 
 interface ForgotPasswordFormProps {
   onModeChange: (mode: AuthMode) => void;

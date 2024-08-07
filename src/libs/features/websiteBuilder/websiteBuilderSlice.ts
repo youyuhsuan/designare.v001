@@ -4,7 +4,7 @@ export interface ElementData {
   id: string;
   content: string;
   height: number;
-  type?: string; // 添加 type 字段以区分不同类型的元素
+  type?: string;
 }
 
 interface WebsiteBuilderState {
@@ -14,15 +14,7 @@ interface WebsiteBuilderState {
 }
 
 const initialState: WebsiteBuilderState = {
-  elements: [
-    { id: "header", content: "網站標題", height: 100, type: "header" },
-    {
-      id: "paragraph",
-      content: "這是一個段落。",
-      height: 100,
-      type: "paragraph",
-    },
-  ],
+  elements: [],
   siteWidth: "1200px",
   backgroundColor: "#ffffff",
 };
@@ -33,6 +25,12 @@ export const websiteBuilderSlice = createSlice({
   reducers: {
     addElement(state, action: PayloadAction<ElementData>) {
       state.elements.push(action.payload);
+    },
+    deleteElement: (state, action: PayloadAction<string>) => {
+      console.log("State before deletion:", JSON.parse(JSON.stringify(state)));
+      console.log("Deleting element with ID:", action.payload);
+      state.elements = state.elements.filter((el) => el.id !== action.payload);
+      console.log("State after deletion:", JSON.parse(JSON.stringify(state)));
     },
     resizeElement(
       state,
@@ -64,6 +62,7 @@ export const websiteBuilderSlice = createSlice({
 
 export const {
   addElement,
+  deleteElement,
   resizeElement,
   reorderElements,
   setSiteWidth,

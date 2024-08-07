@@ -16,7 +16,7 @@ import {
   ErrorMessage,
 } from "@/src/Components/AuthModal/AuthModal.styles";
 import { PasswordInput } from "@/src/Components/AuthModal/PasswordInput";
-import { Button } from "@/src/Components/Theme";
+import { Button } from "@/src/Components/Button";
 
 interface LoginFormProps {
   onModeChange: (mode: AuthMode) => void;

@@ -1,11 +1,19 @@
 "use client";
-
-import React from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styled from "styled-components";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-const SectionWrapper = styled.section<{ $isDragging: boolean }>`
+interface LayoutProps {
+  id: string;
+  content: React.ReactNode;
+  height: number;
+  onResize: (id: string, height: number) => void;
+  onDelete: (id: string) => void;
+  type?: string;
+}
+
+const SectionWrapper = styled.div<{ $isDragging: boolean }>`
   margin-bottom: 10px;
   transition: transform 0.2s ease;
   transform: ${(props) => (props.$isDragging ? "scale(1.02)" : "scale(1)")};
@@ -15,7 +23,7 @@ const Section = styled.div`
   width: 100%;
   background-color: ${(props) => props.theme.colors.background};
   border: 1px solid ${(props) => props.theme.colors.border};
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.borderRadius.sm};
 `;
 
 const SectionContent = styled.div`
@@ -25,6 +33,7 @@ const SectionContent = styled.div`
 
 const DragHandle = styled.div`
   height: 20px;
+  padding: 5px;
   background-color: ${(props) => props.theme.colors.background};
   cursor: move;
   display: flex;
@@ -43,21 +52,17 @@ const ResizeHandle = styled.div`
   cursor: row-resize;
 `;
 
-interface LayoutProps {
-  id: string;
-  content: React.ReactNode;
-  height: number;
-  onResize: (id: string, height: number) => void;
-  type?: string;
-}
-
 export const Layout: React.FC<LayoutProps> = ({
   id,
   content,
   height,
   onResize,
+  onDelete,
   type = "section",
 }) => {
+  const [isHandleVisible, setIsHandleVisible] = useState(false);
+  const elementRef = useRef<HTMLDivElement>(null);
+
   const {
     attributes,
     listeners,
@@ -72,7 +77,75 @@ export const Layout: React.FC<LayoutProps> = ({
     transition,
   };
 
-  const ContentWrapper = type === "header" ? styled.header`` : SectionContent;
+  const toggleHandle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsHandleVisible((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        elementRef.current &&
+        !elementRef.current.contains(event.target as Node)
+      ) {
+        setIsHandleVisible(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key === "Backspace" &&
+        document.activeElement === elementRef.current
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        onDelete(id);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    console.log(handleClickOutside, handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [id, onDelete]);
+
+  const handleResize = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const startY = e.clientY;
+      const startHeight = height;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        const deltaY = e.clientY - startY;
+        onResize(id, Math.max(100, startHeight + deltaY));
+      };
+
+      const handleMouseUp = () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [id, height, onResize]
+  );
+
+  const handleKeyResize = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        const delta = e.key === "ArrowUp" ? -10 : 10;
+        onResize(id, Math.max(100, height + delta));
+      }
+    },
+    [id, height, onResize]
+  );
 
   return (
     <SectionWrapper
@@ -81,16 +154,20 @@ export const Layout: React.FC<LayoutProps> = ({
       $isDragging={isDragging}
       role="region"
       aria-label={`${type} content`}
+      onClick={toggleHandle}
     >
-      <Section>
-        <DragHandle
-          {...attributes}
-          {...listeners}
-          role="button"
-          aria-label="Drag to reorder"
-          tabIndex={0}
-        />
-        <ContentWrapper style={{ height }}>{content}</ContentWrapper>
+      <Section ref={elementRef} tabIndex={0}>
+        {isHandleVisible && (
+          <DragHandle
+            {...attributes}
+            {...listeners}
+            role="button"
+            aria-label="Drag to reorder"
+            tabIndex={0}
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
+        <SectionContent style={{ height }}>{content}</SectionContent>
         <ResizeHandle
           role="slider"
           aria-label="Resize section"
@@ -98,31 +175,8 @@ export const Layout: React.FC<LayoutProps> = ({
           aria-valuemax={1000}
           aria-valuenow={height}
           tabIndex={0}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            const startY = e.clientY;
-            const startHeight = height;
-
-            const handleMouseMove = (e: MouseEvent) => {
-              const deltaY = e.clientY - startY;
-              onResize(id, Math.max(100, startHeight + deltaY));
-            };
-
-            const handleMouseUp = () => {
-              document.removeEventListener("mousemove", handleMouseMove);
-              document.removeEventListener("mouseup", handleMouseUp);
-            };
-
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("mouseup", handleMouseUp);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-              e.preventDefault();
-              const delta = e.key === "ArrowUp" ? -10 : 10;
-              onResize(id, Math.max(100, height + delta));
-            }
-          }}
+          onMouseDown={handleResize}
+          onKeyDown={handleKeyResize}
         />
       </Section>
     </SectionWrapper>

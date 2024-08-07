@@ -11,13 +11,12 @@ const BuilderWrapper = styled.div`
 
 const Sidebar = styled.div`
   width: 200px;
-  background-color: #f0f0f0;
   padding: 20px;
 `;
 
 const CanvasArea = styled.div`
   flex: 1;
-  background-color: #e0e0e0;
+  background-color: ${(props) => props.theme.colors.background};
   padding: 20px;
   overflow: auto;
 `;
