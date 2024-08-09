@@ -1,17 +1,15 @@
+// 定義與全局元素庫相關的接口和類型
+
 "use client";
 
 import React from "react";
 import styled from "styled-components";
-import { WebsiteBuilder } from "./WebsiteBuilder";
+import { WebsiteBuilder } from "@/src/Components/WebsiteBuilder/WebsiteBuilder";
+import { Sidebar } from "./Sidebar/Sidebar";
 
 const BuilderWrapper = styled.div`
   display: flex;
   height: 100vh;
-`;
-
-const Sidebar = styled.div`
-  width: 200px;
-  padding: 20px;
 `;
 
 const CanvasArea = styled.div`
@@ -21,11 +19,13 @@ const CanvasArea = styled.div`
   overflow: auto;
 `;
 
-export const BuilderInterface: React.FC = () => (
-  <BuilderWrapper>
-    <Sidebar>{/* 這裡可以添加工具欄、元素庫等 */}</Sidebar>
-    <CanvasArea>
-      <WebsiteBuilder />
-    </CanvasArea>
-  </BuilderWrapper>
-);
+export function BuilderInterface() {
+  return (
+    <BuilderWrapper>
+      <Sidebar />
+      <CanvasArea>
+        <WebsiteBuilder />
+      </CanvasArea>
+    </BuilderWrapper>
+  );
+}

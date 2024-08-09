@@ -3,7 +3,7 @@ import { BuilderInterface } from "@/src/Components/WebsiteBuilder/BuilderInterfa
 export default function Page() {
   return (
     <>
-      <BuilderInterface></BuilderInterface>
+      <BuilderInterface />
     </>
   );
 }
