@@ -7,7 +7,7 @@ export const selectAllElements = (state: RootState) =>
   state.websiteBuilder.elements;
 
 export const selectElementById = (id: string) => (state: RootState) =>
-  state.websiteBuilder.elements.find((element) => element.id === id);
+  state.websiteBuilder.elements.find((element: any) => element.id === id);
 
 export const selectActiveElementId = (state: RootState) =>
   state.websiteBuilder.activeElementId;
@@ -15,5 +15,5 @@ export const selectActiveElementId = (state: RootState) =>
 export const selectSiteWidth = (state: RootState) =>
   state.websiteBuilder.siteWidth;
 
-export const selectBackgroundColor = (state: RootState) =>
-  state.websiteBuilder.backgroundColor;
+// export const selectBackgroundColor = (state: RootState) =>
+//   state.websiteBuilder.backgroundColor;

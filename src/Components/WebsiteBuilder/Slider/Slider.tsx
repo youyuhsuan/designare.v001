@@ -1,49 +1,44 @@
-// import React, { useState, useCallback } from "react";
-// import { useElements } from "@/";
+// import React, { useCallback } from "react";
+// // import { useElementContext } from "./ElementContext"; // 确保路径正确
 
 // interface SliderProps {
 //   id: string;
-//   initialElements?: SliderElement[];
 // }
 
-// interface SliderElement {
-//   id: string;
-//   type: string;
-//   props: Record<string, any>;
-// }
+// const Slider: React.FC<SliderProps> = ({ id }) => {
+//   const { elements, addElement, updateElement, deleteElement } =
+//     useElementContext();
 
-// const Slider: React.FC<SliderProps> = ({ id, initialElements = [] }) => {
-//   const [sliderElements, setSliderElements] =
-//     useState<SliderElement[]>(initialElements);
-//   const { updateElement } = useElements();
-
-//   const addSliderElement = useCallback(
-//     (newElement: SliderElement) => {
-//       setSliderElements((prev) => [...prev, newElement]);
-//       // 同步到 Section 級別的狀態
-//       updateElement(id, {
-//         props: { elements: [...sliderElements, newElement] },
-//       });
-//     },
-//     [id, sliderElements, updateElement]
+//   // 获取当前滑动器的元素
+//   const sliderElements = elements.filter(
+//     (element) => element.type === "slider" && element.id === id
 //   );
+
+//   const addSliderElement = useCallback(() => {
+//     addElement({
+//       type: "slider",
+//       content: "New Slide",
+//     });
+//   }, [addElement]);
 
 //   return (
 //     <div className="slider">
 //       {sliderElements.map((element) => (
-//         <RenderElement key={element.id} {...element} />
+//         <div key={element.id}>
+//           {/* Render your element here */}
+//           <span>{element.content}</span>
+//           {/* Example of a button to update or delete the element */}
+//           <button
+//             onClick={() =>
+//               updateElement(element.id, { content: "Updated Content" })
+//             }
+//           >
+//             Update
+//           </button>
+//           <button onClick={() => deleteElement(element.id)}>Delete</button>
+//         </div>
 //       ))}
-//       <button
-//         onClick={() =>
-//           addSliderElement({
-//             id: `slider-element-${Date.now()}`,
-//             type: "image",
-//             props: { src: "default-image.jpg" },
-//           })
-//         }
-//       >
-//         Add Slide
-//       </button>
+//       <button onClick={addSliderElement}>Add Slide</button>
 //     </div>
 //   );
 // };

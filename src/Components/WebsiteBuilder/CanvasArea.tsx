@@ -1,22 +1,29 @@
-// 使用 Redux 獲取全局設置，使用 ElementContext 管理局部元素
+"use client";
 
-import React from "react";
-import { useDroppable } from "@dnd-kit/core";
-import styled from "styled-components";
+import { useSelector } from "react-redux";
+import { useElementContext } from "./Slider/ElementContext";
+import { SiteContainer } from "@/src/Components/WebsiteBuilder/SiteContainer";
+import { GlobalState } from "@/src/Components/WebsiteBuilder/BuilderInterface";
+import { RenderElement } from "@/src/Components/WebsiteBuilder/RenderElement";
+import React, { useEffect } from "react";
 
-const StyledDroppableArea = styled.div`
-  width: 100%;
-  height: 100vh;
-  position: relative;
-  background-color: #f0f0f0;
-`;
+export const CanvasArea: React.FC = () => {
+  const siteWidth = useSelector((state: GlobalState) => state.siteWidth);
+  const { elements } = useElementContext();
 
-export function DroppableArea({ children }: { children: React.ReactNode }) {
-  // 顯示組件的子元素
-  const { setNodeRef } = useDroppable({
-    id: "viewport",
-  });
-  // 該組件設置為可接受拖放的區域
+  console.log("Elements:", elements); // 打印 elements 数据
 
-  return <StyledDroppableArea ref={setNodeRef}>{children}</StyledDroppableArea>;
-}
+  useEffect(() => {
+    console.log("Elements updated in CanvasArea:", elements);
+  }, [elements]);
+
+  return (
+    <div className="canvas-area">
+      <SiteContainer width={siteWidth}>
+        {elements.map((element) => (
+          <RenderElement key={element.id} element={element} />
+        ))}
+      </SiteContainer>
+    </div>
+  );
+};

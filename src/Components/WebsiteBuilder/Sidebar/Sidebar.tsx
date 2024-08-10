@@ -1,7 +1,18 @@
+"use client";
+
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/src/libs/store";
-import styled from "styled-components";
+import { useDispatch } from "react-redux";
+import { v4 as uuidv4 } from "uuid";
+import {
+  addElement,
+  setActiveElement,
+} from "@/src/libs/features/websiteBuilder/websiteBuilderSlice";
+import {
+  BaseElementData,
+  ElementData,
+  FreeDraggableElementData,
+  LayoutElementData,
+} from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import {
   FaFont,
   FaImage,
@@ -10,11 +21,7 @@ import {
   FaShapes,
   FaList,
 } from "react-icons/fa";
-import {
-  addFreeDraggableElement,
-  setActiveElement,
-} from "@/src/libs/features/websiteBuilder/websiteBuilderSlice";
-import { v4 } from "uuid";
+import styled from "styled-components";
 
 const Container = styled.div`
   width: 250px;
@@ -58,20 +65,35 @@ const SectionTitle = styled.h3`
 
 export function Sidebar() {
   const dispatch = useDispatch();
-  const activeElementId = useSelector(
-    (state: RootState) => state.websiteBuilder.activeElementId
-  );
 
-  const handleAddElement = (type: string, content: string) => {
-    const newElement = {
-      id: v4(),
+  const handleAddElement = (
+    type: string,
+    content: string,
+    isLayout: boolean = false
+  ) => {
+    const baseElement: BaseElementData = {
+      id: uuidv4(),
       type,
       content,
       height: 100,
-      isLayout: false,
-      position: { x: 0, y: 0 },
+      isLayout,
     };
-    dispatch(addFreeDraggableElement(newElement));
+
+    let newElement: ElementData;
+
+    if (isLayout) {
+      newElement = baseElement as LayoutElementData;
+    } else {
+      newElement = {
+        ...baseElement,
+        isLayout: false,
+        position: { x: 0, y: 0 },
+      } as FreeDraggableElementData;
+    }
+
+    console.log("Adding new element:", newElement);
+
+    dispatch(addElement(newElement));
     dispatch(setActiveElement(newElement.id));
   };
 
@@ -99,12 +121,14 @@ export function Sidebar() {
 
       <ToolSection>
         <SectionTitle>Layout</SectionTitle>
-        <ToolButton onClick={() => handleAddElement("columns", "New Columns")}>
+        <ToolButton
+          onClick={() => handleAddElement("columns", "New Columns", true)}
+        >
           <FaColumns size={18} />
           Columns
         </ToolButton>
         <ToolButton
-          onClick={() => handleAddElement("container", "New Container")}
+          onClick={() => handleAddElement("container", "New Container", true)}
         >
           <FaShapes size={18} />
           Containers
@@ -121,3 +145,5 @@ export function Sidebar() {
     </Container>
   );
 }
+
+export default Sidebar;

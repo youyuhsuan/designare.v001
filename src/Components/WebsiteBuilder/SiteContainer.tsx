@@ -1,7 +1,7 @@
 // 實現網站容器，接受全局設置作為 props
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useRef, useEffect } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -22,4 +22,18 @@ interface SiteContainerProps {
 export const SiteContainer: React.FC<SiteContainerProps> = ({
   children,
   width = "1200px",
-}) => <Container style={{ maxWidth: width }}>{children}</Container>;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.id = "viewport";
+    }
+  }, []);
+
+  return (
+    <Container ref={containerRef} style={{ width: width }}>
+      {children}
+    </Container>
+  );
+};
