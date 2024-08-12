@@ -1,102 +1,155 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
-import { any } from "zod";
-
-interface Element {
-  id: string;
-  type: string;
-  content: React.ReactNode;
-  position: { x: number; y: number };
-  isLayout: boolean;
-  height: number;
-  // 其他屬性...
-}
+import {
+  LocalElementType,
+  FreeDraggableElementData,
+  Position,
+} from "../BuilderInterface";
 
 type Action =
-  | { type: "ADD_ELEMENT"; payload: Omit<Element, "id"> }
+  | { type: "ADD_ELEMENT"; payload: Omit<LocalElementType, "id"> }
   | {
       type: "UPDATE_ELEMENT";
-      payload: { id: string; updates: Partial<Element> };
+      payload: { id: string; updates: Partial<LocalElementType> };
     }
-  | { type: "DELETE_ELEMENT"; payload: { id: string; isLayout: boolean } }
-  | { type: "UPDATE_ALL_PROPERTIES"; payload: Partial<Element> }
+  | { type: "DELETE_ELEMENT"; payload: { id: string } }
+  | { type: "REORDER_ELEMENTS"; payload: { activeId: string; overId: string } }
+  | { type: "UPDATE_ELEMENT_CONTENT"; payload: { id: string; content: string } }
   | {
       type: "UPDATE_ELEMENT_POSITION";
-      payload: { id: string; position: { x: number; y: number } };
+      payload: { id: string; position: Position };
     }
-  | {
-      type: "RESIZE_ELEMENT";
-      payload: { id: string; height: number; isLayout: boolean };
-    };
+  | { type: "RESIZE_ELEMENT"; payload: { id: string; height: number } };
 
 interface ElementContextType {
-  elements: Element[];
-  dispatch: React.Dispatch<Action>;
+  elements: LocalElementType[];
+  addElement: (element: Omit<LocalElementType, "id">) => void;
+  updateElement: (id: string, updates: Partial<LocalElementType>) => void;
+  updateElementContent: (id: string, content: string) => void;
+  deleteElement: (id: string) => void;
+  reorderElement: (activeId: string, overId: string) => void;
+  updateElementPosition: (id: string, position: Position) => void;
+  resizeElement: (id: string, height: number) => void;
 }
 
-const elementReducer = (state: Element[], action: Action): Element[] => {
-  console.log("Reducer action:", action); // Log action for debugging
-
+const elementReducer = (
+  state: LocalElementType[],
+  action: Action
+): LocalElementType[] => {
   switch (action.type) {
     case "ADD_ELEMENT":
-      const addedElement = { id: uuidv4(), ...action.payload };
-      console.log("Adding element:", addedElement); // Log added element
-      return [...state, addedElement];
+      return [
+        ...state, //  添加一个新元素到状态数组中
+        { id: uuidv4(), ...action.payload } as LocalElementType,
+      ];
     case "UPDATE_ELEMENT":
-      const updatedElements = state.map((element) =>
+      return state.map((element) =>
         element.id === action.payload.id
-          ? { ...element, ...action.payload.updates }
+          ? ({ ...element, ...action.payload.updates } as LocalElementType)
           : element
       );
-      console.log("Updated elements:", updatedElements); // Log updated elements
-      return updatedElements;
     case "DELETE_ELEMENT":
-      const filteredElements = state.filter(
-        (element) => element.id !== action.payload.id
-      );
-      console.log("Deleted element with ID:", action.payload.id); // Log deleted element ID
-      return filteredElements;
-    case "UPDATE_ALL_PROPERTIES":
-      const allUpdatedElements = state.map((element) => ({
-        ...element,
-        ...action.payload,
-      }));
-      console.log("All updated elements:", allUpdatedElements); // Log all updated elements
-      return allUpdatedElements;
-    case "UPDATE_ELEMENT_POSITION":
-      const positionUpdatedElements = state.map((element) =>
+      return state.filter((element) => element.id !== action.payload.id); // filter 方法去掉 ID 匹配的元素，返回不包含该元素的新数组
+    case "REORDER_ELEMENTS":
+      const { activeId, overId } = action.payload;
+      const oldIndex = state.findIndex((el) => el.id === activeId);
+      const newIndex = state.findIndex((el) => el.id === overId);
+      const newElements = [...state];
+      const [reorderedItem] = newElements.splice(oldIndex, 1);
+      newElements.splice(newIndex, 0, reorderedItem);
+      return newElements;
+    case "UPDATE_ELEMENT_CONTENT":
+      return state.map((element) =>
         element.id === action.payload.id
-          ? { ...element, position: action.payload.position }
+          ? { ...element, content: action.payload.content }
           : element
       );
-      console.log("Position updated elements:", positionUpdatedElements); // Log position updated elements
-      return positionUpdatedElements;
+    case "UPDATE_ELEMENT_POSITION":
+      return state.map((element) =>
+        element.id === action.payload.id && !element.isLayout
+          ? ({
+              ...element,
+              position: action.payload.position,
+            } as FreeDraggableElementData)
+          : element
+      );
     case "RESIZE_ELEMENT":
-      const resizedElements = state.map((element) =>
+      return state.map((element) =>
         element.id === action.payload.id
           ? { ...element, height: action.payload.height }
           : element
       );
-      console.log("Resized elements:", resizedElements); // Log resized elements
-      return resizedElements;
     default:
-      const _: never = action;
-      console.warn("Unknown action type:", action); // Log unknown action types
       return state;
   }
 };
 
 const ElementContext = createContext<ElementContextType | undefined>(undefined);
 
-export const ElementProvider: React.FC<{ children: ReactNode }> = ({
+export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [elements, dispatch] = useReducer(elementReducer, []);
 
+  const addElement = useCallback((element: Omit<LocalElementType, "id">) => {
+    dispatch({ type: "ADD_ELEMENT", payload: element });
+  }, []);
+
+  const updateElement = useCallback(
+    (id: string, updates: Partial<LocalElementType>) => {
+      dispatch({ type: "UPDATE_ELEMENT", payload: { id, updates } });
+    },
+    []
+  );
+
+  const updateElementContent = useCallback((id: string, content: string) => {
+    dispatch({ type: "UPDATE_ELEMENT_CONTENT", payload: { id, content } });
+  }, []);
+
+  const deleteElement = useCallback((id: string) => {
+    dispatch({ type: "DELETE_ELEMENT", payload: { id } });
+  }, []);
+
+  const reorderElement = useCallback((activeId: string, overId: string) => {
+    dispatch({ type: "REORDER_ELEMENTS", payload: { activeId, overId } });
+  }, []);
+
+  const updateElementPosition = useCallback(
+    (id: string, position: Position) => {
+      dispatch({ type: "UPDATE_ELEMENT_POSITION", payload: { id, position } });
+    },
+    []
+  );
+
+  const resizeElement = useCallback((id: string, height: number) => {
+    dispatch({ type: "RESIZE_ELEMENT", payload: { id, height } });
+  }, []);
+
+  useEffect(() => {
+    console.log("Current elements state:", elements);
+  }, [elements]);
+
+  const contextValue: ElementContextType = {
+    elements,
+    addElement,
+    updateElement,
+    updateElementContent,
+    deleteElement,
+    reorderElement,
+    updateElementPosition,
+    resizeElement,
+  };
+
   return (
-    <ElementContext.Provider value={{ elements, dispatch }}>
+    <ElementContext.Provider value={contextValue}>
       {children}
     </ElementContext.Provider>
   );
@@ -110,35 +163,36 @@ export const useElementContext = () => {
   return context;
 };
 
-// Action creators with added console logs
+export const useElementsDebug = () => {
+  const { elements } = useElementContext();
+  return elements;
+};
+
+// Action creators
+export const addElement = (element: Omit<LocalElementType, "id">): Action => ({
+  type: "ADD_ELEMENT",
+  payload: element,
+});
+
 export const updateElementPosition = (
   id: string,
-  x: number,
-  y: number
-): Action => {
-  console.log("Action creator: updateElementPosition", { id, x, y }); // Log action creator call
-  return {
-    type: "UPDATE_ELEMENT_POSITION",
-    payload: { id, position: { x, y } },
-  };
-};
+  position: Position
+): Action => ({
+  type: "UPDATE_ELEMENT_POSITION",
+  payload: { id, position },
+});
 
-export const resizeElement = (
-  id: string,
-  height: number,
-  isLayout: boolean
-): Action => {
-  console.log("Action creator: resizeElement", { id, height, isLayout }); // Log action creator call
-  return {
-    type: "RESIZE_ELEMENT",
-    payload: { id, height, isLayout },
-  };
-};
+export const updateElementContent = (id: string, content: string): Action => ({
+  type: "UPDATE_ELEMENT_CONTENT",
+  payload: { id, content },
+});
 
-export const deleteElement = (id: string, isLayout: boolean): Action => {
-  console.log("Action creator: deleteElement", { id, isLayout }); // Log action creator call
-  return {
-    type: "DELETE_ELEMENT",
-    payload: { id, isLayout },
-  };
-};
+export const deleteElement = (id: string): Action => ({
+  type: "DELETE_ELEMENT",
+  payload: { id },
+});
+
+export const resizeElement = (id: string, height: number): Action => ({
+  type: "RESIZE_ELEMENT",
+  payload: { id, height },
+});

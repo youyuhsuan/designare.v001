@@ -7,6 +7,7 @@ import styled from "styled-components";
 const Container = styled.div`
   width: 100%;
   min-height: 100dvh;
+  height: 100%;
   background-color: ${(props) => props.theme.colors.background};
   margin: 0 auto;
   box-shadow: 0 0 10px ${(props) => props.theme.colors.shadow};
@@ -16,12 +17,14 @@ const Container = styled.div`
 
 interface SiteContainerProps {
   width?: string;
+  height?: string;
   children: ReactNode;
 }
 
 export const SiteContainer: React.FC<SiteContainerProps> = ({
   children,
   width = "1200px",
+  height = "1200px",
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +35,7 @@ export const SiteContainer: React.FC<SiteContainerProps> = ({
   }, []);
 
   return (
-    <Container ref={containerRef} style={{ width: width }}>
+    <Container ref={containerRef} style={{ width: width, height: height }}>
       {children}
     </Container>
   );

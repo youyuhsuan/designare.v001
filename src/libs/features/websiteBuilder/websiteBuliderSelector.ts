@@ -15,5 +15,8 @@ export const selectActiveElementId = (state: RootState) =>
 export const selectSiteWidth = (state: RootState) =>
   state.websiteBuilder.siteWidth;
 
+export const selectCanvasHeight = (state: RootState) =>
+  state.websiteBuilder.canvasHeight;
+
 // export const selectBackgroundColor = (state: RootState) =>
 //   state.websiteBuilder.backgroundColor;

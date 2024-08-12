@@ -1,17 +1,11 @@
 "use client";
 
 import React from "react";
-import { useDispatch } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 import {
-  addElement,
-  setActiveElement,
-} from "@/src/libs/features/websiteBuilder/websiteBuilderSlice";
-import {
   BaseElementData,
-  ElementData,
-  FreeDraggableElementData,
-  LayoutElementData,
+  GlobalElementType,
+  LocalElementType,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import {
   FaFont,
@@ -22,6 +16,8 @@ import {
   FaList,
 } from "react-icons/fa";
 import styled from "styled-components";
+import { useElementContext } from "../Slider/ElementContext";
+import { useElementLibrary } from "@/src/Components/WebsiteBuilder/useElementLibrary";
 
 const Container = styled.div`
   width: 250px;
@@ -64,39 +60,54 @@ const SectionTitle = styled.h3`
 `;
 
 export function Sidebar() {
-  const dispatch = useDispatch();
+  const { addElement } = useElementContext();
+  const { addElementLibrary } = useElementLibrary();
 
   const handleAddElement = (
     type: string,
     content: string,
     isLayout: boolean = false
   ) => {
+    // 創建全局元素類型
+    const globalElement: GlobalElementType = {
+      id: uuidv4(),
+      type,
+      content,
+      height: 100, // 假設預設高度為 100
+      isLayout,
+      defaultProps: {
+        position: isLayout ? undefined : { x: 0, y: 0 },
+      },
+    };
+
+    // 添加到全局元素庫
+    addElementLibrary(globalElement);
+    console.log("Adding new globalElement:", globalElement);
+
+    // 創建本地元素實例
     const baseElement: BaseElementData = {
       id: uuidv4(),
       type,
       content,
       height: 100,
-      isLayout,
     };
 
-    let newElement: ElementData;
+    const localElement: LocalElementType = isLayout
+      ? {
+          ...baseElement,
+          isLayout: true,
+        }
+      : {
+          ...baseElement,
+          isLayout: false,
+          position: { x: 0, y: 0 },
+        };
 
-    if (isLayout) {
-      newElement = baseElement as LayoutElementData;
-    } else {
-      newElement = {
-        ...baseElement,
-        isLayout: false,
-        position: { x: 0, y: 0 },
-      } as FreeDraggableElementData;
-    }
+    // 添加到本地元素狀態
+    addElement(localElement);
 
-    console.log("Adding new element:", newElement);
-
-    dispatch(addElement(newElement));
-    dispatch(setActiveElement(newElement.id));
+    console.log("Adding new localElement:", localElement);
   };
-
   return (
     <Container>
       <ToolSection>
@@ -145,5 +156,3 @@ export function Sidebar() {
     </Container>
   );
 }
-
-export default Sidebar;

@@ -1,25 +1,11 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import styled from "styled-components";
-import {
-  useElementContext,
-  updateElementPosition,
-  resizeElement,
-  deleteElement,
-} from "../Slider/ElementContext";
 import Image from "next/image";
-
-interface FreeDraggableElementProps {
-  id: string;
-  content: React.ReactNode;
-  height: number;
-  position: { x: number; y: number };
-  type: string;
-  isLayout: boolean;
-}
+import { FreeDraggableElementProps } from "../BuilderInterface";
 
 const ElementWrapper = styled.div<{ $isDragging: boolean; $isLayout: boolean }>`
   position: absolute;
@@ -27,45 +13,63 @@ const ElementWrapper = styled.div<{ $isDragging: boolean; $isLayout: boolean }>`
   transition: transform 0.2s ease;
   transform: ${(props) => (props.$isDragging ? "scale(1.02)" : "scale(1)")};
   pointer-events: ${(props) => (props.$isLayout ? "none" : "auto")};
+  border: solid 1px;
+  will-change: transform;
 `;
 
 const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   id,
   content,
   height,
-  position,
+  position = { x: 0, y: 0 },
   type,
   isLayout,
+  onUpdate,
+  onDelete,
 }) => {
-  const { dispatch } = useElementContext();
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id, data: { type } });
+  const [localPosition, setLocalPosition] = useState(position);
+  const isDraggingRef = useRef(false);
 
-  const prevTransformRef = useRef(transform);
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id,
+      data: { type },
+    });
 
   useEffect(() => {
-    if (
-      !isLayout &&
-      transform &&
-      (transform.x !== prevTransformRef.current?.x ||
-        transform.y !== prevTransformRef.current?.y)
-    ) {
-      const newPosition = {
-        x: position.x + transform.x,
-        y: position.y + transform.y,
-      };
-      dispatch(updateElementPosition(id, newPosition.x, newPosition.y));
+    if (!isDragging && isDraggingRef.current) {
+      // Dragging has ended
+      isDraggingRef.current = false;
+      onUpdate({ position: localPosition });
+    } else if (isDragging) {
+      isDraggingRef.current = true;
     }
-    prevTransformRef.current = transform;
-  }, [transform, position, dispatch, id, isLayout]);
+  }, [isDragging, localPosition, onUpdate]);
+
+  useEffect(() => {
+    if (!isDragging) {
+      setLocalPosition(position);
+    }
+  }, [position, isDragging]);
+
+  useEffect(() => {
+    if (isDragging && transform) {
+      setLocalPosition({
+        x: position.x + (transform.x ?? 0),
+        y: position.y + (transform.y ?? 0),
+      });
+    }
+  }, [transform, position, isDragging]);
 
   const style = {
-    transform: CSS.Translate.toString(transform),
     height: `${height}px`,
-    left: `${position.x}px`,
-    top: `${position.y}px`,
+    transform: CSS.Transform.toString({
+      x: localPosition.x,
+      y: localPosition.y,
+      scaleX: 1,
+      scaleY: 1,
+    }),
   };
-
   const renderContent = () => {
     switch (type) {
       case "text":
@@ -73,7 +77,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       case "image":
         return (
           <Image
-            src={content as string} // Ensure content is of type string or StaticImport
+            src={content as string}
             alt="Draggable"
             style={{ maxWidth: "100%", height: "auto" }}
           />
@@ -81,48 +85,42 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       case "button":
         return <button>{content}</button>;
       case "columns":
-        return <div>{content}</div>; // You may want to implement a more complex column layout
       case "container":
-        return <div>{content}</div>;
       case "list":
-        return (
-          <ul>
-            <li>{content}</li>
-          </ul>
-        ); // You may want to implement a more complex list
       default:
         return <div>{content}</div>;
     }
   };
 
-  const handleResize = (newHeight: number) => {
-    dispatch(resizeElement(id, newHeight, isLayout));
-  };
-
-  const handleDelete = () => {
-    dispatch(deleteElement(id, isLayout));
-  };
+  const handleResize = useCallback(
+    (newHeight: number) => {
+      onUpdate?.({ height: Math.max(50, newHeight) });
+    },
+    [onUpdate]
+  );
 
   return (
     <ElementWrapper
-      ref={setNodeRef}
+      ref={setNodeRef} // DOM 节点引用传递给拖拽库，确保该元素可以被拖拽
       style={style}
-      $isDragging={isDragging}
-      $isLayout={isLayout}
+      $isDragging={isDragging} // 元素是否正在被拖拽，用于条件渲染样式或功能
+      $isLayout={isLayout} // 是否处于布局模式
       {...(isLayout ? {} : { ...attributes, ...listeners })}
     >
-      {content}
+      {renderContent()}
       {!isLayout && (
         <>
           <div
             onMouseDown={(e) => {
+              // Resize 處理
               e.preventDefault();
               const startY = e.clientY;
               const startHeight = height;
 
               const handleMouseMove = (moveEvent: MouseEvent) => {
-                const newHeight = startHeight + moveEvent.clientY - startY;
-                handleResize(Math.max(50, newHeight));
+                const deltaHeight = moveEvent.clientY - startY;
+                const newHeight = startHeight + deltaHeight;
+                handleResize(newHeight);
               };
 
               const handleMouseUp = () => {
@@ -133,10 +131,8 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
               document.addEventListener("mousemove", handleMouseMove);
               document.addEventListener("mouseup", handleMouseUp);
             }}
-          >
-            Resize
-          </div>
-          <button onClick={handleDelete}>Delete</button>
+          ></div>
+          <button onClick={onDelete}>Delete</button>
         </>
       )}
     </ElementWrapper>

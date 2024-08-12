@@ -1,60 +1,53 @@
 import {
-  ElementData,
-  FreeDraggableElementData,
-  Position,
-  WebsiteBuilderState,
+  GlobalElementType,
+  GlobalState,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState: WebsiteBuilderState = {
-  elements: [],
+const initialState: GlobalState = {
+  elementLibrary: [],
   siteWidth: "1200px",
-  activeElementId: null,
+  canvasHeight: "1200px",
 };
 
 export const websiteBuilderSlice = createSlice({
   name: "websiteBuilder",
   initialState,
   reducers: {
-    addElement: (state, action: PayloadAction<ElementData>) => {
-      state.elements.push(action.payload);
+    addToElementLibrary: (state, action: PayloadAction<GlobalElementType>) => {
+      state.elementLibrary.push(action.payload);
     },
-    updateElementPosition: (
-      state,
-      action: PayloadAction<{ id: string; position: Position }>
-    ) => {
-      const element = state.elements.find(
-        (el): el is FreeDraggableElementData =>
-          el.id === action.payload.id && !el.isLayout
+    removeFromElementLibrary: (state, action: PayloadAction<string>) => {
+      state.elementLibrary = state.elementLibrary.filter(
+        (el) => el.id !== action.payload
       );
-      if (element) {
-        element.position = action.payload.position;
-      }
     },
-    updateElementContent: (
+    updateElementLibraryItem: (
       state,
-      action: PayloadAction<{ id: string; content: string }>
+      action: PayloadAction<GlobalElementType>
     ) => {
-      const element = state.elements.find((el) => el.id === action.payload.id);
-      if (element) {
-        element.content = action.payload.content;
+      const index = state.elementLibrary.findIndex(
+        (el) => el.id === action.payload.id
+      );
+      if (index !== -1) {
+        state.elementLibrary[index] = action.payload;
       }
-    },
-    setActiveElement: (state, action: PayloadAction<string | null>) => {
-      state.activeElementId = action.payload;
     },
     setSiteWidth: (state, action: PayloadAction<string>) => {
       state.siteWidth = action.payload;
+    },
+    canvasHeight: (state, action: PayloadAction<string>) => {
+      state.canvasHeight = action.payload;
     },
   },
 });
 
 export const {
-  addElement,
-  updateElementPosition,
-  updateElementContent,
-  setActiveElement,
+  addToElementLibrary,
+  removeFromElementLibrary,
+  updateElementLibraryItem,
   setSiteWidth,
+  canvasHeight,
 } = websiteBuilderSlice.actions;
 
 export default websiteBuilderSlice.reducer;

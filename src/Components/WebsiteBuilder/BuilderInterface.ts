@@ -1,58 +1,86 @@
-// 位置接口
+import { UniqueIdentifier } from "@dnd-kit/core/dist/types";
+
+// 基础类型
 export interface Position {
   x: number;
   y: number;
 }
 
-// 基礎元素數據接口
+// 基础元素数据接口
 export interface BaseElementData {
   id: string;
   type: string;
   content: string;
   height: number;
-  isLayout: boolean;
+  isDragging?: boolean;
 }
 
-// 布局元素數據接口
+// 全局元素类型
+export interface GlobalElementType extends BaseElementData {
+  isLayout: boolean;
+  defaultProps: {
+    position?: Position;
+  };
+}
+
+// 全局状态
+export interface GlobalState {
+  elementLibrary: GlobalElementType[];
+  siteWidth: string;
+  canvasHeight: string;
+}
+
+// 局部元素类型
+export type LocalElementType = LayoutElementData | FreeDraggableElementData;
+
+// 布局元素数据接口
 export interface LayoutElementData extends BaseElementData {
   isLayout: true;
 }
 
-// 自由拖動元素數據接口
+// 自由拖动元素数据接口
 export interface FreeDraggableElementData extends BaseElementData {
   isLayout: false;
   position: Position;
 }
 
-// 元素數據類型
-export type ElementData = LayoutElementData | FreeDraggableElementData;
-
-// 全局元素類型
-export interface GlobalElementType {
-  id: string;
-  type: string;
-  isLayout: boolean;
-  defaultProps: {
-    content: string;
-    height: number;
-    position?: Position;
-  };
+// 元素回调接口
+export interface ElementCallbacks {
+  onUpdate: (updates: Partial<LocalElementType>) => void;
+  onDelete: () => void;
 }
 
-// 元素庫項目接口
-export interface ElementLibraryItem extends GlobalElementType {}
+// 布局元素属性接口（包含回调）
+export type LayoutElementProps = LayoutElementData & ElementCallbacks;
 
-// 網站建設器狀態接口
-export interface WebsiteBuilderState {
-  elements: ElementData[];
-  siteWidth: string;
-  activeElementId: string | null;
+// 自由拖动元素属性接口（包含回调）
+export type FreeDraggableElementProps = FreeDraggableElementData &
+  ElementCallbacks;
+
+// ElementContext 类型
+export interface ElementContextType {
+  elements: LocalElementType[];
+  addElement: (element: LocalElementType) => void;
+  updateElement: (
+    id: UniqueIdentifier,
+    updates: Partial<LocalElementType>
+  ) => void;
+  deleteElement: (id: UniqueIdentifier) => void;
+  updateElementPosition: (id: UniqueIdentifier, position: Position) => void;
+  reorderElement: (
+    activeId: UniqueIdentifier,
+    overId: UniqueIdentifier
+  ) => void;
 }
 
-// 全局狀態接口
-export interface GlobalState {
-  websiteBuilder: WebsiteBuilderState;
-  elementLibrary: GlobalElementType[];
-  siteWidth: string;
-  // 其他全局狀態...
+export interface LayoutProps extends LayoutElementData, ElementCallbacks {
+  key: string;
+  isDragging?: boolean;
+}
+
+export interface FreeDraggableProps
+  extends FreeDraggableElementData,
+    ElementCallbacks {
+  key: string;
+  isDragging?: boolean;
 }
