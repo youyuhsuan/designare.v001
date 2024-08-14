@@ -28,14 +28,15 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   onDelete,
 }) => {
   const [localPosition, setLocalPosition] = useState(position);
-  const isDraggingRef = useRef(false);
+  const isDraggingRef = useRef(false); // 記錄元素是否正在被拖拽
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id,
-      data: { type },
+      data: { type }, // 附加到拖拽事件中的數據
     });
 
+  // 拖拽設定
   useEffect(() => {
     if (!isDragging && isDraggingRef.current) {
       // Dragging has ended
@@ -46,12 +47,14 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     }
   }, [isDragging, localPosition, onUpdate]);
 
+  // 拖拽結束處理
   useEffect(() => {
     if (!isDragging) {
       setLocalPosition(position);
     }
   }, [position, isDragging]);
 
+  // 拖拽位置計算
   useEffect(() => {
     if (isDragging && transform) {
       setLocalPosition({
@@ -70,6 +73,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       scaleY: 1,
     }),
   };
+
   const renderContent = () => {
     switch (type) {
       case "text":
@@ -101,10 +105,10 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
 
   return (
     <ElementWrapper
-      ref={setNodeRef} // DOM 节点引用传递给拖拽库，确保该元素可以被拖拽
+      ref={setNodeRef} // 元素可被拖拽
       style={style}
-      $isDragging={isDragging} // 元素是否正在被拖拽，用于条件渲染样式或功能
-      $isLayout={isLayout} // 是否处于布局模式
+      $isDragging={isDragging} // 元素是否正在被拖拽
+      $isLayout={isLayout} // 是否布局模式
       {...(isLayout ? {} : { ...attributes, ...listeners })}
     >
       {renderContent()}

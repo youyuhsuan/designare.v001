@@ -4,68 +4,99 @@ import React, {
   createContext,
   useContext,
   useReducer,
-  useEffect,
   useCallback,
+  useState,
+  useEffect,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   LocalElementType,
   FreeDraggableElementData,
   Position,
+  LayoutElementData,
 } from "../BuilderInterface";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
 type Action =
   | { type: "ADD_ELEMENT"; payload: Omit<LocalElementType, "id"> }
   | {
       type: "UPDATE_ELEMENT";
-      payload: { id: string; updates: Partial<LocalElementType> };
+      payload: { id: UniqueIdentifier; updates: Partial<LocalElementType> };
     }
-  | { type: "DELETE_ELEMENT"; payload: { id: string } }
-  | { type: "REORDER_ELEMENTS"; payload: { activeId: string; overId: string } }
-  | { type: "UPDATE_ELEMENT_CONTENT"; payload: { id: string; content: string } }
+  | { type: "DELETE_ELEMENT"; payload: { id: UniqueIdentifier } }
+  | {
+      type: "REORDER_ELEMENT";
+      payload: { newOrder: UniqueIdentifier[] };
+    }
+  | {
+      type: "UPDATE_ELEMENT_CONTENT";
+      payload: { id: UniqueIdentifier; content: string };
+    }
   | {
       type: "UPDATE_ELEMENT_POSITION";
-      payload: { id: string; position: Position };
+      payload: { id: UniqueIdentifier; position: Position };
     }
-  | { type: "RESIZE_ELEMENT"; payload: { id: string; height: number } };
+  | {
+      type: "RESIZE_ELEMENT";
+      payload: { id: UniqueIdentifier; height: number };
+    }
+  | { type: "SELECTED_ELEMENT"; payload: UniqueIdentifier | null };
 
 interface ElementContextType {
+  // 当前所有元素的数组
   elements: LocalElementType[];
+  // 当前选中的元素，可能是 null
+  selectedElement: LocalElementType | null;
+  // 设置当前选中的元素
+  setSelectedElement: (element: LocalElementType | null) => void;
+  // 通过 ID 设置当前选中的元素
+  setSelectedElementId: (id: UniqueIdentifier | null) => void;
+  // 添加新元素，元素对象不包含 ID
   addElement: (element: Omit<LocalElementType, "id">) => void;
-  updateElement: (id: string, updates: Partial<LocalElementType>) => void;
-  updateElementContent: (id: string, content: string) => void;
-  deleteElement: (id: string) => void;
-  reorderElement: (activeId: string, overId: string) => void;
-  updateElementPosition: (id: string, position: Position) => void;
-  resizeElement: (id: string, height: number) => void;
+  // 更新指定 ID 的元素
+  updateElement: (
+    id: UniqueIdentifier,
+    updates: Partial<LocalElementType>
+  ) => void;
+  // 更新当前选中的元素
+  updateSelectedElement: (
+    update:
+      | LocalElementType
+      | ((prev: LocalElementType | null) => LocalElementType | null)
+  ) => void;
+  // 更新指定 ID 元素的内容
+  updateElementContent: (id: UniqueIdentifier, content: string) => void;
+  // 删除指定 ID 的元素
+  deleteElement: (id: UniqueIdentifier) => void;
+  // 重新排序元素
+  reorderElement: (newOrder: UniqueIdentifier[]) => void;
+  // 更新指定 ID 元素的位置
+  updateElementPosition: (id: UniqueIdentifier, position: Position) => void;
+  // 调整指定 ID 元素的高度
+  resizeElement: (id: UniqueIdentifier, height: number) => void;
 }
 
 const elementReducer = (
   state: LocalElementType[],
   action: Action
 ): LocalElementType[] => {
+  console.log("Current State:", state);
+  console.log("Action Dispatched:", action);
+
   switch (action.type) {
     case "ADD_ELEMENT":
-      return [
-        ...state, //  添加一个新元素到状态数组中
-        { id: uuidv4(), ...action.payload } as LocalElementType,
-      ];
+      const addedElement = {
+        id: uuidv4(),
+        ...action.payload,
+      } as LocalElementType;
+      console.log("Adding Element:", addedElement);
+      return [...state, addedElement];
     case "UPDATE_ELEMENT":
       return state.map((element) =>
         element.id === action.payload.id
           ? ({ ...element, ...action.payload.updates } as LocalElementType)
           : element
       );
-    case "DELETE_ELEMENT":
-      return state.filter((element) => element.id !== action.payload.id); // filter 方法去掉 ID 匹配的元素，返回不包含该元素的新数组
-    case "REORDER_ELEMENTS":
-      const { activeId, overId } = action.payload;
-      const oldIndex = state.findIndex((el) => el.id === activeId);
-      const newIndex = state.findIndex((el) => el.id === overId);
-      const newElements = [...state];
-      const [reorderedItem] = newElements.splice(oldIndex, 1);
-      newElements.splice(newIndex, 0, reorderedItem);
-      return newElements;
     case "UPDATE_ELEMENT_CONTENT":
       return state.map((element) =>
         element.id === action.payload.id
@@ -81,6 +112,21 @@ const elementReducer = (
             } as FreeDraggableElementData)
           : element
       );
+    case "DELETE_ELEMENT":
+      return state.filter((element) => element.id !== action.payload.id);
+    case "REORDER_ELEMENT":
+      const { newOrder } = action.payload;
+      const layoutElements = state.filter((el) => el.isLayout);
+      const otherElements = state.filter((el) => !el.isLayout);
+
+      // 使用新的順序更新布局元素
+      const updatedLayoutElements = newOrder
+        .map((id) => layoutElements.find((el) => el.id === id))
+        .filter((el): el is LayoutElementData => el !== undefined);
+
+      // 合併更新後的布局元素和其他元素
+      return [...updatedLayoutElements, ...otherElements];
+
     case "RESIZE_ELEMENT":
       return state.map((element) =>
         element.id === action.payload.id
@@ -98,47 +144,71 @@ export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [elements, dispatch] = useReducer(elementReducer, []);
+  const [selectedElement, setSelectedElement] =
+    useState<LocalElementType | null>(null);
 
-  const addElement = useCallback((element: Omit<LocalElementType, "id">) => {
-    dispatch({ type: "ADD_ELEMENT", payload: element });
-  }, []);
+  // 添加調試日誌
+  useEffect(() => {
+    console.log("Elements updated:", elements);
+  }, [elements]);
+
+  const setSelectedElementId = (id: UniqueIdentifier | null) => {
+    if (id === null) {
+      setSelectedElement(null);
+    } else {
+      const element = elements.find((el) => el.id === id);
+      setSelectedElement(element || null);
+    }
+  };
 
   const updateElement = useCallback(
-    (id: string, updates: Partial<LocalElementType>) => {
+    (id: UniqueIdentifier, updates: Partial<LocalElementType>) => {
       dispatch({ type: "UPDATE_ELEMENT", payload: { id, updates } });
     },
     []
   );
 
-  const updateElementContent = useCallback((id: string, content: string) => {
-    dispatch({ type: "UPDATE_ELEMENT_CONTENT", payload: { id, content } });
+  const updateElementContent = useCallback(
+    (id: UniqueIdentifier, content: string) => {
+      dispatch({ type: "UPDATE_ELEMENT_CONTENT", payload: { id, content } });
+    },
+    []
+  );
+
+  const addElement = useCallback((element: Omit<LocalElementType, "id">) => {
+    const newElement = { ...element, id: uuidv4() };
+    console.log("Adding new element:", newElement);
+    dispatch({ type: "ADD_ELEMENT", payload: newElement });
   }, []);
 
-  const deleteElement = useCallback((id: string) => {
+  const deleteElement = useCallback((id: UniqueIdentifier) => {
     dispatch({ type: "DELETE_ELEMENT", payload: { id } });
   }, []);
 
-  const reorderElement = useCallback((activeId: string, overId: string) => {
-    dispatch({ type: "REORDER_ELEMENTS", payload: { activeId, overId } });
+  const reorderElement = useCallback((newOrder: UniqueIdentifier[]) => {
+    dispatch({ type: "REORDER_ELEMENT", payload: { newOrder } });
   }, []);
 
   const updateElementPosition = useCallback(
-    (id: string, position: Position) => {
+    (id: UniqueIdentifier, position: Position) => {
       dispatch({ type: "UPDATE_ELEMENT_POSITION", payload: { id, position } });
     },
     []
   );
 
-  const resizeElement = useCallback((id: string, height: number) => {
+  const resizeElement = useCallback((id: UniqueIdentifier, height: number) => {
     dispatch({ type: "RESIZE_ELEMENT", payload: { id, height } });
   }, []);
 
-  useEffect(() => {
-    console.log("Current elements state:", elements);
-  }, [elements]);
+  // useEffect(() => {
+  //   console.log("Current elements state:", elements);
+  // }, [elements]);
 
   const contextValue: ElementContextType = {
     elements,
+    selectedElement,
+    setSelectedElement,
+    setSelectedElementId,
     addElement,
     updateElement,
     updateElementContent,
@@ -175,24 +245,30 @@ export const addElement = (element: Omit<LocalElementType, "id">): Action => ({
 });
 
 export const updateElementPosition = (
-  id: string,
+  id: UniqueIdentifier,
   position: Position
 ): Action => ({
   type: "UPDATE_ELEMENT_POSITION",
   payload: { id, position },
 });
 
-export const updateElementContent = (id: string, content: string): Action => ({
+export const updateElementContent = (
+  id: UniqueIdentifier,
+  content: string
+): Action => ({
   type: "UPDATE_ELEMENT_CONTENT",
   payload: { id, content },
 });
 
-export const deleteElement = (id: string): Action => ({
+export const deleteElement = (id: UniqueIdentifier): Action => ({
   type: "DELETE_ELEMENT",
   payload: { id },
 });
 
-export const resizeElement = (id: string, height: number): Action => ({
+export const resizeElement = (
+  id: UniqueIdentifier,
+  height: number
+): Action => ({
   type: "RESIZE_ELEMENT",
   payload: { id, height },
 });

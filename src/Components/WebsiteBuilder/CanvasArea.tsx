@@ -2,13 +2,14 @@
 
 import {
   DndContext,
-  DragOverlay,
   useSensor,
   useSensors,
   PointerSensor,
   KeyboardSensor,
+  Modifier,
 } from "@dnd-kit/core";
 import {
+  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -16,15 +17,31 @@ import {
 import { useSelector } from "react-redux";
 import { useElementContext, useElementsDebug } from "./Slider/ElementContext";
 import { SiteContainer } from "@/src/Components/WebsiteBuilder/SiteContainer";
-import {
-  GlobalState,
-  LocalElementType,
-} from "@/src/Components/WebsiteBuilder/BuilderInterface";
+import { LocalElementType } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import LayoutElement from "./BuilderElement/LayoutElement";
 import FreeDraggableElement from "./BuilderElement/FreeDraggableElement";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
-import { UniqueIdentifier } from "@dnd-kit/core";
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import styled from "styled-components";
+import {
+  selectCanvasHeight,
+  selectSiteWidth,
+} from "@/src/libs/features/websiteBuilder/websiteBuliderSelector";
+
+export const CanvasAreaContainer = styled.div`
+  width: 100%;
+`;
+const customModifier: Modifier = ({ transform, active }) => {
+  // 假設 LayoutElement 的 data 中有一個 isLayout 屬性
+  if (active && active.data.current && active.data.current.isLayout) {
+    return {
+      ...transform,
+      x: 0, // 將 x 設置為 0，只允許垂直移動
+    };
+  }
+  return transform;
+};
 
 export const CanvasArea: React.FC = () => {
   const sensors = useSensors(
@@ -38,8 +55,8 @@ export const CanvasArea: React.FC = () => {
     })
   );
 
-  const siteWidth = useSelector((state: GlobalState) => state.siteWidth);
-  const canvasHeight = useSelector((state: GlobalState) => state.canvasHeight);
+  const siteWidth = useSelector(selectSiteWidth);
+  const canvasHeight = useSelector(selectCanvasHeight);
 
   const {
     elements,
@@ -47,34 +64,54 @@ export const CanvasArea: React.FC = () => {
     updateElement,
     deleteElement,
     reorderElement: reorderElements,
+    setSelectedElement,
   } = useElementContext();
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
-  useElementsDebug(); // 輸出 elements
+  useElementsDebug();
 
-  // 類型檢查
-  if (!Array.isArray(elements)) {
-    console.error("elements is not an array:", elements);
-    return null;
+  // 添加日誌來檢查 elements 的內容
+  useEffect(() => {
+    console.log("Current elements:", elements);
+  }, [elements]);
+
+  const [activeId, setActiveId] = useState<string | number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const handleElementClick = (id: string) => {
+    console.log("Element clicked:", id);
+    setSelectedId(id);
+    const selectedElement = elements.find((el) => el.id === id) || null;
+    console.log("Selected element:", selectedElement);
+    setSelectedElement(selectedElement);
+  };
+
+  const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    console.log("ha");
+    if (event.target === event.currentTarget) {
+      console.log("Canvas clicked");
+      setSelectedId(null);
+      setSelectedElement(null);
+    }
+  };
+
+  // 修改渲染邏輯，添加錯誤處理
+  if (!Array.isArray(elements) || elements.length === 0) {
+    console.warn("No elements to render or elements is not an array");
   }
 
   const handleDragStart = (event: DragStartEvent) => {
+    console.log("Drag started:", event.active.id);
     setActiveId(event.active.id);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    console.log("handleDragEnd");
     const { active, over, delta } = event;
-
-    console.log("Active:", active);
-    console.log("Over:", over);
 
     if (!active) {
       console.error("Invalid 'active' data:", active);
       return;
     }
 
-    // 查找活动元素
     const activeElement = elements.find((el) => el.id === active.id);
 
     if (!activeElement) {
@@ -82,25 +119,40 @@ export const CanvasArea: React.FC = () => {
       return;
     }
 
+    console.log("Drag ended. Active element:", activeElement);
+    console.log("Over element:", over);
+    console.log("Delta:", delta);
+
     if (over) {
-      // 如果有 over 对象，说明拖动到了可放置的区域
-      if (!activeElement.isLayout) {
-        reorderElements(active.id, over.id);
-      } else if (typeof over.x === "number" && typeof over.y === "number") {
-        updateElementPosition(active.id, { x: over.x, y: over.y });
+      if (activeElement.isLayout) {
+        // 布局元素的逻辑
+        if (active.id !== over.id) {
+          const layoutElements = elements.filter((el) => el.isLayout);
+          const layoutElementIds = layoutElements.map((el) => el.id);
+          const oldIndex = layoutElementIds.findIndex((id) => id === active.id);
+          const newIndex = layoutElementIds.findIndex((id) => id === over.id);
+
+          if (oldIndex !== -1 && newIndex !== -1) {
+            const newOrder = arrayMove(layoutElementIds, oldIndex, newIndex);
+            console.log("Reordering elements:", newOrder);
+            reorderElements(newOrder);
+          }
+        }
+      } else {
+        // 自由拖拉元素：更新位置
+        updateElementPosition(active.id, {
+          x: (activeElement.position?.x || 0) + (delta?.x || 0),
+          y: (activeElement.position?.y || 0) + (delta?.y || 0),
+        });
       }
-    } else {
-      // 如果没有 over 对象，说明拖动到了非可放置区域
-      if (activeElement.isLayout && delta) {
-        const newPosition = {
-          x: (activeElement.position?.x || 0) + delta.x,
-          y: (activeElement.position?.y || 0) + delta.y,
-        };
-        updateElementPosition(active.id, newPosition);
-      }
+    } else if (!activeElement.isLayout && delta) {
+      // 如果没有 over 对象，只更新自由拖拉元素的位置
+      updateElementPosition(active.id, {
+        x: (activeElement.position?.x || 0) + delta.x,
+        y: (activeElement.position?.y || 0) + delta.y,
+      });
     }
 
-    // 重置活动 ID
     setActiveId(null);
   };
 
@@ -120,9 +172,14 @@ export const CanvasArea: React.FC = () => {
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      modifiers={[restrictToWindowEdges, customModifier]}
     >
-      <div className="canvas-area">
-        <SiteContainer width={siteWidth} height={canvasHeight}>
+      <CanvasAreaContainer>
+        <SiteContainer
+          width={siteWidth}
+          height={canvasHeight}
+          onClick={handleCanvasClick}
+        >
           <SortableContext
             items={layoutElements.map((el) => el.id)}
             strategy={verticalListSortingStrategy}
@@ -135,6 +192,8 @@ export const CanvasArea: React.FC = () => {
                   handleElementUpdate(element.id, updates)
                 }
                 onDelete={() => deleteElement(element.id)}
+                isSelected={element.id === selectedId}
+                onClick={() => handleElementClick(element.id)}
               />
             ))}
           </SortableContext>
@@ -145,10 +204,12 @@ export const CanvasArea: React.FC = () => {
               {...element}
               onUpdate={(updates) => handleElementUpdate(element.id, updates)}
               onDelete={() => deleteElement(element.id)}
+              isSelected={element.id === selectedId}
+              onClick={() => handleElementClick(element.id)}
             />
           ))}
         </SiteContainer>
-      </div>
+      </CanvasAreaContainer>
     </DndContext>
   );
 };

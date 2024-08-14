@@ -16,7 +16,7 @@ import {
   FaList,
 } from "react-icons/fa";
 import styled from "styled-components";
-import { useElementContext } from "../Slider/ElementContext";
+import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 import { useElementLibrary } from "@/src/Components/WebsiteBuilder/useElementLibrary";
 
 const Container = styled.div`
@@ -95,6 +95,7 @@ export function Sidebar() {
     const localElement: LocalElementType = isLayout
       ? {
           ...baseElement,
+          responsiveBehavior: "scaleProportionally",
           isLayout: true,
         }
       : {

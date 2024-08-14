@@ -1,8 +1,9 @@
 // 實現網站容器，接受全局設置作為 props
 "use client";
 
-import React, { ReactNode, useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
+import { SiteContainerProps } from "./BuilderInterface";
 
 const Container = styled.div`
   width: 100%;
@@ -15,16 +16,11 @@ const Container = styled.div`
   position: relative; // Ensure positioning context for absolute children
 `;
 
-interface SiteContainerProps {
-  width?: string;
-  height?: string;
-  children: ReactNode;
-}
-
 export const SiteContainer: React.FC<SiteContainerProps> = ({
   children,
-  width = "1200px",
-  height = "1200px",
+  width = "100%",
+  height = "100dvh",
+  onClick,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,8 +30,19 @@ export const SiteContainer: React.FC<SiteContainerProps> = ({
     }
   }, []);
 
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // 確保點擊事件來自容器本身，而不是其子元素
+    if (event.target === event.currentTarget) {
+      onClick?.(event);
+    }
+  };
+
   return (
-    <Container ref={containerRef} style={{ width: width, height: height }}>
+    <Container
+      ref={containerRef}
+      style={{ width: width, height: height }}
+      onClick={handleClick}
+    >
       {children}
     </Container>
   );
