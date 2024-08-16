@@ -6,7 +6,7 @@ import {
   BaseElementData,
   GlobalElementType,
   LocalElementType,
-} from "@/src/Components/WebsiteBuilder/BuilderInterface";
+} from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
 import {
   FaFont,
   FaImage,
@@ -18,6 +18,7 @@ import {
 import styled from "styled-components";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 import { useElementLibrary } from "@/src/Components/WebsiteBuilder/useElementLibrary";
+import { elementConfigs } from "../SidebarEditor/elementConfigs";
 
 const Container = styled.div`
   width: 250px;
@@ -73,7 +74,6 @@ export function Sidebar() {
       id: uuidv4(),
       type,
       content,
-      height: 100, // 假設預設高度為 100
       isLayout,
       defaultProps: {
         position: isLayout ? undefined : { x: 0, y: 0 },
@@ -82,38 +82,59 @@ export function Sidebar() {
 
     // 添加到全局元素庫
     addElementLibrary(globalElement);
-    console.log("Adding new globalElement:", globalElement);
+    // console.log("Adding new globalElement:", globalElement);
 
     // 創建本地元素實例
     const baseElement: BaseElementData = {
       id: uuidv4(),
       type,
       content,
-      height: 100,
     };
 
-    const localElement: LocalElementType = isLayout
-      ? {
+    const createLocalElement = (isLayout: boolean): LocalElementType => {
+      if (isLayout) {
+        const layoutConfig = elementConfigs.layout.properties;
+        return {
           ...baseElement,
-          responsiveBehavior: "scaleProportionally",
           isLayout: true,
-        }
-      : {
+          config: {
+            size: {
+              width: layoutConfig.size.defaultValue.width,
+              height: layoutConfig.size.defaultValue.height,
+            },
+            responsiveBehavior: layoutConfig.responsiveBehavior.defaultValue,
+            useMaxWidth: layoutConfig.useMaxWidth.defaultValue,
+            boxModelEditor: {
+              padding: layoutConfig.boxModelEditor.defaultValue.padding,
+              margin: layoutConfig.boxModelEditor.defaultValue.margin,
+            },
+            backgroundColor: layoutConfig.backgroundColor.defaultValue,
+            backgroundOpacity: layoutConfig.backgroundOpacity.defaultValue,
+            media: layoutConfig.media.defaultValue,
+          },
+        };
+      } else {
+        return {
           ...baseElement,
           isLayout: false,
           position: { x: 0, y: 0 },
         };
+      }
+    };
+
+    const localElement = createLocalElement(isLayout);
 
     // 添加到本地元素狀態
     addElement(localElement);
-
-    console.log("Adding new localElement:", localElement);
+    // console.log("Adding new localElement:", localElement);
   };
   return (
     <Container>
       <ToolSection>
         <SectionTitle>Add Elements</SectionTitle>
-        <ToolButton onClick={() => handleAddElement("text", "New Text")}>
+        <ToolButton
+          onClick={() => handleAddElement("textElement", "Add a Title")}
+        >
           <FaFont size={18} />
           Text
         </ToolButton>

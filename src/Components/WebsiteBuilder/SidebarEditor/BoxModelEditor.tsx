@@ -1,113 +1,228 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 
-interface BoxModelEditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  label: string;
-}
-
 const EditorContainer = styled.div`
-  width: 200px;
-  height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+`;
+
+const BoxModelVisualization = styled.div`
   position: relative;
-  border: 1px solid #ccc;
+  width: 100%;
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const BaseBox = styled.div`
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #333;
+`;
+
+const MarginBox = styled(BaseBox)`
+  width: 90%;
+  height: 90%;
+  background-color: #f0f0f0;
+  &::hover {
+    background-color: #f1cda5;
+  }
+`;
+
+const BorderBox = styled(BaseBox)`
+  width: 70%;
+  height: 70%;
+  background-color: #e0e0e0;
+  &::hover {
+    background-color: #f7dea3;
+  }
+`;
+
+const PaddingBox = styled(BaseBox)`
+  width: 50%;
+  height: 50%;
+  background-color: #d0d0d0;
+  &::hover {
+    background-color: #c5cf93;
+  }
+`;
+
+const ContentBox = styled(BaseBox)`
+  width: 30%;
+  height: 30%;
+  background-color: #ffffff;
+  border: none;
+  &::hover {
+    background-color: #95b5c0;
+  }
+`;
+
+const Label = styled.div`
+  position: absolute;
+  font-size: 12px;
+  color: #666;
+`;
+
+const MarginLabel = styled(Label)`
+  top: 5px;
+  left: 5px;
+`;
+
+const BorderLabel = styled(Label)`
+  top: 5px;
+  left: 5px;
+`;
+
+const PaddingLabel = styled(Label)`
+  top: 5px;
+  left: 5px;
+`;
+
+const InputsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+`;
+
+const PropertyInputs = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 200px;
+`;
+
+const PropertyLabel = styled.div`
+  font-weight: bold;
+  color: #333;
+  text-transform: capitalize;
+`;
+
+const InputWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const InputLabel = styled.label`
+  min-width: 50px;
+  color: #666;
 `;
 
 const Input = styled.input`
-  width: 40px;
-  position: absolute;
-  text-align: center;
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
 `;
 
-const TopInput = styled(Input)`
-  top: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-`;
+interface BoxModelValues {
+  margin: [number, number, number, number];
+  padding: [number, number, number, number];
+}
 
-const RightInput = styled(Input)`
-  top: 50%;
-  right: 5px;
-  transform: translateY(-50%);
-`;
+interface BoxModelEditorProps {
+  value?: BoxModelValues;
+  onChange: (value: BoxModelValues) => void;
+}
 
-const BottomInput = styled(Input)`
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-`;
+const defaultValue: BoxModelValues = {
+  margin: [0, 0, 0, 0],
+  padding: [0, 0, 0, 0],
+};
 
-const LeftInput = styled(Input)`
-  top: 50%;
-  left: 5px;
-  transform: translateY(-50%);
-`;
-
-const BoxModelEditor: React.FC<BoxModelEditorProps> = ({
-  value,
-  onChange,
-  label,
-}) => {
-  const [values, setValues] = useState(() => {
-    const parts = value.split(" ");
-    if (parts.length === 1) {
-      return {
-        top: parts[0],
-        right: parts[0],
-        bottom: parts[0],
-        left: parts[0],
-      };
-    }
-    if (parts.length === 2) {
-      return {
-        top: parts[0],
-        right: parts[1],
-        bottom: parts[0],
-        left: parts[1],
-      };
-    }
-    if (parts.length === 4) {
-      return {
-        top: parts[0],
-        right: parts[1],
-        bottom: parts[2],
-        left: parts[3],
-      };
-    }
-    return { top: "0px", right: "0px", bottom: "0px", left: "0px" };
+const BoxModelEditor: React.FC<BoxModelEditorProps> = ({ value, onChange }) => {
+  const [localValue, setLocalValue] = useState<BoxModelValues>(() => {
+    console.log("Initial value:", value);
+    return value || defaultValue;
   });
 
-  const handleChange = (
-    side: "top" | "right" | "bottom" | "left",
-    newValue: string
-  ) => {
-    const updatedValues = { ...values, [side]: newValue };
-    setValues(updatedValues);
-    onChange(
-      `${updatedValues.top} ${updatedValues.right} ${updatedValues.bottom} ${updatedValues.left}`
-    );
-  };
+  useEffect(() => {
+    console.log("Value changed:", value);
+    if (value) {
+      setLocalValue(value);
+    }
+  }, [value]);
+
+  const handleChange = useCallback(
+    (property: "margin" | "padding", index: number, newValue: string) => {
+      const numValue = newValue === "" ? 0 : parseFloat(newValue);
+      if (!isNaN(numValue)) {
+        const updatedValues = {
+          ...localValue,
+          [property]: localValue[property].map((v, i) =>
+            i === index ? numValue : v
+          ) as [number, number, number, number],
+        };
+        console.log("Updated local value:", updatedValues);
+        setLocalValue(updatedValues);
+        onChange(updatedValues);
+      }
+    },
+    [localValue, onChange]
+  );
+
+  const renderInput = useCallback(
+    (property: "margin" | "padding", index: number, label: string) => (
+      <InputWrapper key={`${property}-${label}`}>
+        <InputLabel>{`${property} ${label}`}</InputLabel>
+        <Input
+          type="number"
+          value={localValue[property][index]}
+          onChange={(e) => handleChange(property, index, e.target.value)}
+          onBlur={(e) => {
+            const numValue = parseFloat(e.target.value) || 0;
+            handleChange(property, index, numValue.toString());
+          }}
+        />
+      </InputWrapper>
+    ),
+    [localValue, handleChange]
+  );
+
+  if (!localValue) {
+    console.error("BoxModelEditor: localValue is undefined");
+    return <div>Error: Unable to load box model editor</div>;
+  }
 
   return (
     <EditorContainer>
-      <TopInput
-        value={values.top}
-        onChange={(e) => handleChange("top", e.target.value)}
-      />
-      <RightInput
-        value={values.right}
-        onChange={(e) => handleChange("right", e.target.value)}
-      />
-      <BottomInput
-        value={values.bottom}
-        onChange={(e) => handleChange("bottom", e.target.value)}
-      />
-      <LeftInput
-        value={values.left}
-        onChange={(e) => handleChange("left", e.target.value)}
-      />
-      <div style={{ textAlign: "center", paddingTop: "85px" }}>{label}</div>
+      <BoxModelVisualization>
+        <MarginBox>
+          <MarginLabel>margin</MarginLabel>
+          <BorderBox>
+            <BorderLabel>border</BorderLabel>
+            <PaddingBox>
+              <PaddingLabel>padding</PaddingLabel>
+              <ContentBox></ContentBox>
+            </PaddingBox>
+          </BorderBox>
+        </MarginBox>
+      </BoxModelVisualization>
+      <InputsContainer>
+        {(["margin", "padding"] as const).map((property) => (
+          <PropertyInputs key={property}>
+            <PropertyLabel>{property}</PropertyLabel>
+            {renderInput(property, 0, "top")}
+            {renderInput(property, 1, "right")}
+            {renderInput(property, 2, "bottom")}
+            {renderInput(property, 3, "left")}
+          </PropertyInputs>
+        ))}
+      </InputsContainer>
     </EditorContainer>
   );
 };

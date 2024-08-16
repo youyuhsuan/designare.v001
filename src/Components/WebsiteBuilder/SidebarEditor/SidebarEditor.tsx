@@ -1,203 +1,262 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 import {
   CustomInputProps,
+  LocalElementType,
   PropertyConfigWithComposite,
-} from "../BuilderInterface";
+} from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
 import { elementConfigs } from "./elementConfigs";
-import { useDispatch, useSelector } from "react-redux";
-import { selectElementInstanceById } from "@/src/libs/features/websiteBuilder/websiteBuliderSelector";
-import { updateElementInstance } from "@/src/libs/features/websiteBuilder/websiteBuilderSlice";
-import { RootState } from "@/src/libs/store";
 
 const SidebarEditor: React.FC = () => {
-  const { selectedElement } = useElementContext();
-  const dispatch = useDispatch();
-
-  const elementData = useSelector((state: RootState) =>
-    selectedElement
-      ? selectElementInstanceById(selectedElement.id)(state)
-      : null
+  const { selectedElement, updateSelectedElement } = useElementContext();
+  const [localElement, setLocalElement] = useState<LocalElementType | null>(
+    null
   );
 
-  if (!selectedElement) {
-    return <div>No element selected</div>;
-  }
+  useEffect(() => {
+    if (selectedElement) {
+      setLocalElement(selectedElement);
+    }
+  }, [selectedElement]);
 
-  const elementType = selectedElement.isLayout ? "layout" : "freeDraggable";
-  const config = elementConfigs[elementType];
+  const currentValues = useMemo(() => {
+    if (!localElement) return null;
 
-  const handleChange = (key: string, value: any) => {
-    dispatch(
-      updateElementInstance({
-        id: selectedElement.id,
-        updates: { [key]: value },
-      })
+    const elementType = localElement.isLayout ? "layout" : "freeDraggable";
+    const typeConfig = elementConfigs[elementType];
+
+    return Object.entries(typeConfig.properties).reduce(
+      (acc, [key, config]) => {
+        acc[key] = localElement.config?.[key] ?? config.defaultValue;
+        return acc;
+      },
+      {} as Record<string, any>
     );
-  };
+  }, [localElement]);
 
-  const renderField = (
-    key: string,
-    fieldConfig: PropertyConfigWithComposite,
-    parentKey: string = ""
-  ) => {
-    const fullKey = parentKey ? `${parentKey}.${key}` : key;
-    const value = parentKey
-      ? getNestedValue(elementData, fullKey) ?? fieldConfig.defaultValue
-      : elementData?.[key] ?? fieldConfig.defaultValue;
+  const handleChange = useCallback(
+    (propertyPath: string, value: any) => {
+      setLocalElement((prev) => {
+        if (!prev) return null;
 
-    switch (fieldConfig.type) {
-      case "text":
-      case "number":
-        return (
-          <div key={fullKey}>
-            <label htmlFor={`${selectedElement.id}-${fullKey}`}>
-              {fieldConfig.label}
-            </label>
-            <input
-              id={`${selectedElement.id}-${fullKey}`}
-              type={fieldConfig.type}
-              value={value}
-              onChange={(e) =>
-                handleChange(
-                  fullKey,
-                  fieldConfig.transform
-                    ? fieldConfig.transform(e.target.value)
-                    : e.target.value
-                )
-              }
-            />
-            {fieldConfig.unit && <span>{fieldConfig.unit}</span>}
-          </div>
-        );
+        const updatedElement = { ...prev };
+        updatedElement.config = { ...updatedElement.config };
 
-      case "select":
-        return (
-          <div key={fullKey}>
-            <label htmlFor={`${selectedElement.id}-${fullKey}`}>
-              {fieldConfig.label}
-            </label>
-            <select
-              id={`${selectedElement.id}-${fullKey}`}
-              value={value}
-              onChange={(e) => handleChange(fullKey, e.target.value)}
-            >
-              {fieldConfig.options?.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-        );
+        const pathParts = propertyPath.split(".");
+        let current: any = updatedElement.config;
 
-      case "checkbox":
-        return (
-          <div key={fullKey}>
-            <label>
-              <input
-                id={`${selectedElement.id}-${fullKey}`}
-                type="checkbox"
-                checked={!!value}
-                onChange={(e) => handleChange(fullKey, e.target.checked)}
-              />
-              {fieldConfig.label}
-            </label>
-          </div>
-        );
-
-      case "color":
-        return (
-          <div key={fullKey}>
-            <label htmlFor={`${selectedElement.id}-${fullKey}`}>
-              {fieldConfig.label}
-            </label>
-            <input
-              id={`${selectedElement.id}-${fullKey}`}
-              type="color"
-              value={value || ""}
-              onChange={(e) => handleChange(fullKey, e.target.value)}
-            />
-          </div>
-        );
-
-      case "composite":
-        if (!fieldConfig.compositeFields) {
-          return <p key={fullKey}>No composite fields available</p>;
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          if (!current[pathParts[i]]) {
+            current[pathParts[i]] = {};
+          }
+          current = current[pathParts[i]];
         }
-        return (
-          <div key={fullKey}>
-            <label>{fieldConfig.label}</label>
-            {Object.entries(fieldConfig.compositeFields).map(
-              ([subKey, subConfig]) => (
-                <div key={`${fullKey}-${subKey}`}>
-                  <label htmlFor={`${selectedElement.id}-${fullKey}-${subKey}`}>
-                    {subKey}
-                  </label>
-                  <input
-                    id={`${selectedElement.id}-${fullKey}-${subKey}`}
-                    type={subConfig.type}
-                    value={value && value[subKey] ? value[subKey] : ""}
-                    onChange={(e) =>
-                      handleChange(fullKey, {
-                        ...value,
-                        [subKey]: subConfig.transform
-                          ? subConfig.transform(e.target.value)
-                          : e.target.value,
-                      })
-                    }
-                  />
-                  {subConfig.unit && <span>{subConfig.unit}</span>}
-                </div>
-              )
-            )}
-          </div>
-        );
+        current[pathParts[pathParts.length - 1]] = value;
 
-      case "object":
-        if (!fieldConfig.properties) {
-          return <p key={fullKey}>No object properties available</p>;
-        }
-        return (
-          <div key={fullKey}>
-            <label>{fieldConfig.label}</label>
-            {Object.entries(fieldConfig.properties).map(([subKey, subConfig]) =>
-              renderField(
-                subKey,
-                subConfig as PropertyConfigWithComposite,
-                fullKey
-              )
-            )}
-          </div>
-        );
+        updateSelectedElement(prev.id, `config.${propertyPath}`, value);
+        console.log("updatedElement", updatedElement);
+        return updatedElement;
+      });
+    },
+    [updateSelectedElement]
+  );
 
-      case "custom":
-        if (fieldConfig.renderCustomInput) {
+  const renderField = useCallback(
+    (
+      key: string,
+      fieldConfig: PropertyConfigWithComposite,
+      parentKey: string = ""
+    ) => {
+      const fullKey = parentKey ? `${parentKey}.${key}` : key;
+      const value = currentValues
+        ? getNestedValue(currentValues, fullKey)
+        : fieldConfig.defaultValue;
+
+      if (!selectedElement) {
+        return <div>No element selected or data not loaded</div>;
+      }
+      switch (fieldConfig.type) {
+        case "text":
+        case "number":
           return (
             <div key={fullKey}>
               <label htmlFor={`${selectedElement.id}-${fullKey}`}>
                 {fieldConfig.label}
               </label>
-              {fieldConfig.renderCustomInput({
-                id: `${selectedElement.id}-${fullKey}`,
-                value,
-                onChange: (newValue) => handleChange(fullKey, newValue),
-              } as CustomInputProps)}
+              <input
+                id={`${selectedElement.id}-${fullKey}`}
+                type={fieldConfig.type}
+                value={value === null || value === undefined ? "" : value}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  if (fieldConfig.type === "number") {
+                    const transformedValue =
+                      newValue === ""
+                        ? ""
+                        : fieldConfig.transform
+                        ? fieldConfig.transform(newValue)
+                        : Number(newValue);
+                    handleChange(fullKey, transformedValue);
+                  } else {
+                    handleChange(
+                      fullKey,
+                      fieldConfig.transform
+                        ? fieldConfig.transform(newValue)
+                        : newValue
+                    );
+                  }
+                }}
+              />
+              {fieldConfig.unit && <span>{fieldConfig.unit}</span>}
             </div>
           );
-        }
-        return null;
+        case "select":
+          return (
+            <div key={fullKey}>
+              <label htmlFor={`${selectedElement.id}-${fullKey}`}>
+                {fieldConfig.label}
+              </label>
+              <select
+                id={`${selectedElement.id}-${fullKey}`}
+                value={value}
+                onChange={(e) => handleChange(fullKey, e.target.value)}
+              >
+                {fieldConfig.options?.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          );
+        case "checkbox":
+          return (
+            <div key={fullKey}>
+              <label>
+                <input
+                  id={`${selectedElement.id}-${fullKey}`}
+                  type="checkbox"
+                  checked={!!value}
+                  onChange={(e) => handleChange(fullKey, e.target.checked)}
+                />
+                {fieldConfig.label}
+              </label>
+            </div>
+          );
 
-      default:
-        return null;
-    }
-  };
+        case "color":
+          return (
+            <div key={fullKey}>
+              <label htmlFor={`${selectedElement.id}-${fullKey}`}>
+                {fieldConfig.label}
+              </label>
+              <input
+                id={`${selectedElement.id}-${fullKey}`}
+                type="color"
+                value={value || ""}
+                onChange={(e) => handleChange(fullKey, e.target.value)}
+              />
+            </div>
+          );
+
+        case "composite":
+          if (!fieldConfig.compositeFields) {
+            return <p key={fullKey}>No composite fields available</p>;
+          }
+
+          if (fieldConfig.renderCustomInput) {
+            const inputValue =
+              value !== undefined && value !== null
+                ? value
+                : fieldConfig.defaultValue;
+
+            return (
+              <div key={fullKey}>
+                <label htmlFor={`${selectedElement.id}-${fullKey}`}>
+                  {fieldConfig.label}
+                </label>
+                {fieldConfig.renderCustomInput({
+                  id: `${selectedElement.id}-${fullKey}`,
+                  value: inputValue,
+                  onChange: (newValue) => {
+                    const processedValue =
+                      newValue === undefined || newValue === null
+                        ? fieldConfig.defaultValue
+                        : newValue;
+                    handleChange(fullKey, processedValue);
+                  },
+                })}
+              </div>
+            );
+          }
+
+          return (
+            <div key={fullKey}>
+              <label>{fieldConfig.label}</label>
+              {Object.entries(fieldConfig.compositeFields).map(
+                ([subKey, subConfig]) =>
+                  renderField(
+                    subKey,
+                    subConfig as PropertyConfigWithComposite,
+                    fullKey
+                  )
+              )}
+            </div>
+          );
+        case "object":
+          if (!fieldConfig.properties) {
+            return <p key={fullKey}>No object properties available</p>;
+          }
+          return (
+            <div key={fullKey}>
+              <label>{fieldConfig.label}</label>
+              {Object.entries(fieldConfig.properties).map(
+                ([subKey, subConfig]) =>
+                  renderField(
+                    subKey,
+                    subConfig as PropertyConfigWithComposite,
+                    fullKey
+                  )
+              )}
+            </div>
+          );
+
+        case "custom":
+          if (fieldConfig.renderCustomInput) {
+            return (
+              <div key={fullKey}>
+                <label htmlFor={`${selectedElement.id}-${fullKey}`}>
+                  {fieldConfig.label}
+                </label>
+                {fieldConfig.renderCustomInput({
+                  id: `${selectedElement.id}-${fullKey}`,
+                  value,
+                  onChange: (newValue) => handleChange(fullKey, newValue),
+                } as CustomInputProps)}
+              </div>
+            );
+          }
+          return null;
+
+        default:
+          return null;
+      }
+    },
+    [currentValues, handleChange, selectedElement]
+  );
+
+  if (!selectedElement || !currentValues) {
+    return <div>No element selected or data not loaded</div>;
+  }
 
   const getNestedValue = (obj: any, path: string) => {
     return path.split(".").reduce((acc, part) => acc && acc[part], obj);
   };
+
+  const elementType = selectedElement.isLayout ? "layout" : "freeDraggable";
+  const config = elementConfigs[elementType];
 
   return (
     <>

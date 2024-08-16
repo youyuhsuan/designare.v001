@@ -9,7 +9,6 @@ export const useElementLibrary = () => {
   const addElementLibrary = (globalElement: Omit<GlobalElementType, "id">) => {
     const newElement: GlobalElementType = {
       ...globalElement,
-      id: uuidv4(),
     };
     dispatch(addToElementLibrary(newElement));
   };

@@ -32,28 +32,6 @@ export const selectElementConfigs = createSelector(
   (library) => library.configs
 );
 
-// 元素实例选择器
-export const selectAllElementInstances = createSelector(
-  selectWebsiteBuilderState,
-  (state) => state.instances
-);
-
-export const selectElementInstanceById = (id: string) =>
-  createSelector(selectAllElementInstances, (instances) => instances[id]);
-// 一个以 ID 为键的对象，其中包含了所有元素的实际数据
-
-// 活动元素选择器
-export const selectActiveElementId = createSelector(
-  selectWebsiteBuilderState,
-  (state) => state.activeElementId
-);
-
-export const selectActiveElement = createSelector(
-  selectAllElementInstances,
-  selectActiveElementId,
-  (instances, activeId) => (activeId ? instances[activeId] : null)
-);
-
 // 历史记录选择器
 export const selectHistory = createSelector(
   selectWebsiteBuilderState,

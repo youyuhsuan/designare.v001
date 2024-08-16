@@ -20,7 +20,7 @@ import { SiteContainer } from "@/src/Components/WebsiteBuilder/SiteContainer";
 import { LocalElementType } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import LayoutElement from "./BuilderElement/LayoutElement";
 import FreeDraggableElement from "./BuilderElement/FreeDraggableElement";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import styled from "styled-components";
@@ -70,25 +70,24 @@ export const CanvasArea: React.FC = () => {
   useElementsDebug();
 
   // 添加日誌來檢查 elements 的內容
-  useEffect(() => {
-    console.log("Current elements:", elements);
-  }, [elements]);
+  // useEffect(() => {
+  //   console.log("Current elements:", elements);
+  // }, [elements]);
 
   const [activeId, setActiveId] = useState<string | number | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const handleElementClick = (id: string) => {
-    console.log("Element clicked:", id);
+    // console.log("Element clicked:", id);
     setSelectedId(id);
     const selectedElement = elements.find((el) => el.id === id) || null;
-    console.log("Selected element:", selectedElement);
+    // console.log("Selected element:", selectedElement);
     setSelectedElement(selectedElement);
   };
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    console.log("ha");
     if (event.target === event.currentTarget) {
-      console.log("Canvas clicked");
+      // console.log("Canvas clicked");
       setSelectedId(null);
       setSelectedElement(null);
     }
@@ -100,7 +99,7 @@ export const CanvasArea: React.FC = () => {
   }
 
   const handleDragStart = (event: DragStartEvent) => {
-    console.log("Drag started:", event.active.id);
+    // console.log("Drag started:", event.active.id);
     setActiveId(event.active.id);
   };
 
@@ -119,9 +118,9 @@ export const CanvasArea: React.FC = () => {
       return;
     }
 
-    console.log("Drag ended. Active element:", activeElement);
-    console.log("Over element:", over);
-    console.log("Delta:", delta);
+    // console.log("Drag ended. Active element:", activeElement);
+    // console.log("Over element:", over);
+    // console.log("Delta:", delta);
 
     if (over) {
       if (activeElement.isLayout) {
@@ -134,7 +133,7 @@ export const CanvasArea: React.FC = () => {
 
           if (oldIndex !== -1 && newIndex !== -1) {
             const newOrder = arrayMove(layoutElementIds, oldIndex, newIndex);
-            console.log("Reordering elements:", newOrder);
+            // console.log("Reordering elements:", newOrder);
             reorderElements(newOrder);
           }
         }
@@ -160,7 +159,7 @@ export const CanvasArea: React.FC = () => {
     id: string,
     updates: Partial<LocalElementType>
   ) => {
-    console.log("handleElementUpdate called", id, updates);
+    // console.log("handleElementUpdate called", id, updates);
     updateElement(id, updates);
   };
 

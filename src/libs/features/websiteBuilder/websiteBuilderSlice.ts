@@ -78,7 +78,9 @@ export const websiteBuilderSlice = createSlice({
     ) => {
       state.elementLibrary.elements[action.payload.id] = action.payload;
     },
-    updateElementConfig: (
+    // 更新 elementLibrary.configs 中某个 elementType 的 property 配置
+    // 更新元素库中某种类型元素的属性配置
+    updateElementProperty: (
       state,
       action: PayloadAction<{
         elementType: string;
@@ -97,29 +99,31 @@ export const websiteBuilderSlice = createSlice({
         };
       }
     },
-    createElementInstance: (
-      state,
-      action: PayloadAction<{ id: string; type: string }>
-    ) => {
-      const { id, type } = action.payload;
-      const config = state.elementLibrary.configs[type];
-      if (config) {
-        state.instances[id] = { id, type } as BaseElementData;
-        // 將配置中的默認值應用到實例
-        Object.entries(config).forEach(([key, value]) => {
-          (state.instances[id] as any)[key] = value.defaultValue;
-        });
-      }
-    },
-    updateElementInstance: (
-      state,
-      action: PayloadAction<{ id: string; updates: Partial<BaseElementData> }>
-    ) => {
-      const { id, updates } = action.payload;
-      if (state.instances[id]) {
-        state.instances[id] = { ...state.instances[id], ...updates };
-      }
-    },
+    // // 实例化新元素
+    // createElementInstance: (
+    //   state,
+    //   action: PayloadAction<{ id: string; type: string }>
+    // ) => {
+    //   const { id, type } = action.payload;
+    //   const config = state.elementLibrary.configs[type];
+    //   if (config) {
+    //     state.instances[id] = { id, type } as BaseElementData;
+    //     // 將配置中的默認值應用到實例
+    //     Object.entries(config).forEach(([key, value]) => {
+    //       (state.instances[id] as any)[key] = value.defaultValue;
+    //     });
+    //   }
+    // },
+    // // 修改现有元素的属性
+    // updateElementInstance: (
+    //   state,
+    //   action: PayloadAction<{ id: string; updates: Partial<BaseElementData> }>
+    // ) => {
+    //   const { id, updates } = action.payload;
+    //   if (state.instances[id]) {
+    //     state.instances[id] = { ...state.instances[id], ...updates };
+    //   }
+    // },
     setSiteWidth: (state, action: PayloadAction<string>) => {
       state.globalSettings.siteWidth = action.payload;
     },
@@ -137,9 +141,9 @@ export const {
   addToElementLibrary,
   removeFromElementLibrary,
   updateElementLibraryItem,
-  updateElementConfig,
-  createElementInstance,
-  updateElementInstance,
+  updateElementProperty,
+  // createElementInstance,
+  // updateElementInstance,
   setSiteWidth,
   setCanvasHeight,
   setActiveElementId,
