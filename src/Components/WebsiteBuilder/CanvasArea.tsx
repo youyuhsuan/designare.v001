@@ -78,10 +78,10 @@ export const CanvasArea: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const handleElementClick = (id: string) => {
-    // console.log("Element clicked:", id);
+    console.log("Element clicked:", id);
     setSelectedId(id);
     const selectedElement = elements.find((el) => el.id === id) || null;
-    // console.log("Selected element:", selectedElement);
+    console.log("Selected element:", selectedElement);
     setSelectedElement(selectedElement);
   };
 

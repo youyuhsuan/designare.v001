@@ -7,7 +7,7 @@ export interface SiteContainerProps {
   onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-export interface SectionWrapperProps {
-  $isDragging?: boolean;
-  isSelected?: boolean;
+// Config
+export interface configProps {
+  $config: any;
 }

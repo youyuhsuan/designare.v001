@@ -40,8 +40,8 @@ const elementReducer = (
   state: LocalElementType[],
   action: Action
 ): LocalElementType[] => {
-  // console.log("Current State:", state);
-  // console.log("Action Dispatched:", action);
+  console.log("Current State:", state);
+  console.log("Action Dispatched:", action);
 
   switch (action.type) {
     case "ADD_ELEMENT":
@@ -129,13 +129,13 @@ export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<LocalElementType | null>(null);
 
   // Debug
-  // useEffect(() => {
-  //   console.log("Elements updated:", elements);
-  // }, [elements]);
+  useEffect(() => {
+    console.log("Elements updated:", elements);
+  }, [elements]);
 
-  // useEffect(() => {
-  //   console.log("Current elements state:", elements);
-  // }, [elements]);
+  useEffect(() => {
+    console.log("Current elements state:", elements);
+  }, [elements]);
 
   // ID 設置當前選中的元素
   const setSelectedElementId = (id: UniqueIdentifier | null) => {

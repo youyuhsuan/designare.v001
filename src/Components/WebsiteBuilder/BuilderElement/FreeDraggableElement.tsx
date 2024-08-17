@@ -4,34 +4,23 @@ import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import styled from "styled-components";
 import Image from "next/image";
+import { ContentProps, FreeDraggableElementProps } from "../BuilderInterface";
+import { useElementContext } from "../Slider/ElementContext";
 
-interface FreeDraggableElementProps {
-  id: string;
-  content: string | React.ReactNode;
-  height: number;
-  position: { x: number; y: number };
-  type: string;
-  isLayout: boolean;
-  onUpdate: (updates: Partial<FreeDraggableElementProps>) => void;
-  onDelete: () => void;
-}
-
-const ElementWrapper = styled.div<{ $isDragging: boolean; $isLayout: boolean }>`
+const ElementWrapper = styled.div<ContentProps>`
   position: absolute;
   user-select: none;
-  cursor: ${(props) => (props.$isLayout ? "default" : "move")};
+  color: ${(props) => props.$config.color};
   opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
-  /* Add other styles as needed */
 `;
 
-const EditInput = styled.input`
+const EditInput = styled.input<ContentProps>`
   width: 100%;
   height: 100%;
   border: none;
   background: transparent;
-  font-size: inherit;
-  font-family: inherit;
-  color: inherit;
+  font-size: ${(props) => props.$config.fontSize || 16};
+  font-family: ${(props) => props.$config.fontFamily};
   padding: 0;
   margin: 0;
 `;
@@ -60,18 +49,21 @@ const DeleteButton = styled.button`
 const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   id,
   content,
-  height,
-  position = { x: 0, y: 0 },
+  config,
   type,
   isLayout,
   onUpdate,
   onDelete,
+  isSelected,
+  onClick,
 }) => {
-  const [localPosition, setLocalPosition] = useState(position);
+  const { updateSelectedElement } = useElementContext();
+  const [localPosition, setLocalPosition] = useState(config.position);
   const [isEditing, setIsEditing] = useState(false);
   const [editableContent, setEditableContent] = useState(content as string);
   const isDraggingRef = useRef(false);
-  const editInputRef = useRef<HTMLInputElement>(null);
+  const elementRef = useRef<HTMLInputElement>(null);
+  // console.log("config.position", config.position);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -90,21 +82,22 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
 
   useEffect(() => {
     if (!isDragging) {
-      setLocalPosition(position);
+      setLocalPosition(config.position.y);
     }
-  }, [position, isDragging]);
+  }, [config.position.y, isDragging]);
 
   useEffect(() => {
     if (isDragging && transform) {
       setLocalPosition({
-        x: position.x + (transform.x ?? 0),
-        y: position.y + (transform.y ?? 0),
+        x: config.position.x + (transform.x ?? 0),
+        y: config.position.y + (transform.y ?? 0),
       });
     }
-  }, [transform, position, isDragging]);
+  }, [transform, config.position, isDragging]);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     if (type === "text" || type === "button") {
+      console.log("handleDoubleClick");
       e.stopPropagation();
       setIsEditing(true);
     }
@@ -116,13 +109,33 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   };
 
   useEffect(() => {
-    if (isEditing && editInputRef.current) {
-      editInputRef.current.focus();
+    if (isEditing && elementRef.current) {
+      elementRef.current.focus();
     }
   }, [isEditing]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key === "Backspace" &&
+        document.activeElement === elementRef.current
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        onDelete();
+        console.log(`Element ${id} - Deleted`);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [id, onDelete]);
+
   const style = {
-    height: `${height}px`,
+    height: `${config.height}px`,
     transform: CSS.Transform.toString({
       x: localPosition.x,
       y: localPosition.y,
@@ -135,8 +148,9 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     if (isEditing) {
       return (
         <EditInput
-          ref={editInputRef}
+          ref={elementRef}
           value={editableContent}
+          $config={config}
           onChange={(e) => setEditableContent(e.target.value)}
           onBlur={handleBlur}
           onKeyPress={(e) => {
@@ -149,7 +163,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     }
 
     switch (type) {
-      case "textElement":
+      case "text":
         return <p>{content}</p>;
       case "image":
         return (
@@ -174,7 +188,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     (e: React.MouseEvent) => {
       e.preventDefault();
       const startY = e.clientY;
-      const startHeight = height;
+      const startHeight = config.height;
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
         const deltaHeight = moveEvent.clientY - startY;
@@ -190,15 +204,17 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
     },
-    [height, onUpdate]
+    [config.height, onUpdate]
   );
 
   return (
     <ElementWrapper
       ref={setNodeRef}
       style={style}
+      $config={config}
       $isDragging={isDragging}
-      $isLayout={isLayout}
+      isSelected={isSelected}
+      onClick={onClick}
       onDoubleClick={handleDoubleClick}
       {...(isLayout ? {} : { ...attributes, ...listeners })}
     >

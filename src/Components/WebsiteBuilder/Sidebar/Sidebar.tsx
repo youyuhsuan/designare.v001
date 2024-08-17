@@ -67,7 +67,8 @@ export function Sidebar() {
   const handleAddElement = (
     type: string,
     content: string,
-    isLayout: boolean = false
+    isLayout: boolean = false,
+    elementType?: string
   ) => {
     // 創建全局元素類型
     const globalElement: GlobalElementType = {
@@ -114,10 +115,46 @@ export function Sidebar() {
           },
         };
       } else {
+        const freeDraggableConfig = elementConfigs.freeDraggable.properties;
+        const freeDraggableSubtypes = elementConfigs.freeDraggable.subtypes;
+
+        const text = {
+          size: freeDraggableSubtypes?.text.properties.size.defaultValue(
+            elementType
+          ),
+          fontSize:
+            freeDraggableSubtypes?.text.properties.fontSize.defaultValue(
+              elementType
+            ),
+          fontType:
+            freeDraggableSubtypes?.text.properties.fontType.defaultValue(
+              elementType
+            ),
+          textColor:
+            freeDraggableSubtypes?.text.properties.textColor.defaultValue,
+          letterSpacing:
+            freeDraggableSubtypes?.text.properties.letterSpacing.defaultValue,
+          lineHeight:
+            freeDraggableSubtypes?.text.properties.lineHeight.defaultValue(
+              elementType
+            ),
+          fontFamily:
+            freeDraggableSubtypes?.text.properties.fontFamily.defaultValue,
+        };
+        console.log(freeDraggableConfig.position.defaultValue);
+
         return {
           ...baseElement,
           isLayout: false,
-          position: { x: 0, y: 0 },
+          config: {
+            horizontalAlignment:
+              freeDraggableConfig.horizontalAlignment.defaultValue,
+            verticalAlignment:
+              freeDraggableConfig.verticalAlignment.defaultValue,
+            distribution: freeDraggableConfig.distribution.defaultValue,
+            position: freeDraggableConfig.position.defaultValue,
+            ...(type === "text" ? { text } : {}),
+          },
         };
       }
     };
@@ -133,12 +170,12 @@ export function Sidebar() {
       <ToolSection>
         <SectionTitle>Add Elements</SectionTitle>
         <ToolButton
-          onClick={() => handleAddElement("textElement", "Add a Title")}
+          onClick={() => handleAddElement("text", "Add a Title", false, "H1")}
         >
           <FaFont size={18} />
           Text
         </ToolButton>
-        <ToolButton
+        {/* <ToolButton
           onClick={() =>
             handleAddElement("image", "https://via.placeholder.com/150")
           }
@@ -149,7 +186,7 @@ export function Sidebar() {
         <ToolButton onClick={() => handleAddElement("button", "New Button")}>
           <FaLink size={18} />
           Button
-        </ToolButton>
+        </ToolButton> */}
       </ToolSection>
 
       <ToolSection>
@@ -168,13 +205,13 @@ export function Sidebar() {
         </ToolButton>
       </ToolSection>
 
-      <ToolSection>
+      {/* <ToolSection>
         <SectionTitle>Components</SectionTitle>
         <ToolButton onClick={() => handleAddElement("list", "New List")}>
           <FaList size={18} />
           List
         </ToolButton>
-      </ToolSection>
+      </ToolSection> */}
     </Container>
   );
 }

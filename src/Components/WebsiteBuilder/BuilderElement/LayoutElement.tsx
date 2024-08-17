@@ -10,14 +10,13 @@ import React, {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import styled from "styled-components";
-import { LayoutElementProps } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
+import {
+  LayoutElementProps,
+  ContentProps,
+} from "@/src/Components/WebsiteBuilder/BuilderInterface/";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 
-const SectionWrapper = styled.div<{
-  $isDragging?: boolean;
-  isSelected?: boolean;
-  $config: any;
-}>`
+const SectionWrapper = styled.div<ContentProps>`
   border: 1px solid ${(props) => props.theme.colors.border};
   border-radius: ${(props) => props.theme.borderRadius.sm};
   transition: transform 0.2s ease;
@@ -25,14 +24,14 @@ const SectionWrapper = styled.div<{
   position: relative;
 `;
 
-const Section = styled.div<{ $config: any }>`
+const Section = styled.div<ContentProps>`
   height: 100%;
   background-color: ${(props) =>
     props.$config.backgroundColor || "transparent"};
   opacity: ${(props) => props.$config.backgroundOpacity || 1};
 `;
 
-const SectionContent = styled.div<{ $config: any }>`
+const SectionContent = styled.div<ContentProps>`
   padding: ${(props) => props.$config.boxModelEditor || "20px"};
   height: 100%;
   ${(props) =>
