@@ -4,12 +4,7 @@ import { GlobalElementType } from "./ElementInterface";
 export interface WebsiteBuilderState {
   // 全局佈局結構
   layout: {
-    sections: Array<{
-      id: string;
-      type: string;
-      order: number;
-      // 可以根據需要添加更多屬性
-    }>;
+    sections: any[];
   };
 
   // 網站全局設置
@@ -30,15 +25,15 @@ export interface WebsiteBuilderState {
 
   // 元素庫
   elementLibrary: {
-    elements: Record<string, GlobalElementType>;
-    configs: Record<string, ElementConfig>;
+    elements: { [id: string]: GlobalElementType };
+    configs: { [elementType: string]: { [property: string]: ElementConfig } };
   };
 
   // 歷史記錄和撤銷/重做功能
   history: {
-    past: Array<any>;
-    present: any;
-    future: Array<any>;
+    past: any[]; // 考虑为历史记录定义一个更具体的类型
+    present: any | null;
+    future: any[];
   };
 
   // 專案元信息
@@ -68,9 +63,9 @@ export interface WebsiteBuilderState {
 
   // 全局拖拽狀態
   dragAndDrop: {
-    currentDraggedElement: string | null;
-    dragSource: string | null;
-    dragTarget: string | null;
+    currentDraggedElement: any | null;
+    dragSource: any | null;
+    dragTarget: any | null;
   };
 
   // 性能相關的全局標誌
@@ -78,4 +73,6 @@ export interface WebsiteBuilderState {
     previewMode: boolean;
     advancedFeaturesEnabled: boolean;
   };
+  activeElementId: string | null;
+  instances: { [id: string]: any };
 }

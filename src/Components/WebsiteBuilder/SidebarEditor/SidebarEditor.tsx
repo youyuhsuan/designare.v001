@@ -14,7 +14,9 @@ import { getNestedValue } from "./getNestedValue";
 import { ColorPicker } from "./ColorPicker";
 
 const SidebarEditor: React.FC = () => {
+  // 從 useElementContext 中取得選中的元素以及更新選中元素的函數
   const { selectedElement, updateSelectedElement } = useElementContext();
+  // 使用 localElement 儲存選中的元素狀態
   const [localElement, setLocalElement] = useState<LocalElementType | null>(
     null
   );
@@ -25,6 +27,7 @@ const SidebarEditor: React.FC = () => {
     }
   }, [selectedElement]);
 
+  // 使用 useMemo 來計算 currentValues，避免不必要的重新計算
   const currentValues = useMemo(() => {
     if (!localElement) return null;
     return {

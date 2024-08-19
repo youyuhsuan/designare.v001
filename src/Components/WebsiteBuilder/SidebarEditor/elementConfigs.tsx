@@ -217,6 +217,7 @@ export const elementConfigs: ElementConfigs = {
               return textDefaults[elementType]?.fontSize || {};
             },
           },
+          // TODO:沒有處理好
           fontType: {
             label: "字體主題",
             type: "select",
@@ -234,6 +235,7 @@ export const elementConfigs: ElementConfigs = {
               return textDefaults[elementType]?.fontSize || {};
             },
           },
+          // TODO:重新處理
           textColor: {
             label: "文字顏色",
             type: "color",

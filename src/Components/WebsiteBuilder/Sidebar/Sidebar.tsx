@@ -17,8 +17,9 @@ import {
 } from "react-icons/fa";
 import styled from "styled-components";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
-import { useElementLibrary } from "@/src/Components/WebsiteBuilder/useElementLibrary";
 import { elementConfigs } from "../SidebarEditor/elementConfigs";
+import { useDispatch } from "react-redux";
+import { addToElementLibrary } from "@/src/libs/features/websiteBuilder/websiteBuilderSlice";
 
 const Container = styled.div`
   width: 250px;
@@ -62,7 +63,7 @@ const SectionTitle = styled.h3`
 
 export function Sidebar() {
   const { addElement } = useElementContext();
-  const { addElementLibrary } = useElementLibrary();
+  const dispatch = useDispatch();
 
   const handleAddElement = (
     type: string,
@@ -82,7 +83,7 @@ export function Sidebar() {
     };
 
     // 添加到全局元素庫
-    addElementLibrary(globalElement);
+    dispatch(addToElementLibrary(globalElement));
     // console.log("Adding new globalElement:", globalElement);
 
     // 創建本地元素實例
@@ -155,7 +156,7 @@ export function Sidebar() {
               freeDraggableConfig.verticalAlignment.defaultValue,
             distribution: freeDraggableConfig.distribution.defaultValue,
             position: freeDraggableConfig.position.defaultValue,
-            ...(type === "text" ? { text } : {}),
+            ...(type === "text" ? text : {}),
           },
         };
       }

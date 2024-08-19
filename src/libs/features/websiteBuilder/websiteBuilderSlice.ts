@@ -2,9 +2,14 @@ import {
   GlobalElementType,
   WebsiteBuilderState,
   ElementConfig,
-  BaseElementData,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+interface ElementInstance {
+  id: string;
+  type: string;
+  [key: string]: any; // For additional properties added dynamically
+}
 
 const initialState: WebsiteBuilderState = {
   layout: {
@@ -58,8 +63,8 @@ const initialState: WebsiteBuilderState = {
     previewMode: false,
     advancedFeaturesEnabled: false,
   },
-  instances: {},
   activeElementId: null,
+  instances: {},
 };
 
 export const websiteBuilderSlice = createSlice({
@@ -99,31 +104,6 @@ export const websiteBuilderSlice = createSlice({
         };
       }
     },
-    // // 实例化新元素
-    // createElementInstance: (
-    //   state,
-    //   action: PayloadAction<{ id: string; type: string }>
-    // ) => {
-    //   const { id, type } = action.payload;
-    //   const config = state.elementLibrary.configs[type];
-    //   if (config) {
-    //     state.instances[id] = { id, type } as BaseElementData;
-    //     // 將配置中的默認值應用到實例
-    //     Object.entries(config).forEach(([key, value]) => {
-    //       (state.instances[id] as any)[key] = value.defaultValue;
-    //     });
-    //   }
-    // },
-    // // 修改现有元素的属性
-    // updateElementInstance: (
-    //   state,
-    //   action: PayloadAction<{ id: string; updates: Partial<BaseElementData> }>
-    // ) => {
-    //   const { id, updates } = action.payload;
-    //   if (state.instances[id]) {
-    //     state.instances[id] = { ...state.instances[id], ...updates };
-    //   }
-    // },
     setSiteWidth: (state, action: PayloadAction<string>) => {
       state.globalSettings.siteWidth = action.payload;
     },
@@ -133,7 +113,29 @@ export const websiteBuilderSlice = createSlice({
     setActiveElementId: (state, action: PayloadAction<string | null>) => {
       state.activeElementId = action.payload;
     },
-    // 可以根據需要添加更多 reducer
+    createElementInstance: (
+      state,
+      action: PayloadAction<{ id: string; type: string }>
+    ) => {
+      const { id, type } = action.payload;
+      const config = state.elementLibrary.configs[type];
+      if (config) {
+        const newInstance: ElementInstance = { id, type };
+        Object.entries(config).forEach(([key, value]) => {
+          (newInstance as any)[key] = value.defaultValue;
+        });
+        state.instances[id] = newInstance;
+      }
+    },
+    updateElementInstance: (
+      state,
+      action: PayloadAction<{ id: string; updates: Partial<ElementInstance> }>
+    ) => {
+      const { id, updates } = action.payload;
+      if (state.instances[id]) {
+        state.instances[id] = { ...state.instances[id], ...updates };
+      }
+    },
   },
 });
 
@@ -142,11 +144,11 @@ export const {
   removeFromElementLibrary,
   updateElementLibraryItem,
   updateElementProperty,
-  // createElementInstance,
-  // updateElementInstance,
   setSiteWidth,
   setCanvasHeight,
   setActiveElementId,
+  createElementInstance,
+  updateElementInstance,
 } = websiteBuilderSlice.actions;
 
 export default websiteBuilderSlice.reducer;

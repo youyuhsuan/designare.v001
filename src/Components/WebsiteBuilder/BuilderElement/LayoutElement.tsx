@@ -127,6 +127,7 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
     },
   });
 
+  // 使用 useMemo 儲存計算結果，僅在依賴項變更時重新計算
   const style = useMemo(() => {
     const marginValue = arrayToCssValue(config.boxModelEditor.margin, "%");
     const paddingValue = arrayToCssValue(config.boxModelEditor.padding, "%");
@@ -137,14 +138,13 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
       padding: paddingValue,
       margin: marginValue,
       transform: CSS.Transform.toString(transform),
+      // 設置過渡效果
       transition,
       touchAction: "none",
     };
 
     if (config.responsiveBehavior === "fitWidth") {
       baseStyle.width = "100%";
-    } else if (config.responsiveBehavior === "fitHeight") {
-      baseStyle.height = "100%";
     }
 
     if (config.color) {
@@ -154,9 +154,9 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
 
     return {
       ...baseStyle,
-      ...(config || {}),
-      transform: CSS.Transform.toString(transform),
-      transition,
+      ...(config || {}), // 將 config 對象展開合併到 baseStyle 中，允許覆蓋和擴展基礎樣式
+      transform: CSS.Transform.toString(transform), // 確保 transform 屬性被正確設置
+      transition, // 確保 transition 屬性被正確設置
     };
   }, [config, elementHeight, transform, transition]);
 

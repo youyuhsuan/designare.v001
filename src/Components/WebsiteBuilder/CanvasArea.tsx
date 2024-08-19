@@ -41,6 +41,7 @@ export const CanvasArea: React.FC = () => {
     })
   );
 
+  // 從 Redux store 中選擇畫布的寬度和高度
   const siteWidth = useSelector(selectSiteWidth);
   const canvasHeight = useSelector(selectCanvasHeight);
 
@@ -60,9 +61,11 @@ export const CanvasArea: React.FC = () => {
   //   console.log("Current elements:", elements);
   // }, [elements]);
 
+  // 管理當前拖拽元素的 ID 和選中的元素 ID
   const [activeId, setActiveId] = useState<string | number | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // 處理元素點擊事件，設定選中的元素
   const handleElementClick = (id: string) => {
     // console.log("Element clicked:", id);
     setSelectedId(id);
@@ -71,6 +74,7 @@ export const CanvasArea: React.FC = () => {
     setSelectedElement(selectedElement);
   };
 
+  // 處理畫布點擊事件，取消選中狀態
   const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
       // console.log("Canvas clicked");
@@ -79,12 +83,8 @@ export const CanvasArea: React.FC = () => {
     }
   };
 
-  // if (!Array.isArray(elements) || elements.length === 0) {
-  //   console.warn("No elements to render or elements is not an array");
-  // }
-
   const handleDragStart = (event: DragStartEvent) => {
-    console.log("Drag started:", event.active.id);
+    // console.log("Drag started:", event.active.id);
     setActiveId(event.active.id);
   };
 
@@ -92,19 +92,19 @@ export const CanvasArea: React.FC = () => {
     const { active, over, delta } = event;
 
     if (!active) {
-      console.error("Invalid 'active' data:", active);
+      console.error("無效的 'active' 數據:", active);
       return;
     }
 
     const activeElement = elements.find((el) => el.id === active.id);
 
     if (!activeElement) {
-      console.warn("Active element not found");
+      console.warn("找不到活動元素");
       return;
     }
 
     if (activeElement.isLayout) {
-      // 布局元素的邏輯
+      // 處理布局元素的拖拽
       if (over && active.id !== over.id) {
         const layoutElements = elements.filter((el) => el.isLayout);
         const layoutElementIds = layoutElements.map((el) => el.id);
@@ -113,38 +113,40 @@ export const CanvasArea: React.FC = () => {
 
         if (oldIndex !== -1 && newIndex !== -1) {
           const newOrder = arrayMove(layoutElementIds, oldIndex, newIndex);
-          reorderElements(newOrder);
+          reorderElements(newOrder); // 更新布局元素的順序
         }
       }
     } else {
-      // 自由拖拉元素：更新位置
+      // 自由拖放元素：更新位置
       if (delta) {
-        const Position = {
+        const newPosition = {
           x: (activeElement.config?.position?.x || 0) + delta.x,
           y: (activeElement.config?.position?.y || 0) + delta.y,
         };
-        console.warn("Updating free element position", {
-          id: active.id,
-          Position,
-        });
+        // console.log("Updating free element position", {
+        //   id: active.id,
+        //   Position,
+        // });
         updateElementPosition(active.id, {
-          position: Position,
+          position: newPosition,
         });
       } else {
-        console.warn("Delta is undefined for free element", active.id);
+        console.warn("自由元素的 delta 未定義", active.id);
       }
     }
-    setActiveId(null);
+    setActiveId(null); // 清除當前拖拽的元素 ID
   };
 
+  // 處理元素更新
   const handleElementUpdate = (
     id: string,
     updates: Partial<LocalElementType>
   ) => {
-    console.log("handleElementUpdate called", id, updates);
+    console.log("handleElementUpdate 被調用", id, updates);
     updateElement(id, updates);
   };
 
+  // 過濾出布局元素和自由拖放元素
   const layoutElements = elements.filter((el) => el.isLayout);
   const freeDraggableElements = elements.filter((el) => !el.isLayout);
 
