@@ -5,12 +5,6 @@ import {
 } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface ElementInstance {
-  id: string;
-  type: string;
-  [key: string]: any; // For additional properties added dynamically
-}
-
 const initialState: WebsiteBuilderState = {
   layout: {
     sections: [],
@@ -64,7 +58,7 @@ const initialState: WebsiteBuilderState = {
     advancedFeaturesEnabled: false,
   },
   // TODO:先這樣
-  activeElementId: "null",
+  activeElementId: null,
   instances: {},
 };
 
@@ -84,8 +78,6 @@ export const websiteBuilderSlice = createSlice({
     ) => {
       state.elementLibrary.elements[action.payload.id] = action.payload;
     },
-    // 更新 elementLibrary.configs 中某个 elementType 的 property 配置
-    // 更新元素库中某种类型元素的属性配置
     updateElementProperty: (
       state,
       action: PayloadAction<{
@@ -140,6 +132,7 @@ export const websiteBuilderSlice = createSlice({
   },
 });
 
+// 导出 actions
 export const {
   addToElementLibrary,
   removeFromElementLibrary,
@@ -152,4 +145,5 @@ export const {
   updateElementInstance,
 } = websiteBuilderSlice.actions;
 
+// 导出 reducer
 export default websiteBuilderSlice.reducer;
