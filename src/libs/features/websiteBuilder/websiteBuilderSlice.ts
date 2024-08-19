@@ -63,7 +63,8 @@ const initialState: WebsiteBuilderState = {
     previewMode: false,
     advancedFeaturesEnabled: false,
   },
-  activeElementId: null,
+  // TODO:先這樣
+  activeElementId: "null",
   instances: {},
 };
 

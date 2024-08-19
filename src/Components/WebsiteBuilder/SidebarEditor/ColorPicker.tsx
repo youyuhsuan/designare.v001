@@ -27,7 +27,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 
   useEffect(() => {
     setCurrentColor(parseColor(color));
-  }, [color, opacity]);
+  }, [color, opacity, parseColor]);
 
   const handleChange = (newColor: RgbaColor) => {
     setCurrentColor(newColor);
