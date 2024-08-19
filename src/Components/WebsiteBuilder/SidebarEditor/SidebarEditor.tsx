@@ -9,9 +9,9 @@ import {
   PropertyConfigWithComposite,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
 import { elementConfigs } from "./elementConfigs";
-import useCurrentValues from "./useCurrentValues";
 import ButtonGroup from "./ButtonGroup";
 import { getNestedValue } from "./getNestedValue";
+import { ColorPicker } from "./ColorPicker";
 
 const SidebarEditor: React.FC = () => {
   const { selectedElement, updateSelectedElement } = useElementContext();
@@ -25,7 +25,13 @@ const SidebarEditor: React.FC = () => {
     }
   }, [selectedElement]);
 
-  const currentValues = useCurrentValues(localElement);
+  const currentValues = useMemo(() => {
+    if (!localElement) return null;
+    return {
+      ...localElement,
+      config: { ...localElement.config },
+    };
+  }, [localElement]);
 
   const handleChange = useCallback(
     (propertyPath: string, value: any) => {
@@ -34,6 +40,7 @@ const SidebarEditor: React.FC = () => {
 
         // 創建 updatedElement 作為 prev 的淺拷貝
         const updatedElement = { ...prev };
+
         // 創建 updatedElement.config 作為 prev.config 的淺拷貝
         updatedElement.config = { ...updatedElement.config };
 
@@ -51,6 +58,25 @@ const SidebarEditor: React.FC = () => {
           current[pathParts[i]] = { ...current[pathParts[i]] };
           // 移動到下一層級
           current = current[pathParts[i]];
+        }
+
+        const lastKey = pathParts[pathParts.length - 1];
+
+        // 處理數組更新
+        if (Array.isArray(current[lastKey])) {
+          // 如果 value 是單個值，假設它是要更新數組中的某個索引
+          if (!Array.isArray(value)) {
+            const index = parseInt(lastKey);
+            if (!isNaN(index) && index >= 0 && index < current.length) {
+              current[index] = value;
+            }
+          } else {
+            // 如果 value 是數組，直接替換整個數組
+            current[lastKey] = value;
+          }
+        } else {
+          // 對於非數組類型，直接設置新值
+          current[lastKey] = value;
         }
 
         // 在最後一層級設置新值
@@ -75,17 +101,18 @@ const SidebarEditor: React.FC = () => {
 
   const renderField = useCallback(
     (key: string, fieldConfig: PropertyConfigWithComposite) => {
+      if (!selectedElement) {
+        return <div>No element selected or data not loaded</div>;
+      }
+
       if (!currentValues) {
         console.warn("currentValues is null or undefined");
         return null;
       }
 
-      if (!selectedElement) {
-        return <div>No element selected or data not loaded</div>;
-      }
-
-      // 根據 key 從 currentValues 中獲取對應的值
-      const value = currentValues[key];
+      const value = key.includes(".")
+        ? getNestedValue(currentValues.config, key)
+        : currentValues.config[key];
 
       // console.log("renderField value :", value);
 
@@ -100,7 +127,7 @@ const SidebarEditor: React.FC = () => {
               <input
                 id={`${selectedElement.id}-${key}`}
                 type={fieldConfig.type}
-                value={value}
+                value={value ?? ""}
                 onChange={(e) => {
                   const newValue = e.target.value;
                   if (fieldConfig.type === "number") {
@@ -110,10 +137,10 @@ const SidebarEditor: React.FC = () => {
                         : fieldConfig.transform
                         ? fieldConfig.transform(newValue)
                         : Number(newValue);
-                    handleChange(`config.${key}`, transformedValue);
+                    handleChange(key, transformedValue);
                   } else {
                     handleChange(
-                      `config.${key}`,
+                      key,
                       fieldConfig.transform
                         ? fieldConfig.transform(newValue)
                         : newValue
@@ -132,15 +159,58 @@ const SidebarEditor: React.FC = () => {
                   id={`${selectedElement.id}-${key}`}
                   type="checkbox"
                   checked={!!value}
-                  onChange={(e) =>
-                    handleChange(`config.${key}`, e.target.checked)
-                  }
+                  onChange={(e) => handleChange(key, e.target.checked)}
                 />
                 {fieldConfig.label}
               </label>
             </div>
           );
         case "color":
+          let colorValue = fieldConfig.defaultColor;
+          let opacityValue = fieldConfig.defaultOpacity;
+          if (value) {
+            if (typeof value === "string") {
+              colorValue = value;
+              const rgba = value.match(
+                /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\)/
+              );
+              if (rgba) {
+                const parsedAlpha =
+                  rgba[4] !== undefined ? parseFloat(rgba[4]) : 1;
+                const alpha = !isNaN(parsedAlpha) ? parsedAlpha : 1;
+                opacityValue = Math.round(alpha * 100);
+              }
+            } else if (typeof value === "object" && value.color) {
+              colorValue = value.color;
+              opacityValue =
+                value.opacity !== undefined
+                  ? value.opacity
+                  : fieldConfig.defaultOpacity;
+            }
+          }
+
+          console.log("colorValue", colorValue);
+          console.log("opacityValue", opacityValue);
+
+          return (
+            <div key={key}>
+              <label htmlFor={`${selectedElement.id}-${key}`}>
+                {fieldConfig.label}
+              </label>
+              <ColorPicker
+                id={`${selectedElement.id}-${key}`}
+                color={colorValue}
+                opacity={opacityValue}
+                defaultColor={fieldConfig.defaultColor}
+                defaultOpacity={fieldConfig.defaultOpacity}
+                onChange={(newColor: string, newOpacity: number) => {
+                  handleChange(key, newColor);
+                  handleChange(`${key}Opacity`, newOpacity);
+                }}
+              />
+            </div>
+          );
+        case "slider":
           return (
             <div key={key}>
               <label htmlFor={`${selectedElement.id}-${key}`}>
@@ -148,10 +218,20 @@ const SidebarEditor: React.FC = () => {
               </label>
               <input
                 id={`${selectedElement.id}-${key}`}
-                type="color"
-                value={value || ""}
-                onChange={(e) => handleChange(key, e.target.value)}
+                type="range"
+                min={fieldConfig.min || 0}
+                max={fieldConfig.max || 100}
+                step={fieldConfig.step || 1}
+                value={value || 0}
+                onChange={(e) => {
+                  const newValue = Number(e.target.value);
+                  handleChange(key, newValue);
+                }}
               />
+              <span>
+                {value || 0}
+                {fieldConfig.unit}
+              </span>
             </div>
           );
         case "composite":
@@ -176,48 +256,65 @@ const SidebarEditor: React.FC = () => {
                       newValue === undefined || newValue === null
                         ? fieldConfig.defaultValue
                         : newValue;
-                    handleChange(`config.${key}`, processedValue);
+                    handleChange(`${key}`, processedValue);
                   },
                 })}
               </div>
             );
           }
-
           return (
             <div key={key}>
               <label>{fieldConfig.label}</label>
               {Object.entries(fieldConfig.compositeFields).map(
                 ([subKey, subConfig]) => {
-                  const subValue = getNestedValue(
-                    currentValues.config,
-                    `${key}.${subKey}`
+                  const fullPath = `${key}.${subKey}`;
+                  let subValue = getNestedValue(currentValues.config, fullPath);
+
+                  // 如果 subValue 是 undefined，使用默認值
+                  if (subValue === undefined) {
+                    subValue =
+                      fieldConfig.defaultValue &&
+                      typeof fieldConfig.defaultValue === "object"
+                        ? fieldConfig.defaultValue[subKey]
+                        : subConfig.defaultValue;
+                  }
+
+                  console.log(
+                    `Composite subfield: ${fullPath}, value:`,
+                    subValue
                   );
-                  const defaultValue =
-                    fieldConfig.defaultValue &&
-                    typeof fieldConfig.defaultValue === "object"
-                      ? fieldConfig.defaultValue[subKey]
-                      : subConfig.defaultValue;
 
                   return (
-                    <div key={`${key}.${subKey}`}>
-                      <label htmlFor={`${selectedElement.id}-${key}-${subKey}`}>
+                    <div key={fullPath}>
+                      <label htmlFor={`${selectedElement.id}-${fullPath}`}>
                         {subConfig.label}
                       </label>
                       <input
-                        id={`${selectedElement.id}-${key}-${subKey}`}
+                        id={`${selectedElement.id}-${fullPath}`}
                         type={subConfig.type}
-                        value={subValue ?? defaultValue}
+                        value={subValue ?? ""}
                         onChange={(e) => {
                           const newValue = e.target.value;
-                          const transformedValue = subConfig.transform
-                            ? subConfig.transform(newValue)
-                            : subConfig.type === "number"
-                            ? Number(newValue)
-                            : newValue;
-                          handleChange(
-                            `config.${key}.${subKey}`,
+                          let transformedValue: number | string = newValue;
+
+                          if (subConfig.type === "number") {
+                            transformedValue =
+                              newValue === "" ? 0 : Number(newValue);
+                          }
+
+                          if (
+                            subConfig.transform &&
+                            transformedValue !== null
+                          ) {
+                            transformedValue =
+                              subConfig.transform(transformedValue);
+                          }
+
+                          console.log(
+                            `Updating ${fullPath} to:`,
                             transformedValue
                           );
+                          handleChange(fullPath, transformedValue);
                         }}
                       />
                       {subConfig.unit && <span>{subConfig.unit}</span>}

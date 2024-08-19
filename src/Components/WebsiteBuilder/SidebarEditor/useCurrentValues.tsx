@@ -26,12 +26,11 @@ const useCurrentValues = (
       }
 
       const getDefaultValue = (config: any) => {
-        if (
-          config.type === "buttonGroup" &&
-          config.options &&
-          config.options.length > 0
-        ) {
+        if (config.options && config.options.length > 0) {
           return config.options[0].value;
+        }
+        if (config.type === "buttonGroup") {
+          return {};
         }
         return config.defaultValue;
       };
@@ -39,21 +38,34 @@ const useCurrentValues = (
       const getProperties = (
         properties: Record<string, any>,
         sourceObj: any
-      ): CurrentValuesType => {
-        return Object.entries(properties).reduce((acc, [key, config]) => {
-          if (config.type === "composite" && config.compositeFields) {
-            acc[key] = getProperties(
-              config.compositeFields,
-              sourceObj[key] || {}
-            );
-          } else {
-            const defaultValue = getDefaultValue(config);
-            acc[key] =
-              sourceObj[key] !== undefined ? sourceObj[key] : defaultValue;
-          }
-          console.log(`Setting ${key}:`, acc[key]);
-          return acc;
-        }, {} as CurrentValuesType);
+      ): { config: CurrentValuesType } => {
+        const config = Object.entries(properties).reduce(
+          (acc, [key, config]) => {
+            if (config.type === "composite" && config.compositeFields) {
+              acc[key] = getProperties(
+                config.compositeFields,
+                sourceObj[key] || {}
+              ).config;
+            } else {
+              const defaultValue = getDefaultValue(config);
+              // 如果 sourceObj 中有對應鍵的值，則使用 sourceObj[key] 的值；否則使用默認值
+
+              acc[key] =
+                sourceObj[key] !== undefined ? sourceObj[key] : defaultValue;
+
+              // const sourceValue = sourceObj[key];
+
+              // if (sourceValue !== undefined && sourceValue !== defaultValue) {
+              //   acc[key] = sourceValue;
+              // }
+            }
+            // console.log(`Setting ${key}:`, acc[key]);
+            return acc;
+          },
+          {} as CurrentValuesType
+        );
+
+        return { config };
       };
 
       // 獲取所有屬性（包括常見屬性和子類型屬性）

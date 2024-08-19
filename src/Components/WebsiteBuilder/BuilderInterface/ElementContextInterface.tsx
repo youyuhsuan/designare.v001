@@ -34,9 +34,14 @@ export interface ElementContextType {
   // 重新排序元素
   reorderElement: (newOrder: UniqueIdentifier[]) => void;
   // 更新指定 ID 元素的位置
-  updateElementPosition: (id: UniqueIdentifier, position: Position) => void;
+  updateElementPosition: (
+    id: UniqueIdentifier,
+    config: {
+      position: Position;
+    }
+  ) => void;
   // 調整指定 ID 元素的高度
-  resizeElement: (id: UniqueIdentifier, height: number) => void;
+  resizeElement: (id: UniqueIdentifier, config: { height: number }) => void;
 }
 
 export type Action =
@@ -74,12 +79,17 @@ export type Action =
   // 更新元素的位置
   | {
       type: "UPDATE_ELEMENT_POSITION";
-      payload: { id: UniqueIdentifier; position: Position };
+      payload: {
+        id: UniqueIdentifier;
+        config: {
+          position: Position;
+        };
+      };
     }
   // 調整元素大小
   | {
       type: "RESIZE_ELEMENT";
-      payload: { id: UniqueIdentifier; height: number };
+      payload: { id: UniqueIdentifier; config: { height: number } };
     }
   // 設定選擇元素
   | { type: "SELECTED_ELEMENT"; payload: UniqueIdentifier | null };

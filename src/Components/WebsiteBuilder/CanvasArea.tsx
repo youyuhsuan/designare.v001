@@ -6,7 +6,6 @@ import {
   useSensors,
   PointerSensor,
   KeyboardSensor,
-  Modifier,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -28,28 +27,15 @@ import {
   selectCanvasHeight,
   selectSiteWidth,
 } from "@/src/libs/features/websiteBuilder/websiteBuliderSelector";
+import { customModifier } from "@/src/utilities/customModifier";
 
 export const CanvasAreaContainer = styled.div`
   width: 100%;
 `;
-const customModifier: Modifier = ({ transform, active }) => {
-  // 假設 LayoutElement 的 data 中有一個 isLayout 屬性
-  if (active && active.data.current && active.data.current.isLayout) {
-    return {
-      ...transform,
-      x: 0, // 將 x 設置為 0，只允許垂直移動
-    };
-  }
-  return transform;
-};
 
 export const CanvasArea: React.FC = () => {
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -78,10 +64,10 @@ export const CanvasArea: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const handleElementClick = (id: string) => {
-    console.log("Element clicked:", id);
+    // console.log("Element clicked:", id);
     setSelectedId(id);
     const selectedElement = elements.find((el) => el.id === id) || null;
-    console.log("Selected element:", selectedElement);
+    // console.log("Selected element:", selectedElement);
     setSelectedElement(selectedElement);
   };
 
@@ -93,13 +79,12 @@ export const CanvasArea: React.FC = () => {
     }
   };
 
-  // 修改渲染邏輯，添加錯誤處理
-  if (!Array.isArray(elements) || elements.length === 0) {
-    console.warn("No elements to render or elements is not an array");
-  }
+  // if (!Array.isArray(elements) || elements.length === 0) {
+  //   console.warn("No elements to render or elements is not an array");
+  // }
 
   const handleDragStart = (event: DragStartEvent) => {
-    // console.log("Drag started:", event.active.id);
+    console.log("Drag started:", event.active.id);
     setActiveId(event.active.id);
   };
 
@@ -118,40 +103,37 @@ export const CanvasArea: React.FC = () => {
       return;
     }
 
-    // console.log("Drag ended. Active element:", activeElement);
-    // console.log("Over element:", over);
-    // console.log("Delta:", delta);
+    if (activeElement.isLayout) {
+      // 布局元素的邏輯
+      if (over && active.id !== over.id) {
+        const layoutElements = elements.filter((el) => el.isLayout);
+        const layoutElementIds = layoutElements.map((el) => el.id);
+        const oldIndex = layoutElementIds.findIndex((id) => id === active.id);
+        const newIndex = layoutElementIds.findIndex((id) => id === over.id);
 
-    if (over) {
-      if (activeElement.isLayout) {
-        // 布局元素的逻辑
-        if (active.id !== over.id) {
-          const layoutElements = elements.filter((el) => el.isLayout);
-          const layoutElementIds = layoutElements.map((el) => el.id);
-          const oldIndex = layoutElementIds.findIndex((id) => id === active.id);
-          const newIndex = layoutElementIds.findIndex((id) => id === over.id);
-
-          if (oldIndex !== -1 && newIndex !== -1) {
-            const newOrder = arrayMove(layoutElementIds, oldIndex, newIndex);
-            // console.log("Reordering elements:", newOrder);
-            reorderElements(newOrder);
-          }
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const newOrder = arrayMove(layoutElementIds, oldIndex, newIndex);
+          reorderElements(newOrder);
         }
-      } else {
-        // 自由拖拉元素：更新位置
-        updateElementPosition(active.id, {
-          x: (activeElement.position?.x || 0) + (delta?.x || 0),
-          y: (activeElement.position?.y || 0) + (delta?.y || 0),
-        });
       }
-    } else if (!activeElement.isLayout && delta) {
-      // 如果没有 over 对象，只更新自由拖拉元素的位置
-      updateElementPosition(active.id, {
-        x: (activeElement.position?.x || 0) + delta.x,
-        y: (activeElement.position?.y || 0) + delta.y,
-      });
+    } else {
+      // 自由拖拉元素：更新位置
+      if (delta) {
+        const Position = {
+          x: (activeElement.config?.position?.x || 0) + delta.x,
+          y: (activeElement.config?.position?.y || 0) + delta.y,
+        };
+        console.warn("Updating free element position", {
+          id: active.id,
+          Position,
+        });
+        updateElementPosition(active.id, {
+          position: Position,
+        });
+      } else {
+        console.warn("Delta is undefined for free element", active.id);
+      }
     }
-
     setActiveId(null);
   };
 
@@ -159,7 +141,7 @@ export const CanvasArea: React.FC = () => {
     id: string,
     updates: Partial<LocalElementType>
   ) => {
-    // console.log("handleElementUpdate called", id, updates);
+    console.log("handleElementUpdate called", id, updates);
     updateElement(id, updates);
   };
 

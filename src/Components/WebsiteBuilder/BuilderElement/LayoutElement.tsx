@@ -15,6 +15,7 @@ import {
   ContentProps,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
+import { arrayToCssValue } from "@/src/utilities/arrayToCssValue";
 
 const SectionWrapper = styled.div<ContentProps>`
   border: 1px solid ${(props) => props.theme.colors.border};
@@ -28,7 +29,11 @@ const Section = styled.div<ContentProps>`
   height: 100%;
   background-color: ${(props) =>
     props.$config.backgroundColor || "transparent"};
-  opacity: ${(props) => props.$config.backgroundOpacity || 1};
+  opacity: ${(props) => {
+    const opacity = props.$config.backgroundOpacity;
+    if (opacity === undefined) return 1;
+    return opacity / 100; // 將 0-100 的範圍轉換為 0-1
+  }};
 `;
 
 const SectionContent = styled.div<ContentProps>`
@@ -69,10 +74,6 @@ const ResizeHandle = styled.div`
   background-color: ${(props) => props.theme.colors.background};
   cursor: row-resize;
 `;
-
-export const arrayToCssValue = (arr: number[], unit: string): string => {
-  return arr.map((value) => `${value}${unit}`).join(" ");
-};
 
 const LayoutElement: React.FC<LayoutElementProps> = ({
   id,
@@ -140,15 +141,13 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
       touchAction: "none",
     };
 
-    // 应用响应行为
     if (config.responsiveBehavior === "fitWidth") {
       baseStyle.width = "100%";
     } else if (config.responsiveBehavior === "fitHeight") {
       baseStyle.height = "100%";
     }
 
-    // 应用背景颜色和透明度
-    if (config.backgroundColor) {
+    if (config.color) {
       baseStyle.backgroundColor = config.backgroundColor;
       baseStyle.opacity = config.backgroundOpacity;
     }
@@ -182,10 +181,6 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
       e.stopPropagation();
       const startY = e.clientY;
       const startHeight = elementHeight;
-
-      // console.log(
-      //   `Element ${id} - Resize started, initial height: ${startHeight}px`
-      // );
 
       const handleMouseMove = (e: MouseEvent) => {
         const deltaY = e.clientY - startY;
@@ -261,6 +256,3 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
 };
 
 export default LayoutElement;
-function updateSelectedElement(id: string, arg1: string, newHeight: number) {
-  throw new Error("Function not implemented.");
-}

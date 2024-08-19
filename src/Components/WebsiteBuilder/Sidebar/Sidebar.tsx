@@ -109,8 +109,10 @@ export function Sidebar() {
               padding: layoutConfig.boxModelEditor.defaultValue.padding,
               margin: layoutConfig.boxModelEditor.defaultValue.margin,
             },
-            backgroundColor: layoutConfig.backgroundColor.defaultValue,
-            backgroundOpacity: layoutConfig.backgroundOpacity.defaultValue,
+            backgroundColor: {
+              defaultColor: layoutConfig.backgroundColor.defaultColor,
+              defaultOpacity: layoutConfig.backgroundColor.defaultOpacity,
+            },
             media: layoutConfig.media.defaultValue,
           },
         };

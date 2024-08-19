@@ -63,19 +63,13 @@ export const elementConfigs: ElementConfigs = {
         ),
       },
       backgroundColor: {
-        label: "背景顏色",
+        label: "顏色",
         type: "color",
-        defaultValue: "#ffffff",
-      },
-      backgroundOpacity: {
-        label: "背景透明度",
-        type: "number",
-        transform: Number,
-        defaultValue: 100,
-        unit: "%",
+        defaultColor: "rgba(0,0,0,0)",
+        defaultOpacity: 1,
+        step: 10,
         min: 0,
         max: 100,
-        validate: (value: number) => value >= 0 && value <= 100,
       },
       media: {
         label: "媒體",
@@ -97,7 +91,6 @@ export const elementConfigs: ElementConfigs = {
       },
     },
   },
-
   freeDraggable: {
     type: "freeDraggable",
     label: "可自由拖動元素",
@@ -167,14 +160,14 @@ export const elementConfigs: ElementConfigs = {
         transform: Number,
         defaultValue: { x: 0, y: 0 },
         compositeFields: {
-          width: {
+          x: {
             label: "x",
             type: "number",
             transform: Number,
             defaultValue: 0,
             unit: "px",
           },
-          height: {
+          y: {
             label: "y",
             type: "number",
             transform: Number,
@@ -244,7 +237,11 @@ export const elementConfigs: ElementConfigs = {
           textColor: {
             label: "文字顏色",
             type: "color",
-            defaultValue: "#000000",
+            defaultColor: "#ffffff",
+            defaultOpacity: 100,
+            step: 10,
+            min: 0,
+            max: 100,
           },
           letterSpacing: {
             label: "字距",

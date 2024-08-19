@@ -8,6 +8,7 @@ type PropertyType =
   | "select"
   | "color"
   | "custom"
+  | "slider"
   | "object"
   | "button"
   | "buttonGroup"
@@ -52,7 +53,11 @@ export interface PropertyConfig {
   };
 
   defaultValue?: ((elementType: string) => any) | any | null;
+  defaultColor?: ((elementType: string) => any) | any | null;
+  defaultOpacity?: ((elementType: string) => any) | any | null;
+
   unit?: string; // 單位
+  step?: number;
   min?: number;
   max?: number;
 

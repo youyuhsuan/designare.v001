@@ -86,12 +86,16 @@ const elementReducer = (
     case "UPDATE_ELEMENT_POSITION":
       return state.map((element) =>
         element.id === action.payload.id && !element.isLayout
-          ? ({
+          ? {
               ...element,
-              position: action.payload.position,
-            } as FreeDraggableElementData)
+              config: {
+                ...element.config,
+                position: action.payload.config.position,
+              },
+            }
           : element
       );
+
     case "DELETE_ELEMENT":
       return state.filter((element) => element.id !== action.payload.id);
     case "REORDER_ELEMENT":
@@ -110,7 +114,7 @@ const elementReducer = (
     case "RESIZE_ELEMENT":
       return state.map((element) =>
         element.id === action.payload.id
-          ? { ...element, height: action.payload.height }
+          ? { ...element, height: action.payload.config.height }
           : element
       );
     default:
@@ -195,16 +199,27 @@ export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // 更新指定 ID 元素的位置
   const updateElementPosition = useCallback(
-    (id: UniqueIdentifier, position: Position) => {
-      dispatch({ type: "UPDATE_ELEMENT_POSITION", payload: { id, position } });
+    (
+      id: UniqueIdentifier,
+      config: {
+        position: Position;
+      }
+    ) => {
+      dispatch({
+        type: "UPDATE_ELEMENT_POSITION",
+        payload: { id, config },
+      });
     },
     []
   );
 
   //  調整指定 ID 元素的高度
-  const resizeElement = useCallback((id: UniqueIdentifier, height: number) => {
-    dispatch({ type: "RESIZE_ELEMENT", payload: { id, height } });
-  }, []);
+  const resizeElement = useCallback(
+    (id: UniqueIdentifier, config: { height: number }) => {
+      dispatch({ type: "RESIZE_ELEMENT", payload: { id, config } });
+    },
+    []
+  );
 
   const contextValue: ElementContextType = {
     elements,
@@ -251,10 +266,10 @@ export const addElement = (element: Omit<LocalElementType, "id">): Action => ({
 
 export const updateElementPosition = (
   id: UniqueIdentifier,
-  position: Position
+  config: { position: Position }
 ): Action => ({
   type: "UPDATE_ELEMENT_POSITION",
-  payload: { id, position },
+  payload: { id, config },
 });
 
 export const deleteElement = (id: UniqueIdentifier): Action => ({
@@ -264,8 +279,8 @@ export const deleteElement = (id: UniqueIdentifier): Action => ({
 
 export const resizeElement = (
   id: UniqueIdentifier,
-  height: number
+  config: { height: number }
 ): Action => ({
   type: "RESIZE_ELEMENT",
-  payload: { id, height },
+  payload: { id, config },
 });

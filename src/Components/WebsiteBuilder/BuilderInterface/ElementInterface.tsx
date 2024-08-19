@@ -25,18 +25,6 @@ export type LocalElementType = LayoutElementData | FreeDraggableElementData;
 export interface LayoutElementData extends BaseElementData {
   children?: UniqueIdentifier[];
   config: any;
-  // config: {
-  //   size: { width: string; height: number };
-  //   responsiveBehavior: "scaleProportionally" | "fitWidth" | "fitHeight";
-  //   useMaxWidth: boolean;
-  //   boxModelEditor: {
-  //     padding: [number, number, number, number];
-  //     margin: [number, number, number, number];
-  //   };
-  //   backgroundColor?: string;
-  //   backgroundOpacity?: number;
-  //   media?: { type: "image" | "video"; url: string };
-  // };
   isLayout: true;
 }
 
@@ -49,7 +37,7 @@ export interface FreeDraggableElementData extends BaseElementData {
 export interface ElementCallbacks {
   onUpdate: (updates: Partial<LocalElementType>) => void;
   onDelete: () => void;
-  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onClick: (event: React.MouseEvent) => void;
   isSelected: boolean;
 }
 
@@ -76,4 +64,9 @@ export interface ContentProps {
   $isDragging?: boolean;
   isSelected?: boolean;
   $config: any;
+}
+
+export interface Selection {
+  start: number;
+  end: number;
 }
