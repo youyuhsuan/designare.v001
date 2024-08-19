@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { RgbaColorPicker, RgbaColor } from "react-colorful";
 import { parseToRgba, rgba } from "color2k";
 
@@ -18,10 +18,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   defaultOpacity,
   onChange,
 }) => {
-  const parseColor = (inputColor: string): RgbaColor => {
-    const [r, g, b, a] = parseToRgba(inputColor || defaultColor);
-    return { r, g, b, a: a !== undefined ? a : opacity / 100 };
-  };
+  const parseColor = useCallback(
+    (inputColor: string): RgbaColor => {
+      const [r, g, b, a] = parseToRgba(inputColor || defaultColor);
+      return { r, g, b, a: a !== undefined ? a : opacity / 100 };
+    },
+    [defaultColor, opacity]
+  );
 
   const [currentColor, setCurrentColor] = useState(parseColor(color));
 

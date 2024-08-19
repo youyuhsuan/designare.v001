@@ -46,11 +46,11 @@ export const ThemeWrapper: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [mode, setMode] = useState<"light" | "dark">(() => {
     // 初始化時檢查系統偏好
-    if (typeof window !== "undefined") {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
+    // if (typeof window !== "undefined") {
+    //   return window.matchMedia("(prefers-color-scheme: dark)").matches
+    //     ? "dark"
+    //     : "light";
+    // }
     return "light"; // 默認為亮色主題
   });
 

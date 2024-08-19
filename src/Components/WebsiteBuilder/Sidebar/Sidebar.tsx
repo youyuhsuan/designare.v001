@@ -194,9 +194,7 @@ export function Sidebar() {
 
       <ToolSection>
         <SectionTitle>Layout</SectionTitle>
-        <ToolButton
-          onClick={() => handleAddElement("columns", "New Columns", true)}
-        >
+        <ToolButton onClick={() => handleAddElement("columns", "", true)}>
           <FaColumns size={18} />
           Columns
         </ToolButton>
