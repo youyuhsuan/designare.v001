@@ -5,6 +5,12 @@ import {
 } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+interface ElementInstance {
+  id: string;
+  type: string;
+  [key: string]: any; // For additional properties added dynamically
+}
+
 const initialState: WebsiteBuilderState = {
   layout: {
     sections: [],
