@@ -66,7 +66,7 @@ export const CanvasArea: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // 處理元素點擊事件，設定選中的元素
-  const handleElementClick = (id: string) => {
+  const handleElementMouseUp = (id: string) => {
     // console.log("Element clicked:", id);
     setSelectedId(id);
     const selectedElement = elements.find((el) => el.id === id) || null;
@@ -176,7 +176,7 @@ export const CanvasArea: React.FC = () => {
                 }
                 onDelete={() => deleteElement(element.id)}
                 isSelected={element.id === selectedId}
-                onClick={() => handleElementClick(element.id)}
+                onMouseUp={() => handleElementMouseUp(element.id)}
               />
             ))}
           </SortableContext>
@@ -188,7 +188,7 @@ export const CanvasArea: React.FC = () => {
               onUpdate={(updates) => handleElementUpdate(element.id, updates)}
               onDelete={() => deleteElement(element.id)}
               isSelected={element.id === selectedId}
-              onClick={() => handleElementClick(element.id)}
+              onMouseUp={() => handleElementMouseUp(element.id)}
             />
           ))}
         </SiteContainer>

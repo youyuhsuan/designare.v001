@@ -37,7 +37,7 @@ export interface FreeDraggableElementData extends BaseElementData {
 export interface ElementCallbacks {
   onUpdate: (updates: Partial<LocalElementType>) => void;
   onDelete: () => void;
-  onClick: (event: React.MouseEvent) => void;
+  onMouseUp: (event: React.MouseEvent) => void;
   isSelected: boolean;
 }
 
@@ -62,7 +62,7 @@ export interface FreeDraggableProps
 
 export interface ContentProps {
   $isDragging?: boolean;
-  isSelected?: boolean;
+  $isSelected?: boolean;
   $config: any;
 }
 

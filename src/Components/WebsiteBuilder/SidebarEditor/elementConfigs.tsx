@@ -239,7 +239,7 @@ export const elementConfigs: ElementConfigs = {
           textColor: {
             label: "文字顏色",
             type: "color",
-            defaultColor: "#ffffff",
+            defaultColor: "#000000",
             defaultOpacity: 100,
             step: 10,
             min: 0,
