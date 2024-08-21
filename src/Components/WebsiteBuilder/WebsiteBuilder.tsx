@@ -8,7 +8,6 @@ import { Sidebar } from "@/src/Components/WebsiteBuilder/Sidebar/Sidebar";
 import Navbar from "@/src/Components/WebsiteBuilder/Navbar";
 import SidebarEditor from "@/src/Components/WebsiteBuilder/SidebarEditor/SidebarEditor";
 import { NextUIProvider } from "@nextui-org/react";
-import { useElementSelection } from "@/src/Hooks/useElementSelection";
 
 const BuilderContainer = styled.div`
   display: flex;

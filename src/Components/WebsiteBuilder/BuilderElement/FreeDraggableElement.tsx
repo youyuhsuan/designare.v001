@@ -1,4 +1,5 @@
 "use client";
+
 import React, {
   useState,
   useRef,
@@ -11,13 +12,10 @@ import React, {
 import { useDraggable } from "@dnd-kit/core";
 import styled from "styled-components";
 import Image from "next/image";
-import {
-  ContentProps,
-  FreeDraggableElementProps,
-  Selection,
-} from "../BuilderInterface";
+import { ContentProps, FreeDraggableElementProps } from "../BuilderInterface";
 import { useElementContext } from "../Slider/ElementContext";
 import ResizeHandles from "./handleResize";
+import EditInput from "./EditInput";
 
 const ElementWrapper = styled.div<ContentProps>`
   border: none;
@@ -31,30 +29,21 @@ const ElementWrapper = styled.div<ContentProps>`
       props.$isSelected ? props.theme.colors.accent : "transparent"};
 `;
 
-const StyledInput = styled.input<ContentProps>`
+const P = styled.p<ContentProps>`
+  width: 100%;
   height: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: 0;
   margin: 0;
-  resize: none;
-  overflow: hidden;
+  padding: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: ${(props) => props.$config.fontSize}px;
   font-weight: ${(props) => props.$config.fontWeight};
   text-align: ${(props) => props.$config.textAlign};
   color: ${(props) => props.$config.textColor};
   opacity: ${(props) => props.$config.opacity};
-  font-size: ${(props) => props.$config.fontSize};
   font-family: ${(props) => props.$config.fontFamily};
-  &::selection {
-    background-color: ${(props) => props.theme.colors.accent};
-  }
-`;
-
-const P = styled.p<ContentProps>`
-  padding: 0;
-  margin: 0;
 `;
 
 const DeleteButton = styled.button`
@@ -68,13 +57,6 @@ const DeleteButton = styled.button`
   cursor: pointer;
 `;
 
-const EditInput = forwardRef<HTMLInputElement, EditInputProps>((props, ref) => {
-  console.log("EditInput rendered, ref:", ref);
-  return <StyledInput ref={ref} {...props} />;
-});
-
-EditInput.displayName = "EditInput";
-
 const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   id,
   content,
@@ -86,23 +68,28 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   isSelected,
   onMouseUp,
 }) => {
-  // 使用自訂 Hook 獲取上下文中的函式
   const { updateSelectedElement } = useElementContext();
 
-  // 狀態
-  // 編輯模式
+  // 編輯模式狀態
   const [isEditing, setIsEditing] = useState(false);
   // 編輯內容的值
   const [editableContent, setEditableContent] = useState(content as string);
-  // 選擇
+  // 元素選擇狀態
   const [isElementSelected, setIsElementSelected] = useState(isSelected);
-  // 引用記錄是否正在調整大小
+
+  // 引用輸入框元素
+  const elementRef = useRef<
+    HTMLInputElement | HTMLButtonElement | HTMLParagraphElement | null
+  >(null);
+
+  // 記錄是否正在調整大小
   const resizingRef = useRef(false);
-
+  // 是否剛進入編輯模式
   const justEnteredEditMode = useRef(false);
-
-  // 引用輸入框元素以便焦點管理
-  const elementRef = useRef<HTMLInputElement>(null);
+  // 是否應該選擇所有內容
+  const [shouldSelectAll, setShouldSelectAll] = useState(false);
+  // 是否為第一次編輯
+  const isFirstEditRef = useRef(true);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -132,6 +119,49 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     return { ...baseStyle, ...(config || {}) };
   }, [config, isDragging, transform]);
 
+  useEffect(() => {
+    console.log("Editable content updated:", editableContent);
+  }, [editableContent]);
+
+  useEffect(() => {
+    console.log(
+      `Component ${id} mounted/updated. isEditing:`,
+      isEditing,
+      "isSelected:",
+      isSelected,
+      "content:",
+      content
+    );
+  }, [id, isEditing, isSelected, content]);
+
+  useEffect(() => {
+    console.log("isEditing:", isEditing);
+    console.log("elementRef.current:", elementRef.current);
+  }, [isEditing]);
+
+  useEffect(() => {
+    console.log(`Editable content for ${id} updated:`, editableContent);
+  }, [id, editableContent]);
+
+  useEffect(() => {
+    console.log("isEditing changed:", isEditing);
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (isEditing && elementRef.current) {
+      console.log(
+        "isEditing && elementRef.current",
+        isEditing && elementRef.current
+      );
+      elementRef.current.focus();
+
+      if (elementRef.current instanceof HTMLInputElement) {
+        elementRef.current.setSelectionRange(0, editableContent.length);
+      }
+    }
+  }, [isEditing, editableContent]);
+
+  console.log("onDelete function:", onDelete);
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest(`[id="${id}"]`)) return;
@@ -149,40 +179,80 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     };
   }, [handleOutsideClick]);
 
+  const handleSelectComplete = useCallback(() => {
+    setShouldSelectAll(false);
+  }, []);
+
+  useEffect(() => {
+    if (isEditing && elementRef.current) {
+      console.log("isEditing && elementRef.current", elementRef.current);
+      elementRef.current.focus();
+      if ("setSelectionRange" in elementRef.current) {
+        (elementRef.current as HTMLInputElement).setSelectionRange(
+          0,
+          editableContent.length
+        );
+      }
+    }
+  }, [isEditing, editableContent]);
+
   // 雙擊事件處理函式，用於進入編輯模式
   const handleDoubleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      console.log(`Double click event triggered on element ${id}`);
       if (type === "text" || type === "button") {
+        console.log(
+          `Entering edit mode for element ${id}, current content: "${content}"`
+        );
         setIsEditing(true);
         setIsElementSelected(false);
-        justEnteredEditMode.current = true;
+        setEditableContent(content as string);
+        if (isFirstEditRef.current) {
+          setTimeout(() => {
+            setShouldSelectAll(true);
+          }, 50);
+          isFirstEditRef.current = false;
+        }
       }
     },
-    [type]
+    [id, type, content, setIsEditing, setIsElementSelected, setEditableContent]
   );
 
   // 失去焦點處理函式，保存編輯內容並更新元素
   const handleBlur = useCallback(() => {
+    console.log(`Blur event triggered for ${id}`);
     setIsEditing(false);
-    if (!setIsEditing && justEnteredEditMode.current) {
-      justEnteredEditMode.current = false;
-      return;
-    }
-    setIsElementSelected(false);
-    console.log("Blur event triggered");
     if (editableContent !== content) {
+      console.log(
+        `Updating content for ${id} from`,
+        content,
+        "to",
+        editableContent
+      );
       onUpdate({ content: editableContent });
       updateSelectedElement(id, "content", editableContent);
     }
-  }, [editableContent, content, id, onUpdate, updateSelectedElement]);
+    isFirstEditRef.current = true; // Reset for next edit session
+  }, [
+    id,
+    setIsEditing,
+    editableContent,
+    content,
+    onUpdate,
+    updateSelectedElement,
+  ]);
 
   // 輸入內容變更處理函式
   const handleContentChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEditableContent(e.target.value);
+      const newValue = e.target.value;
+      console.log(
+        `Content changing for ${id} from "${editableContent}" to "${newValue}"`
+      );
+      setEditableContent(newValue);
     },
-    []
+    [id, editableContent]
   );
 
   // 在編輯模式中設置文本選擇範圍
@@ -193,14 +263,15 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
         isEditing && elementRef.current
       );
       elementRef.current.focus();
-      elementRef.current.setSelectionRange(0, editableContent.length);
+
+      if (
+        elementRef.current instanceof HTMLInputElement &&
+        "setSelectionRange" in elementRef.current
+      ) {
+        elementRef.current.setSelectionRange(0, editableContent.length);
+      }
     }
   }, [isEditing, editableContent]);
-
-  useEffect(() => {
-    console.log("isEditing:", isEditing);
-    console.log("elementRef.current:", elementRef.current);
-  }, [isEditing]);
 
   const handleResize = useCallback(
     (e: React.MouseEvent, direction: string) => {
@@ -288,60 +359,69 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   // 鍵盤事件處理函式
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (isEditing && document.activeElement === elementRef.current) {
-        if (event.key === "Escape") {
-          // 按下 Escape 退出編輯模式
-          setIsEditing(false);
-          setEditableContent(content as string); // 恢復原始內容
-        } else if (event.key === "Enter") {
-          // 按下 Enter 保存修改
-          handleBlur();
-        }
-      } else if (
-        !isEditing &&
+      if (isEditing) {
+        // 在编辑模式下，不处理任何键盘事件
+        return;
+      }
+
+      if (
         event.key === "Backspace" &&
+        elementRef.current &&
         document.activeElement === elementRef.current
       ) {
-        // event.preventDefault();
+        console.log("Backspace pressed, attempting to delete");
+        event.preventDefault();
         event.stopPropagation();
         onDelete();
-        // console.log(`Element ${id} - Deleted`);
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
+    const element = elementRef.current;
+    if (element) {
+      element.addEventListener("keydown", handleKeyDown as EventListener);
+      return () => {
+        element.removeEventListener("keydown", handleKeyDown as EventListener);
+      };
+    }
+  }, [isEditing, onDelete]);
 
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [id, onDelete, isEditing, editableContent, content, handleBlur]);
+  const handleDelete = useCallback(() => {
+    console.log("Attempting to delete element:", id);
+    onDelete();
+  }, [id, onDelete]);
 
   const renderContent = () => {
+    console.log(
+      `Rendering content for ${id}, isEditing:`,
+      isEditing,
+      "editableContent:",
+      editableContent,
+      "shouldSelectAll:",
+      shouldSelectAll
+    );
     if (isEditing) {
       return (
         <EditInput
-          ref={elementRef}
+          ref={elementRef as React.RefObject<HTMLInputElement>}
           value={editableContent}
-          $config={config}
           onChange={handleContentChange}
           onBlur={handleBlur}
-          onKeyDown={(e) => {
-            console.log("Key pressed:", e.key);
-            if (e.key === "Enter") {
-              e.preventDefault(); // 防止在文本區域中添加新行
-              handleBlur();
-            }
-          }}
-          autoFocus
+          $config={config}
+          shouldSelectAll={shouldSelectAll}
+          onSelectComplete={handleSelectComplete}
+          data-testid={`edit-input-${id}`}
         />
       );
     }
 
+    console.log(`Rendering non-editable content for ${id}, content:`, content);
     const commonProps = {
       style: {
         margin: 0,
         padding: 0,
       },
+      tabIndex: 0,
+      onDoubleClick: handleDoubleClick,
     };
 
     switch (type) {
@@ -349,8 +429,10 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
         return (
           <P
             {...commonProps}
-            ref={elementRef}
+            ref={elementRef as React.RefObject<HTMLParagraphElement>}
             onDoubleClick={handleDoubleClick}
+            data-testid={`non-editable-content-${id}`}
+            $config={config}
           >
             {content}
           </P>
@@ -359,25 +441,38 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
         return (
           <button
             {...commonProps}
-            ref={elementRef}
+            ref={elementRef as React.RefObject<HTMLButtonElement>}
             onDoubleClick={handleDoubleClick}
+            data-testid={`non-editable-content-${id}`}
           >
             {content}
           </button>
         );
       case "image":
         return (
-          <Image
+          <div
             {...commonProps}
-            src={content as string}
-            alt="Draggable"
-            layout="fill"
-            objectFit="contain"
-          />
+            ref={elementRef as React.RefObject<HTMLDivElement>}
+            data-testid={`non-editable-content-${id}`}
+          >
+            <Image
+              src={content as string}
+              alt="Draggable"
+              layout="fill"
+              objectFit="contain"
+            />
+          </div>
         );
       case "list":
       default:
-        return <div>{content}</div>;
+        return (
+          <div
+            {...commonProps}
+            ref={elementRef as React.RefObject<HTMLDivElement>}
+          >
+            {content}
+          </div>
+        );
     }
   };
 
@@ -390,6 +485,16 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       $isSelected={isSelected}
       onMouseUp={onMouseUp}
       onDoubleClick={handleDoubleClick}
+      tabIndex={0}
+      data-testid={`element-wrapper-${id}`}
+      onKeyDown={(e) => {
+        console.log("Key pressed in ElementWrapper:", e.key);
+        if (!isEditing && e.key === "Backspace") {
+          e.preventDefault();
+          e.stopPropagation();
+          onDelete();
+        }
+      }}
       {...(isLayout || isEditing ? {} : { ...attributes, ...listeners })}
     >
       {renderContent()}
