@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import Evervault from "@evervault/sdk";
 import { cookies } from "next/headers";
-import { sessionDB } from "@/src/libs/db";
+import { sessionDB } from "@/src/libs/db/sessionDB";
 
 const evervault = new Evervault(
   process.env.EVERVAULT_APP_ID as string,

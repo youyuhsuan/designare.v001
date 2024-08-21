@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/src/Components/Button";
 
 const HeroContainer = styled.section`
-  height: 100vh;
+  height: 90dvh;
   padding: 2%;
   background: ${(props) => props.theme.colors.background};
   overflow: hidden;
@@ -101,7 +101,7 @@ const BackgroundLines: React.FC = () => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("resize", handleResize);
 
-    handleResize();
+    handleResize(); // 初始化窗口大小
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
@@ -109,30 +109,31 @@ const BackgroundLines: React.FC = () => {
     };
   }, []);
 
-  const lines = [];
-  const rows = 20;
-  const cols = 20;
+  return (
+    <LineContainer>
+      {Array.from({ length: 20 * 20 }).map((_, i) => {
+        const row = Math.floor(i / 20);
+        const col = i % 20;
+        const centerX = ((col + 0.5) / 20) * windowSize.width;
+        const centerY = ((row + 0.5) / 20) * windowSize.height;
 
-  for (let i = 0; i < rows * cols; i++) {
-    const row = Math.floor(i / cols);
-    const col = i % cols;
-    const centerX = ((col + 0.5) / cols) * windowSize.width;
-    const centerY = ((row + 0.5) / rows) * windowSize.height;
-
-    lines.push(
-      <Line
-        key={i}
-        animate={{
-          rotate:
-            Math.atan2(mousePosition.y - centerY, mousePosition.x - centerX) *
-            (180 / Math.PI),
-        }}
-        transition={{ type: "spring", stiffness: 100, damping: 10 }}
-      />
-    );
-  }
-
-  return <LineContainer>{lines}</LineContainer>;
+        return (
+          <Line
+            key={i}
+            animate={{
+              rotate:
+                Math.atan2(
+                  mousePosition.y - centerY,
+                  mousePosition.x - centerX
+                ) *
+                (180 / Math.PI),
+            }}
+            transition={{ type: "spring", stiffness: 100, damping: 10 }}
+          />
+        );
+      })}
+    </LineContainer>
+  );
 };
 
 const FrostedLiquidButton: React.FC = () => {
@@ -166,8 +167,16 @@ const FrostedLiquidButton: React.FC = () => {
 
 const words = ["網站", "夢想", "創意", "未來"];
 
-export default function HeroSection() {
+const HeroSection: React.FC = () => {
   const [currentWord, setCurrentWord] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWord((prev) => (prev + 1) % words.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <HeroContainer>
@@ -189,9 +198,6 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              onAnimationComplete={() => {
-                setCurrentWord((prev) => (prev + 1) % words.length);
-              }}
             >
               {" "}
               {words[currentWord]}
@@ -203,4 +209,6 @@ export default function HeroSection() {
       </ContentWrapper>
     </HeroContainer>
   );
-}
+};
+
+export default HeroSection;

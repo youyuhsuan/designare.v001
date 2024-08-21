@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Nav from "@/src/Components/Nav";
+import Nav from "@/src/Components/MainNav";
 import HeroSection from "@/src/Components/HeroSection";
 import WebsiteTemplateShowcase from "@/src/Components/Card";
 import KeyFeaturesSection from "@/src/Components/KeyFeaturesSection";

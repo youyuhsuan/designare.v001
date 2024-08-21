@@ -2,10 +2,12 @@
 
 import React from "react";
 import styled from "styled-components";
+
 import { ElementProvider } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 import { CanvasArea } from "@/src/Components/WebsiteBuilder/CanvasArea";
-import { Sidebar } from "@/src/Components/WebsiteBuilder/Sidebar/Sidebar";
+import { Toolbar } from "@/src/Components/WebsiteBuilder/Toolbar/Toolbar";
 import Navbar from "@/src/Components/WebsiteBuilder/Navbar";
+
 import SidebarEditor from "@/src/Components/WebsiteBuilder/SidebarEditor/SidebarEditor";
 import { NextUIProvider } from "@nextui-org/react";
 
@@ -24,15 +26,14 @@ const ContentContainer = styled.div`
 `;
 
 const ToolbarWrapper = styled.div`
-  width: 240px;
-  background-color: #f0f0f0;
+  background-color: ${(props) => props.theme.colors.background};
   border-right: 1px solid #e0e0e0;
   overflow-y: auto;
 `;
 
 const CanvasWrapper = styled.div`
   flex: 1;
-  background-color: #ffffff;
+  background-color: ${(props) => props.theme.colors.background};
   overflow-y: auto;
   display: flex;
   justify-content: center;
@@ -42,8 +43,8 @@ const CanvasWrapper = styled.div`
 
 const EditorWrapper = styled.div`
   width: 300px;
-  background-color: #f8f8f8;
-  border-left: 1px solid #e0e0e0;
+  background-color: ${(props) => props.theme.colors.background};
+  border-left: 1px solid ${(props) => props.theme.colors.border};
   overflow-y: auto;
   padding: 16px;
 `;
@@ -55,14 +56,12 @@ export const WebsiteBuilder: React.FC = () => (
         <Navbar />
         <ContentContainer>
           <ToolbarWrapper>
-            <Sidebar />
+            <Toolbar />
           </ToolbarWrapper>
           <CanvasWrapper>
             <CanvasArea />
           </CanvasWrapper>
-          <EditorWrapper>
-            <SidebarEditor />
-          </EditorWrapper>
+          <SidebarEditor />
         </ContentContainer>
       </BuilderContainer>
     </NextUIProvider>

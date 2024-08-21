@@ -2,35 +2,43 @@
 
 import Link from "next/link";
 import React, { useCallback, useRef, useState } from "react";
-import { AuthMode } from "@/src/Components/AuthModal/AuthModal";
+import { FaGoogle, FaFacebook } from "react-icons/fa";
+import { AuthMode } from "@/src/Components/Auth/AuthModal";
 import {
   Title,
   Input,
   Wrapper,
   Label,
+  ForgotPasswordWrapper,
+  ForgotPassword,
+  Divider,
   Footer,
   ErrorMessage,
-  SuccessMessage,
-} from "@/src/Components/AuthModal/AuthModal.styles";
+} from "@/src/Components/Auth/AuthModal.styles";
+import { PasswordInput } from "@/src/Components/Auth/PasswordInput";
 import { Button } from "@/src/Components/Button";
+import styled from "styled-components";
 
-interface ForgotPasswordFormProps {
+interface LoginFormProps {
   onModeChange: (mode: AuthMode) => void;
   onSubmit: (formData: FormData) => Promise<void>;
   errors: Record<string, string> | null;
-  message: string | null;
 }
 
-export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
+const ButtonWrapper = styled.div`
+  margin-botton: 1rem;
+`;
+
+export const LoginForm: React.FC<LoginFormProps> = ({
   onModeChange,
   onSubmit,
   errors,
-  message,
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
+    password: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +55,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
           await onSubmit(new FormData(formRef.current));
         }
       } catch (error) {
-        console.error("ForgotPasswordForm handleSubmit error", error);
+        console.error("LoginForm handleSubmit error", error);
       } finally {
         setIsSubmitting(false);
       }
@@ -57,7 +65,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
 
   return (
     <>
-      <Title>重設密碼</Title>
+      <Title>歡迎回來！</Title>
       <form ref={formRef} onSubmit={handleSubmit}>
         <Wrapper>
           <Label htmlFor="email">電子郵件</Label>
@@ -65,30 +73,62 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             id="email"
             name="email"
             type="email"
-            placeholder="請輸入您的電子郵件..."
+            placeholder="請輸入電子郵件..."
             value={formData.email}
             onChange={handleChange}
             required
           />
           {errors?.email && <ErrorMessage>{errors.email}</ErrorMessage>}
         </Wrapper>
-        {message && <SuccessMessage>{message}</SuccessMessage>}
-        {errors?.global && <ErrorMessage>{errors.global}</ErrorMessage>}
+        <PasswordInput
+          label="密碼"
+          name="password"
+          id="password"
+          placeholder="請輸入密碼..."
+          value={formData.password}
+          onChange={handleChange}
+        />
+        {errors?.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+        <ForgotPasswordWrapper>
+          <ForgotPassword
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onModeChange("forgot-password");
+            }}
+          >
+            忘記密碼？
+          </ForgotPassword>
+        </ForgotPasswordWrapper>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "發送中..." : "發送重設密碼郵件"}
+          {isSubmitting ? "登入中..." : "登入"}
         </Button>
       </form>
+      <Divider>
+        <span>或</span>
+      </Divider>
+      <ButtonWrapper>
+        <Button>
+          <FaGoogle /> Google 登入
+        </Button>
+      </ButtonWrapper>
+      <ButtonWrapper>
+        <Button>
+          <FaFacebook /> Facebook 登入
+        </Button>
+      </ButtonWrapper>
+
       <Footer>
         <span>
-          想起密碼了？
+          還沒有帳號？
           <Link
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              onModeChange("login");
+              onModeChange("signup");
             }}
           >
-            返回登入
+            立即註冊
           </Link>
         </span>
       </Footer>

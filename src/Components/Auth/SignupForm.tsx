@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React, { useCallback, useRef, useState } from "react";
-import { AuthMode, ErrorsType } from "@/src/Components/AuthModal/AuthModal";
+import { AuthMode, ErrorsType } from "@/src/Components/Auth/AuthModal";
 import {
   Title,
   Input,
@@ -10,8 +10,8 @@ import {
   Label,
   Footer,
   ErrorMessage,
-} from "@/src/Components/AuthModal/AuthModal.styles";
-import { PasswordInput } from "@/src/Components/AuthModal/PasswordInput";
+} from "@/src/Components/Auth/AuthModal.styles";
+import { PasswordInput } from "@/src/Components/Auth/PasswordInput";
 import { Button } from "@/src/Components/Button";
 
 interface SignupFormProps {

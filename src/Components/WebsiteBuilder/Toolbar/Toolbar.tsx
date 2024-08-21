@@ -7,6 +7,7 @@ import {
   GlobalElementType,
   LocalElementType,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
+
 import {
   FaFont,
   FaImage,
@@ -22,11 +23,10 @@ import { useDispatch } from "react-redux";
 import { addToElementLibrary } from "@/src/libs/features/websiteBuilder/websiteBuilderSlice";
 
 const Container = styled.div`
-  width: 250px;
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-right: 1px solid #e0e0e0;
-  height: 100vh;
+  width: 3rem; //48px
+  background-color: ${(props) => props.theme.colors.background};
+  border-right: 1px solid ${(props) => props.theme.colors.border};
+  height: 100dvh;
 `;
 
 const ToolButton = styled.button`
@@ -34,20 +34,17 @@ const ToolButton = styled.button`
   align-items: center;
   justify-content: flex-start;
   width: 100%;
+
+  border: 0;
   margin-bottom: 10px;
   padding: 10px;
-  background-color: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
+
+  background-color: ${(props) => props.theme.colors.background};
   cursor: pointer;
   transition: background-color 0.2s;
 
   &:hover {
     background-color: #f0f0f0;
-  }
-
-  svg {
-    margin-right: 10px;
   }
 `;
 
@@ -55,13 +52,13 @@ const ToolSection = styled.div`
   margin-bottom: 20px;
 `;
 
-const SectionTitle = styled.h3`
-  font-size: 14px;
+const SectionTitle = styled.p`
+  font-size: 0.625rem; // 10px
   color: #666;
   margin-bottom: 10px;
 `;
 
-export function Sidebar() {
+export function Toolbar() {
   const { addElement } = useElementContext();
   const dispatch = useDispatch();
 
@@ -144,7 +141,6 @@ export function Sidebar() {
           fontFamily:
             freeDraggableSubtypes?.text.properties.fontFamily.defaultValue,
         };
-        console.log(freeDraggableConfig.position.defaultValue);
 
         return {
           ...baseElement,
@@ -175,46 +171,39 @@ export function Sidebar() {
         <ToolButton
           onClick={() => handleAddElement("text", "Add a Title", false, "H1")}
         >
-          <FaFont size={18} />
-          Text
+          <FaFont size={24} />
         </ToolButton>
-        {/* <ToolButton
+        <ToolButton
           onClick={() =>
             handleAddElement("image", "https://via.placeholder.com/150")
           }
         >
-          <FaImage size={18} />
-          Image
+          <FaImage size={24} />
         </ToolButton>
         <ToolButton onClick={() => handleAddElement("button", "New Button")}>
-          <FaLink size={18} />
-          Button
-        </ToolButton> */}
+          <FaLink size={24} />
+        </ToolButton>
       </ToolSection>
-
       <ToolSection>
         <SectionTitle>Layout</SectionTitle>
         <ToolButton
           onClick={() => handleAddElement("columns", "New Columns", true)}
         >
-          <FaColumns size={18} />
-          Columns
+          <FaColumns size={24} />
         </ToolButton>
         <ToolButton
           onClick={() => handleAddElement("container", "New Container", true)}
         >
-          <FaShapes size={18} />
-          Containers
+          <FaShapes size={24} />
         </ToolButton>
       </ToolSection>
 
-      {/* <ToolSection>
+      <ToolSection>
         <SectionTitle>Components</SectionTitle>
         <ToolButton onClick={() => handleAddElement("list", "New List")}>
-          <FaList size={18} />
-          List
+          <FaList size={24} />
         </ToolButton>
-      </ToolSection> */}
+      </ToolSection>
     </Container>
   );
 }

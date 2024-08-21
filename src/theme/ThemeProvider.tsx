@@ -41,29 +41,44 @@ export const ThemeContext = React.createContext<ThemeContextType | undefined>(
   undefined
 );
 
+const getInitialMode = (): "light" | "dark" => {
+  const savedMode = localStorage.getItem("themeMode") as
+    | "light"
+    | "dark"
+    | null;
+  if (savedMode) {
+    return savedMode;
+  }
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+};
+
+const applyTheme = (mode: "light" | "dark") => {
+  document.body.setAttribute("data-theme", mode);
+  document.documentElement.style.setProperty("color-scheme", mode);
+};
+
 export const ThemeWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [mode, setMode] = useState<"light" | "dark">(() => {
-    // 初始化時檢查系統偏好
-    if (typeof window !== "undefined") {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
-    return "light"; // 默認為亮色主題
-  });
+  const [mode, setMode] = useState<"light" | "dark">(getInitialMode);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e: MediaQueryListEvent) => {
-      setMode(e.matches ? "dark" : "light");
+      const newMode = e.matches ? "dark" : "light";
+      setMode(newMode);
     };
 
     mediaQuery.addEventListener("change", handleChange);
-
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("themeMode", mode);
+    applyTheme(mode);
+  }, [mode]);
 
   const toggleTheme = useCallback(() => {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
@@ -71,7 +86,7 @@ export const ThemeWrapper: React.FC<{ children: React.ReactNode }> = ({
 
   const theme = useMemo(() => createTheme(mode), [mode]);
 
-  const contextValue = useMemo(
+  const contextValue = useMemo<ThemeContextType>(
     () => ({ theme, toggleTheme }),
     [theme, toggleTheme]
   );

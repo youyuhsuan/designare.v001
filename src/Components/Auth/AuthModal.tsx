@@ -7,10 +7,10 @@ import {
   selectAuthErrors,
   selectAuthMessage,
 } from "@/src/libs/features/auth/authSelectors";
-import { Modal } from "@/src/Components/AuthModal/Modal";
-import { LoginForm } from "@/src/Components/AuthModal/LoginForm";
-import { SignupForm } from "@/src/Components/AuthModal/SignupForm";
-import { ForgotPasswordForm } from "@/src/Components/AuthModal/ForgotPasswordForm";
+import { Modal } from "@/src/Components/Auth/Modal";
+import { LoginForm } from "@/src/Components/Auth/LoginForm";
+import { SignupForm } from "@/src/Components/Auth/SignupForm";
+import { ForgotPasswordForm } from "@/src/Components/Auth/ForgotPasswordForm";
 
 export type AuthMode = "login" | "signup" | "forgot-password";
 
@@ -60,7 +60,7 @@ export function AuthModal({
           (entry): entry is [string, string] => entry[1] !== null
           //  is 類型謹慎 Type Predicate
           //  Object.entries(errors) 產生的 [key, value]
-          //  entry is [string, string]，這表示當函數返回 true 時，entry 的類型應該被視為 [string, string]
+          //  entry is [stritring]，這表示當函數返回 true 時，entry 的類型應該被視為 [string, string]
           //  [['key', 'value'], ['key', 'value']]
         )
         //  鍵值對組成的 Array轉換為 Object

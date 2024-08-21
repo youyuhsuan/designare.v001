@@ -192,9 +192,6 @@ export const elementConfigs: ElementConfigs = {
             label: "大小",
             type: "composite",
             transform: Number,
-            defaultValue: (elementType: string) => {
-              return textDefaults[elementType]?.size || {};
-            },
             compositeFields: {
               width: {
                 label: "寬度",
@@ -208,6 +205,9 @@ export const elementConfigs: ElementConfigs = {
                 transform: Number,
                 unit: "px",
               },
+            },
+            defaultValue: (elementType: string) => {
+              return textDefaults[elementType]?.fontSize || {};
             },
           },
           fontSize: {

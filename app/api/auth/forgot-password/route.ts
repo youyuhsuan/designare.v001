@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
             );
         }
       }
-      throw error; // Re-throw if it's not a FirebaseError
+      throw error;
     }
   } catch (error) {
     if (error instanceof z.ZodError) {

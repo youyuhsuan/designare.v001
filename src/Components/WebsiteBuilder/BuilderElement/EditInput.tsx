@@ -1,7 +1,13 @@
-import React, { forwardRef, useRef, useEffect, useCallback } from "react";
+import React, {
+  forwardRef,
+  useRef,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import styled from "styled-components";
-
 import { ContentProps } from "../BuilderInterface";
+import { commonStyles } from "./commonStyles";
 
 interface EditInputProps {
   value: string;
@@ -12,27 +18,25 @@ interface EditInputProps {
   onSelectComplete: () => void;
 }
 
-const StyledInput = styled.input<ContentProps>`
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: 0;
-  margin: 0;
-  resize: none;
-  overflow: hidden;
+const HiddenSpan = styled.span<ContentProps>`
+  visibility: hidden;
+  position: absolute;
+  white-space: pre;
   font-size: ${(props) => props.$config.fontSize}px;
   font-weight: ${(props) => props.$config.fontWeight};
-  text-align: ${(props) => props.$config.textAlign};
-  color: ${(props) => props.$config.textColor};
-  opacity: ${(props) => props.$config.opacity};
   font-family: ${(props) => props.$config.fontFamily};
+`;
+
+const StyledInput = styled.input<ContentProps>`
+  ${commonStyles}
+  width: auto;
+  min-width: 1px;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+
   &::selection {
     background-color: ${(props) => props.theme.colors.accent};
   }
@@ -45,6 +49,15 @@ const StyledInput = styled.input<ContentProps>`
 
 const EditInput = forwardRef<HTMLInputElement, EditInputProps>((props, ref) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const hiddenSpanRef = useRef<HTMLSpanElement>(null);
+  const [inputWidth, setInputWidth] = useState("auto");
+
+  const updateInputWidth = useCallback(() => {
+    if (hiddenSpanRef.current) {
+      const newWidth = hiddenSpanRef.current.offsetWidth;
+      setInputWidth(`${newWidth + 10}px`); // 添加一些额外的空间
+    }
+  }, []);
 
   useEffect(() => {
     if (ref) {
@@ -57,6 +70,10 @@ const EditInput = forwardRef<HTMLInputElement, EditInputProps>((props, ref) => {
   }, [ref]);
 
   useEffect(() => {
+    updateInputWidth();
+  }, [props.value, updateInputWidth]);
+
+  useEffect(() => {
     if (inputRef.current && props.shouldSelectAll) {
       console.log("Attempting to select all text");
       inputRef.current.focus();
@@ -67,26 +84,36 @@ const EditInput = forwardRef<HTMLInputElement, EditInputProps>((props, ref) => {
   }, [props.shouldSelectAll, props.onSelectComplete, props]);
 
   return (
-    <StyledInput
-      ref={inputRef}
-      {...props}
-      onKeyDown={(e) => {
-        console.log("Key pressed in EditInput:", e.key);
-        if (e.key === "Enter") {
-          e.preventDefault();
-          props.onBlur();
-        }
-      }}
-      onChange={(e) => {
-        console.log("Input changed:", e.target.value);
-        props.onChange(e);
-      }}
-      onFocus={() => {
-        if (props.shouldSelectAll && inputRef.current) {
-          inputRef.current.setSelectionRange(0, inputRef.current.value.length);
-        }
-      }}
-    />
+    <>
+      <HiddenSpan ref={hiddenSpanRef} $config={props.$config}>
+        {props.value}
+      </HiddenSpan>
+      <StyledInput
+        ref={inputRef}
+        {...props}
+        style={{ width: inputWidth }}
+        onKeyDown={(e) => {
+          console.log("Key pressed in EditInput:", e.key);
+          if (e.key === "Enter") {
+            e.preventDefault();
+            props.onBlur();
+          }
+        }}
+        onChange={(e) => {
+          console.log("Input changed:", e.target.value);
+          props.onChange(e);
+          updateInputWidth();
+        }}
+        onFocus={() => {
+          if (props.shouldSelectAll && inputRef.current) {
+            inputRef.current.setSelectionRange(
+              0,
+              inputRef.current.value.length
+            );
+          }
+        }}
+      />
+    </>
   );
 });
 

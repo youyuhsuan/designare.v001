@@ -6,8 +6,6 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-  useLayoutEffect,
-  forwardRef,
 } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import styled from "styled-components";
@@ -16,34 +14,28 @@ import { ContentProps, FreeDraggableElementProps } from "../BuilderInterface";
 import { useElementContext } from "../Slider/ElementContext";
 import ResizeHandles from "./handleResize";
 import EditInput from "./EditInput";
+import { commonStyles } from "./commonStyles";
 
 const ElementWrapper = styled.div<ContentProps>`
+  position: absolute;
   border: none;
-  position: absolute;
   cursor: move;
-  position: absolute;
   user-select: none;
   opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
   border: 1px solid
     ${(props) =>
       props.$isSelected ? props.theme.colors.accent : "transparent"};
+  width: ${(props) => props.$config.size.width}px;
+  height: ${(props) => props.$config.size.height}px;
+  transform: translate(
+    ${(props) => props.$config.position.x}px,
+    ${(props) => props.$config.position.y}px
+  );
 `;
 
 const P = styled.p<ContentProps>`
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: ${(props) => props.$config.fontSize}px;
-  font-weight: ${(props) => props.$config.fontWeight};
-  text-align: ${(props) => props.$config.textAlign};
-  color: ${(props) => props.$config.textColor};
-  opacity: ${(props) => props.$config.opacity};
-  font-family: ${(props) => props.$config.fontFamily};
+  ${commonStyles}
+  cursor: text;
 `;
 
 const DeleteButton = styled.button`
@@ -107,15 +99,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       position: "absolute" as const,
       transform: `translate3d(${translateX}px, ${translateY}px, 0)`,
       transition: isDragging ? "none" : "transform 0.3s ease-out",
-      color: config.textColor,
-      // width: config.size.width,
-      // height: config.size.height,
     };
-
-    if (config.opacity) {
-      baseStyle.opacity = config.textColorOpacity;
-    }
-
     return { ...baseStyle, ...(config || {}) };
   }, [config, isDragging, transform]);
 
@@ -147,21 +131,8 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     console.log("isEditing changed:", isEditing);
   }, [isEditing]);
 
-  useEffect(() => {
-    if (isEditing && elementRef.current) {
-      console.log(
-        "isEditing && elementRef.current",
-        isEditing && elementRef.current
-      );
-      elementRef.current.focus();
-
-      if (elementRef.current instanceof HTMLInputElement) {
-        elementRef.current.setSelectionRange(0, editableContent.length);
-      }
-    }
-  }, [isEditing, editableContent]);
-
   console.log("onDelete function:", onDelete);
+
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest(`[id="${id}"]`)) return;
@@ -182,19 +153,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   const handleSelectComplete = useCallback(() => {
     setShouldSelectAll(false);
   }, []);
-
-  useEffect(() => {
-    if (isEditing && elementRef.current) {
-      console.log("isEditing && elementRef.current", elementRef.current);
-      elementRef.current.focus();
-      if ("setSelectionRange" in elementRef.current) {
-        (elementRef.current as HTMLInputElement).setSelectionRange(
-          0,
-          editableContent.length
-        );
-      }
-    }
-  }, [isEditing, editableContent]);
 
   // 雙擊事件處理函式，用於進入編輯模式
   const handleDoubleClick = useCallback(
@@ -258,18 +216,17 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   // 在編輯模式中設置文本選擇範圍
   useEffect(() => {
     if (isEditing && elementRef.current) {
-      console.log(
-        "isEditing && elementRef.current",
-        isEditing && elementRef.current
-      );
+      console.log("isEditing && elementRef.current", elementRef.current);
       elementRef.current.focus();
-
       if (
         elementRef.current instanceof HTMLInputElement &&
-        "setSelectionRange" in elementRef.current
+        isFirstEditRef.current
       ) {
         elementRef.current.setSelectionRange(0, editableContent.length);
+        isFirstEditRef.current = false;
       }
+    } else if (!isEditing) {
+      isFirstEditRef.current = true;
     }
   }, [isEditing, editableContent]);
 
@@ -360,7 +317,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isEditing) {
-        // 在编辑模式下，不处理任何键盘事件
         return;
       }
 
@@ -384,11 +340,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       };
     }
   }, [isEditing, onDelete]);
-
-  const handleDelete = useCallback(() => {
-    console.log("Attempting to delete element:", id);
-    onDelete();
-  }, [id, onDelete]);
 
   const renderContent = () => {
     console.log(

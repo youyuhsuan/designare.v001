@@ -7,7 +7,7 @@ import {
   Label,
   ToggleButton,
   ErrorMessage,
-} from "@/src/Components/AuthModal/AuthModal.styles";
+} from "@/src/Components/Auth/AuthModal.styles";
 
 export interface PasswordInputProps {
   label: string;

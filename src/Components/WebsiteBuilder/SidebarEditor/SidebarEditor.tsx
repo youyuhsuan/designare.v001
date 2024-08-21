@@ -8,10 +8,91 @@ import {
   LocalElementType,
   PropertyConfigWithComposite,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
+
 import { elementConfigs } from "./elementConfigs";
 import ButtonGroup from "./ButtonGroup";
 import { getNestedValue } from "./getNestedValue";
 import { ColorPicker } from "./ColorPicker";
+import styled from "styled-components";
+
+const EditorContainer = styled.div`
+  z-index: 10;
+  width: 15rem; //  240px
+  box-shadow: rgba(0, 0, 0, 0.1) -4px 9px 25px -6px;
+  background-color: ${(props) => props.theme.colors.background};
+  border-left: 1px solid ${(props) => props.theme.colors.border};
+  overflow-y: auto;
+  padding: 16px;
+`;
+
+const EditorWrapper = styled.div`
+  margin-bottom: 1rem;
+`;
+
+const Label = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  color: ${(props) => props.theme.colors.border};
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid ${(props) => props.theme.colors.border};
+  border-radius: 0.375rem;
+  background-color: ${(props) => props.theme.colors.background};
+  background-color: ${(props) => props.theme.colors.text};
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  &:focus {
+    border-color: ${(props) => props.theme.colors.accent};
+    outline: none;
+    box-shadow: 0 0 0 1px ${(props) => props.theme.colors.accent};
+  }
+`;
+
+const Span = styled.span`
+  margin-left: 0.5rem;
+  color: ${(props) => props.theme.colors.border};
+`;
+
+const RangeInput = styled.input`
+  width: 100%;
+  -webkit-appearance: none;
+  background: ${(props) => props.theme.colors.background};
+  height: 0.25rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: ${(props) => props.theme.colors.accent};
+    cursor: pointer;
+  }
+  &::-moz-range-thumb {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: ${(props) => props.theme.colors.accent};
+    cursor: pointer;
+  }
+`;
+
+const CompositeContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const CompositeField = styled.div`
+  margin-bottom: 1rem;
+`;
+
+const ObjectContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
 
 const SidebarEditor: React.FC = () => {
   // 從 useElementContext 中取得選中的元素以及更新選中元素的函數
@@ -123,11 +204,11 @@ const SidebarEditor: React.FC = () => {
         case "text":
         case "number":
           return (
-            <div key={key}>
-              <label htmlFor={`${selectedElement.id}-${key}`}>
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
                 {fieldConfig.label}
-              </label>
-              <input
+              </Label>
+              <Input
                 id={`${selectedElement.id}-${key}`}
                 type={fieldConfig.type}
                 value={value ?? ""}
@@ -152,21 +233,21 @@ const SidebarEditor: React.FC = () => {
                 }}
               />
               {fieldConfig.unit && <span>{fieldConfig.unit}</span>}
-            </div>
+            </EditorWrapper>
           );
         case "checkbox":
           return (
-            <div key={key}>
-              <label>
-                <input
+            <EditorWrapper key={key}>
+              <Label>
+                <Input
                   id={`${selectedElement.id}-${key}`}
                   type="checkbox"
                   checked={!!value}
                   onChange={(e) => handleChange(key, e.target.checked)}
                 />
                 {fieldConfig.label}
-              </label>
-            </div>
+              </Label>
+            </EditorWrapper>
           );
         case "color":
           let colorValue = fieldConfig.defaultColor;
@@ -196,10 +277,10 @@ const SidebarEditor: React.FC = () => {
           console.log("opacityValue", opacityValue);
 
           return (
-            <div key={key}>
-              <label htmlFor={`${selectedElement.id}-${key}`}>
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
                 {fieldConfig.label}
-              </label>
+              </Label>
               <ColorPicker
                 id={`${selectedElement.id}-${key}`}
                 color={colorValue}
@@ -211,15 +292,15 @@ const SidebarEditor: React.FC = () => {
                   handleChange(`${key}Opacity`, newOpacity);
                 }}
               />
-            </div>
+            </EditorWrapper>
           );
         case "slider":
           return (
-            <div key={key}>
-              <label htmlFor={`${selectedElement.id}-${key}`}>
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
                 {fieldConfig.label}
-              </label>
-              <input
+              </Label>
+              <Input
                 id={`${selectedElement.id}-${key}`}
                 type="range"
                 min={fieldConfig.min || 0}
@@ -235,7 +316,7 @@ const SidebarEditor: React.FC = () => {
                 {value || 0}
                 {fieldConfig.unit}
               </span>
-            </div>
+            </EditorWrapper>
           );
         case "composite":
           if (!fieldConfig.compositeFields) {
@@ -247,10 +328,10 @@ const SidebarEditor: React.FC = () => {
                 ? value
                 : fieldConfig.defaultValue;
             return (
-              <div key={key}>
-                <label htmlFor={`${selectedElement.id}-${key}`}>
+              <EditorWrapper key={key}>
+                <Label htmlFor={`${selectedElement.id}-${key}`}>
                   {fieldConfig.label}
-                </label>
+                </Label>
                 {fieldConfig.renderCustomInput({
                   id: `${selectedElement.id}-${key}`,
                   value: inputValue,
@@ -262,12 +343,12 @@ const SidebarEditor: React.FC = () => {
                     handleChange(`${key}`, processedValue);
                   },
                 })}
-              </div>
+              </EditorWrapper>
             );
           }
           return (
-            <div key={key}>
-              <label>{fieldConfig.label}</label>
+            <EditorWrapper key={key}>
+              <Label>{fieldConfig.label}</Label>
               {Object.entries(fieldConfig.compositeFields).map(
                 ([subKey, subConfig]) => {
                   const fullPath = `${key}.${subKey}`;
@@ -288,11 +369,11 @@ const SidebarEditor: React.FC = () => {
                   );
 
                   return (
-                    <div key={fullPath}>
-                      <label htmlFor={`${selectedElement.id}-${fullPath}`}>
+                    <EditorWrapper key={fullPath}>
+                      <Label htmlFor={`${selectedElement.id}-${fullPath}`}>
                         {subConfig.label}
-                      </label>
-                      <input
+                      </Label>
+                      <Input
                         id={`${selectedElement.id}-${fullPath}`}
                         type={subConfig.type}
                         value={subValue ?? ""}
@@ -321,19 +402,19 @@ const SidebarEditor: React.FC = () => {
                         }}
                       />
                       {subConfig.unit && <span>{subConfig.unit}</span>}
-                    </div>
+                    </EditorWrapper>
                   );
                 }
               )}
-            </div>
+            </EditorWrapper>
           );
         case "object":
           if (!fieldConfig.properties) {
             return <p key={key}>No object properties available</p>;
           }
           return (
-            <div key={key}>
-              <label>{fieldConfig.label}</label>
+            <EditorWrapper key={key}>
+              <Label>{fieldConfig.label}</Label>
               {Object.entries(fieldConfig.properties).map(
                 ([subKey, subConfig]) =>
                   renderField(
@@ -341,7 +422,7 @@ const SidebarEditor: React.FC = () => {
                     subConfig as PropertyConfigWithComposite
                   )
               )}
-            </div>
+            </EditorWrapper>
           );
         case "buttonGroup":
           if (!fieldConfig.options || !Array.isArray(fieldConfig.options)) {
@@ -424,7 +505,7 @@ const SidebarEditor: React.FC = () => {
     );
   }, [selectedElement, renderField]);
 
-  return renderedContent;
+  return <EditorContainer>{renderedContent}</EditorContainer>;
 };
 
 export default SidebarEditor;

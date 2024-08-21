@@ -2,38 +2,35 @@
 
 import Link from "next/link";
 import React, { useCallback, useRef, useState } from "react";
-import { FaGoogle, FaFacebook } from "react-icons/fa";
-import { AuthMode } from "@/src/Components/AuthModal/AuthModal";
+import { AuthMode } from "@/src/Components/Auth/AuthModal";
 import {
   Title,
   Input,
   Wrapper,
   Label,
-  ForgotPasswordWrapper,
-  ForgotPassword,
-  Divider,
   Footer,
   ErrorMessage,
-} from "@/src/Components/AuthModal/AuthModal.styles";
-import { PasswordInput } from "@/src/Components/AuthModal/PasswordInput";
+  SuccessMessage,
+} from "@/src/Components/Auth/AuthModal.styles";
 import { Button } from "@/src/Components/Button";
 
-interface LoginFormProps {
+interface ForgotPasswordFormProps {
   onModeChange: (mode: AuthMode) => void;
   onSubmit: (formData: FormData) => Promise<void>;
   errors: Record<string, string> | null;
+  message: string | null;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({
+export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
   onModeChange,
   onSubmit,
   errors,
+  message,
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +47,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           await onSubmit(new FormData(formRef.current));
         }
       } catch (error) {
-        console.error("LoginForm handleSubmit error", error);
+        console.error("ForgotPasswordForm handleSubmit error", error);
       } finally {
         setIsSubmitting(false);
       }
@@ -60,7 +57,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
   return (
     <>
-      <Title>歡迎回來！</Title>
+      <Title>重設密碼</Title>
       <form ref={formRef} onSubmit={handleSubmit}>
         <Wrapper>
           <Label htmlFor="email">電子郵件</Label>
@@ -68,57 +65,30 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             id="email"
             name="email"
             type="email"
-            placeholder="請輸入電子郵件..."
+            placeholder="請輸入您的電子郵件..."
             value={formData.email}
             onChange={handleChange}
             required
           />
           {errors?.email && <ErrorMessage>{errors.email}</ErrorMessage>}
         </Wrapper>
-        <PasswordInput
-          label="密碼"
-          name="password"
-          id="password"
-          placeholder="請輸入密碼..."
-          value={formData.password}
-          onChange={handleChange}
-        />
-        {errors?.password && <ErrorMessage>{errors.password}</ErrorMessage>}
-        <ForgotPasswordWrapper>
-          <ForgotPassword
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onModeChange("forgot-password");
-            }}
-          >
-            忘記密碼？
-          </ForgotPassword>
-        </ForgotPasswordWrapper>
+        {message && <SuccessMessage>{message}</SuccessMessage>}
+        {errors?.global && <ErrorMessage>{errors.global}</ErrorMessage>}
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "登入中..." : "登入"}
+          {isSubmitting ? "發送中..." : "發送重設密碼郵件"}
         </Button>
       </form>
-      <Divider>
-        <span>或</span>
-      </Divider>
-      <Button>
-        <FaGoogle /> Google 登入
-      </Button>
-      <Button>
-        <FaFacebook /> Facebook 登入
-      </Button>
       <Footer>
         <span>
-          還沒有帳號？
+          想起密碼了？
           <Link
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              onModeChange("signup");
+              onModeChange("login");
             }}
           >
-            立即註冊
+            返回登入
           </Link>
         </span>
       </Footer>

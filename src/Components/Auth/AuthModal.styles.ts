@@ -27,7 +27,7 @@ export const Divider = styled.div`
   &::after {
     content: "";
     flex: 1;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid ${(props) => props.theme.colors.border};
   }
   span {
     padding: 0 10px;
@@ -42,15 +42,13 @@ export const Footer = styled.footer`
 export const ForgotPasswordWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1rem; // Adjust as needed
+  margin-bottom: 1rem;
 `;
 
 export const ForgotPassword = styled(Link)`
-  && {
-    color: #0070f3;
-    text-decoration: none;
-    text-align: right;
-  }
+  color: ${(props) => props.theme.colors.accent};
+  text-decoration: none;
+  text-align: right;
 `;
 
 export const ErrorMessage = styled.span`
