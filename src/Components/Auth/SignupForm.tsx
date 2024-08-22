@@ -10,6 +10,7 @@ import {
   Label,
   Footer,
   ErrorMessage,
+  SuccessMessage,
 } from "@/src/Components/Auth/AuthModal.styles";
 import { PasswordInput } from "@/src/Components/Auth/PasswordInput";
 import { Button } from "@/src/Components/Button";
@@ -18,6 +19,7 @@ interface SignupFormProps {
   onModeChange: (mode: AuthMode) => void;
   onSubmit: (formData: FormData) => Promise<void>;
   errors: ErrorsType;
+  message: string | null;
   //  {
   //    [key: string]: string;
   //  }
@@ -27,6 +29,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({
   onModeChange,
   onSubmit,
   errors,
+  message,
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
   // ref object 變動了也不會造成畫面的 re-render，是完全隔絕於 component life cycle 外的狀態
@@ -118,6 +121,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({
         {errors?.confirmPassword && (
           <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
         )}
+        {message && <SuccessMessage>{message}</SuccessMessage>}
         {errors?.global && <ErrorMessage>{errors.global}</ErrorMessage>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "註冊中..." : "註冊"}

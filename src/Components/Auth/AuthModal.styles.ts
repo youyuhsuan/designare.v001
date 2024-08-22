@@ -52,11 +52,11 @@ export const ForgotPassword = styled(Link)`
 `;
 
 export const ErrorMessage = styled.span`
-  ${(props) => props.theme.inputs.error}
+  color: ${(props) => props.theme.colors.danger};
 `;
 
 export const SuccessMessage = styled.span`
-  ${(props) => props.theme.inputs.error}
+  color: ${(props) => props.theme.colors.success};
 `;
 
 export const ToggleButton = styled.button`
@@ -67,4 +67,8 @@ export const ToggleButton = styled.button`
   border: none;
   cursor: pointer;
   color: ${(props) => props.theme.colors.text};
+`;
+
+export const ButtonWrapper = styled.div`
+  margin-botton: 1rem;
 `;

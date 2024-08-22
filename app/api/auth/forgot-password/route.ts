@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { z } from "zod";
-import { firebase_auth } from "@/src/config/firebase";
+import { firebase_auth } from "@/src/config/firebaseClient";
 import { forgotPasswordSchema } from "@/src/libs/schemas/auth";
 
 export async function POST(request: NextRequest) {

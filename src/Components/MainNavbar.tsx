@@ -4,12 +4,13 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { AuthModal } from "@/src/Components/Auth/AuthModal";
-import { getSessionData } from "../utilities/session";
+import { useToken } from "@/src/utilities/token";
 import { UserMenu } from "./Auth/UserMenu";
 
 const Navbar = styled.nav`
   width: 100%;
   padding: 1rem 0;
+  z-index: 10;
 `;
 
 const NavbarContent = styled.div`
@@ -47,12 +48,37 @@ const NavbarLink = styled(Link)`
   }
 `;
 
+interface TokenData {
+  tokenId: string;
+  userId: string;
+  username: string;
+  userEmail: string;
+  createdAt: {
+    seconds: number;
+    nanoseconds: number;
+  };
+  expiresAt: {
+    seconds: number;
+    nanoseconds: number;
+  };
+}
+
 function MainNav() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<
     "login" | "signup" | "forgot-password"
   >("login");
-  const [session, setSession] = useState<null | { userEmail: string }>(null);
+  const { token, isLoading, error } = useToken();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  console.log("MainNav token", token);
 
   const openAuthModal = (mode: "login" | "signup" | "forgot-password") => {
     setAuthMode(mode);
@@ -61,9 +87,10 @@ function MainNav() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/logout", { method: "POST" });
+      const response = await fetch("/api/auth/logout", { method: "POST" });
       if (response.ok) {
-        setSession(null);
+        console.error("Logout failed");
+        // setToken(null);
       } else {
         console.error("Logout failed");
       }
@@ -73,6 +100,7 @@ function MainNav() {
   };
 
   const closeAuthModal = () => setIsAuthModalOpen(false);
+
   return (
     <Navbar>
       <NavbarContent>
@@ -80,8 +108,8 @@ function MainNav() {
           <NavbarLink href="/">Designare</NavbarLink>
         </NavbarBrand>
         <NavbarItems>
-          {session ? (
-            <UserMenu userEmail={session.userEmail} onLogout={handleLogout} />
+          {token ? (
+            <UserMenu userEmail={token.userEmail} onLogout={handleLogout} />
           ) : (
             <>
               <NavbarItem>

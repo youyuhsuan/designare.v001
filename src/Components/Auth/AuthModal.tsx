@@ -79,6 +79,7 @@ export function AuthModal({
             onModeChange={handleModeChange}
             onSubmit={handleSubmitForm}
             errors={safeErrors}
+            message={message}
           />
         );
       case "signup":
@@ -87,6 +88,7 @@ export function AuthModal({
             onModeChange={handleModeChange}
             onSubmit={handleSubmitForm}
             errors={safeErrors}
+            message={message}
           />
         );
       case "forgot-password":

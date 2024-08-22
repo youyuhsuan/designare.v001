@@ -14,25 +14,31 @@ import {
   Divider,
   Footer,
   ErrorMessage,
+  ButtonWrapper,
+  SuccessMessage,
 } from "@/src/Components/Auth/AuthModal.styles";
 import { PasswordInput } from "@/src/Components/Auth/PasswordInput";
 import { Button } from "@/src/Components/Button";
-import styled from "styled-components";
+import {
+  signInWithPopup,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+} from "firebase/auth";
+import { firebase_auth } from "@/src/config/firebaseClient";
+import { useRouter } from "next/router";
 
 interface LoginFormProps {
   onModeChange: (mode: AuthMode) => void;
   onSubmit: (formData: FormData) => Promise<void>;
   errors: Record<string, string> | null;
+  message: string | null;
 }
-
-const ButtonWrapper = styled.div`
-  margin-botton: 1rem;
-`;
 
 export const LoginForm: React.FC<LoginFormProps> = ({
   onModeChange,
   onSubmit,
   errors,
+  message,
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,6 +68,39 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     },
     [onSubmit]
   );
+
+  const handleProviderLogin = async (provider: "google" | "facebook") => {
+    setIsSubmitting(true);
+    try {
+      const authProvider =
+        provider === "google"
+          ? new GoogleAuthProvider()
+          : new FacebookAuthProvider();
+      const result = await signInWithPopup(firebase_auth, authProvider);
+
+      const idToken = await result.user.getIdToken();
+
+      const response = await fetch("/api/auth/handle-third-party-auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to authenticate");
+      }
+
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error("Third-party login error", error);
+      // 处理错误，例如显示错误消息
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -100,6 +139,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             忘記密碼？
           </ForgotPassword>
         </ForgotPasswordWrapper>
+        {message && <SuccessMessage>{message}</SuccessMessage>}
+        {errors?.global && <ErrorMessage>{errors.global}</ErrorMessage>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "登入中..." : "登入"}
         </Button>
@@ -108,16 +149,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <span>或</span>
       </Divider>
       <ButtonWrapper>
-        <Button>
+        <Button onClick={() => handleProviderLogin("google")}>
           <FaGoogle /> Google 登入
         </Button>
       </ButtonWrapper>
       <ButtonWrapper>
-        <Button>
+        <Button onClick={() => handleProviderLogin("facebook")}>
           <FaFacebook /> Facebook 登入
         </Button>
       </ButtonWrapper>
-
       <Footer>
         <span>
           還沒有帳號？

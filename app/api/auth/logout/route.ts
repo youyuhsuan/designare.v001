@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function POST() {
   try {
     // 建立回應物件，表示使用者已成功登出
     const userLogoutResponse = NextResponse.json({
@@ -8,8 +8,8 @@ export async function GET() {
       success: true,
     });
 
-    // 將 session cookie 設為空，並使其過期
-    userLogoutResponse.cookies.set("session", "", {
+    // 將 token cookie 設為空，並使其過期
+    userLogoutResponse.cookies.set("token", "", {
       httpOnly: true, // cookie 只能通過 HTTP 請求訪問，客戶端 JavaScript 無法訪問
       expires: new Date(0), // 設置 cookie 過期時間為過去的時間，使其立即失效
       sameSite: "strict", // 設置 cookie 只能在同一站點內發送，增強安全性

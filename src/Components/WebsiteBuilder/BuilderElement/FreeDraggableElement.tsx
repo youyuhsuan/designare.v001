@@ -191,7 +191,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       onUpdate({ content: editableContent });
       updateSelectedElement(id, "content", editableContent);
     }
-    isFirstEditRef.current = true; // Reset for next edit session
+    isFirstEditRef.current = true; // Reset for next edit token
   }, [
     id,
     setIsEditing,

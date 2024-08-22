@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { ElementProvider } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 import { CanvasArea } from "@/src/Components/WebsiteBuilder/CanvasArea";
 import { Toolbar } from "@/src/Components/WebsiteBuilder/Toolbar/Toolbar";
-import Navbar from "@/src/Components/WebsiteBuilder/Navbar";
+import WebsiteBuilderNavbar from "@/src/Components/WebsiteBuilder/WebsiteBuilderNavbar";
 
 import SidebarEditor from "@/src/Components/WebsiteBuilder/SidebarEditor/SidebarEditor";
 import { NextUIProvider } from "@nextui-org/react";
@@ -14,8 +14,8 @@ import { NextUIProvider } from "@nextui-org/react";
 const BuilderContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100dvw;
   overflow: hidden;
 `;
 
@@ -53,7 +53,7 @@ export const WebsiteBuilder: React.FC = () => (
   <ElementProvider>
     <NextUIProvider>
       <BuilderContainer>
-        <Navbar />
+        <WebsiteBuilderNavbar />
         <ContentContainer>
           <ToolbarWrapper>
             <Toolbar />

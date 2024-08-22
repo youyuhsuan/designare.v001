@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/src/Components/Button";
+import BackgroundLines from "@/src/Components/BackgroundLines";
 
 const HeroContainer = styled.section`
   height: 90dvh;
@@ -56,7 +57,7 @@ const LiquidBackground = styled(motion.div)`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${(props) => props.theme.button.backgroundColor.primary};
+  background-color: ${(props) => props.theme.button.background.primary};
   backdrop-filter: blur(5px);
   border-radius: 50px;
 `;
@@ -85,56 +86,56 @@ const ButtonLink = styled(Link)`
   text-decoration: none;
 `;
 
-const BackgroundLines: React.FC = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+// const BackgroundLines: React.FC = () => {
+//   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+//   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
+//   useEffect(() => {
+//     const handleMouseMove = (e: MouseEvent) => {
+//       setMousePosition({ x: e.clientX, y: e.clientY });
+//     };
 
-    const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
+//     const handleResize = () => {
+//       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+//     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("resize", handleResize);
+//     window.addEventListener("mousemove", handleMouseMove);
+//     window.addEventListener("resize", handleResize);
 
-    handleResize(); // 初始化窗口大小
+//     handleResize(); // 初始化窗口大小
 
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+//     return () => {
+//       window.removeEventListener("mousemove", handleMouseMove);
+//       window.removeEventListener("resize", handleResize);
+//     };
+//   }, []);
 
-  return (
-    <LineContainer>
-      {Array.from({ length: 20 * 20 }).map((_, i) => {
-        const row = Math.floor(i / 20);
-        const col = i % 20;
-        const centerX = ((col + 0.5) / 20) * windowSize.width;
-        const centerY = ((row + 0.5) / 20) * windowSize.height;
+//   return (
+//     <LineContainer>
+//       {Array.from({ length: 20 * 20 }).map((_, i) => {
+//         const row = Math.floor(i / 20);
+//         const col = i % 20;
+//         const centerX = ((col + 0.5) / 20) * windowSize.width;
+//         const centerY = ((row + 0.5) / 20) * windowSize.height;
 
-        return (
-          <Line
-            key={i}
-            animate={{
-              rotate:
-                Math.atan2(
-                  mousePosition.y - centerY,
-                  mousePosition.x - centerX
-                ) *
-                (180 / Math.PI),
-            }}
-            transition={{ type: "spring", stiffness: 100, damping: 10 }}
-          />
-        );
-      })}
-    </LineContainer>
-  );
-};
+//         return (
+//           <Line
+//             key={i}
+//             animate={{
+//               rotate:
+//                 Math.atan2(
+//                   mousePosition.y - centerY,
+//                   mousePosition.x - centerX
+//                 ) *
+//                 (180 / Math.PI),
+//             }}
+//             transition={{ type: "spring", stiffness: 100, damping: 10 }}
+//           />
+//         );
+//       })}
+//     </LineContainer>
+//   );
+// };
 
 const FrostedLiquidButton: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);

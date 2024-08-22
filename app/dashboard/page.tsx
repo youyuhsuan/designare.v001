@@ -1,4 +1,4 @@
-import Nav from "@/src/Components/MainNav";
+import Nav from "@/src/Components/MainNavbar";
 import DashboardContent from "@/src/Components/DashboardContent";
 
 export default function Page() {
