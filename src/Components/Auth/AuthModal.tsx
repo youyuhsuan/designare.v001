@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/src/libs/store";
 import { clearError, clearMessage } from "@/src/libs/features/auth/authSlice";
@@ -31,6 +31,7 @@ export function AuthModal({
   const dispatch = useDispatch<AppDispatch>();
   const errors = useSelector(selectAuthErrors) as ErrorsType;
   const message = useSelector(selectAuthMessage);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const clearState = useCallback(() => {
     dispatch(clearError());
@@ -52,6 +53,37 @@ export function AuthModal({
     },
     [dispatch, mode, clearState]
   );
+
+  useEffect(() => {
+    let refreshTimer: NodeJS.Timeout;
+    let countdownTimer: NodeJS.Timeout;
+
+    if (message === "註冊成功" || message === "密碼重置郵件已發送") {
+      // 清除消息，但可能想要延遲一下，讓用戶有時間看到
+      const clearMessageTimer = setTimeout(() => {
+        dispatch(clearMessage());
+      }, 3000); // 3秒後清除消息
+
+      return () => clearTimeout(clearMessageTimer);
+    }
+
+    if (message === "登入成功") {
+      setCountdown(5); // 開始5秒倒計時
+
+      countdownTimer = setInterval(() => {
+        setCountdown((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
+      }, 1000);
+
+      refreshTimer = setTimeout(() => {
+        window.location.reload();
+      }, 5000);
+    }
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      if (countdownTimer) clearInterval(countdownTimer);
+    };
+  }, [message, dispatch]);
 
   // 處理 errors 可能為 null 或包含 null 值的情況
   const safeErrors: Record<string, string> | null = errors

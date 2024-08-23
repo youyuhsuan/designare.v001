@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as admin from "firebase-admin";
-import { createToken } from "@/src/libs/actions";
+import admin from "@/src/config/firebaseAdmin"; // 導入初始化後的 admin
+import { createThirdPartyToken, createToken } from "@/src/utilities/token";
 
 export async function POST(request: NextRequest) {
   try {
+    if (!admin) {
+      throw new Error("Firebase Admin SDK not initialized");
+    }
+
     // 從請求中提取 ID 令牌
     const { idToken } = await request.json();
 
@@ -19,16 +23,9 @@ export async function POST(request: NextRequest) {
     const userRecord = await admin.auth().getUser(uid);
 
     // 創建會話
-    const TokenData = await createToken(idToken);
+    const TokenData = await createThirdPartyToken(userRecord);
 
-    return NextResponse.json({
-      user: {
-        id: userRecord.uid,
-        email: userRecord.email || null,
-        name: userRecord.displayName || null,
-      },
-      tokenId: TokenData.tokenId,
-    });
+    return NextResponse.json(TokenData);
   } catch (error) {
     console.error("認證錯誤:", error);
     if (error instanceof Error) {

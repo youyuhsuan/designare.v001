@@ -75,11 +75,6 @@ const createTheme = (mode: "light" | "dark"): DefaultTheme => {
         font-weight: bold;
         font-size: 0.875rem;
       `,
-      error: `
-        color: ${themeColors.danger};
-        font-size: 0.8rem;
-        margin-top: 0.25rem;
-      `,
     },
     borderRadius: {
       xs: "0.125rem",

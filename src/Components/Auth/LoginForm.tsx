@@ -25,7 +25,6 @@ import {
   FacebookAuthProvider,
 } from "firebase/auth";
 import { firebase_auth } from "@/src/config/firebaseClient";
-import { useRouter } from "next/router";
 
 interface LoginFormProps {
   onModeChange: (mode: AuthMode) => void;
@@ -42,6 +41,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setGoogleSubmitting] = useState(false);
+  const [isFacebookSubmitting, setFacebookSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -59,6 +61,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       try {
         if (formRef.current) {
           await onSubmit(new FormData(formRef.current));
+          setFormData({ email: "", password: "" });
         }
       } catch (error) {
         console.error("LoginForm handleSubmit error", error);
@@ -70,15 +73,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   );
 
   const handleProviderLogin = async (provider: "google" | "facebook") => {
-    setIsSubmitting(true);
+    provider === "google"
+      ? setGoogleSubmitting(true)
+      : setFacebookSubmitting(true);
     try {
       const authProvider =
         provider === "google"
           ? new GoogleAuthProvider()
           : new FacebookAuthProvider();
       const result = await signInWithPopup(firebase_auth, authProvider);
-
-      const idToken = await result.user.getIdToken();
+      const user = result.user;
+      const idToken = await user.getIdToken();
 
       const response = await fetch("/api/auth/handle-third-party-auth", {
         method: "POST",
@@ -91,14 +96,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       if (!response.ok) {
         throw new Error("Failed to authenticate");
       }
-
       const data = await response.json();
-      console.log(data);
+      console.log("handleProviderLogin", data);
     } catch (error) {
       console.error("Third-party login error", error);
-      // 处理错误，例如显示错误消息
     } finally {
-      setIsSubmitting(false);
+      provider === "google"
+        ? setGoogleSubmitting(false)
+        : setFacebookSubmitting(false);
     }
   };
 
@@ -149,15 +154,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <span>或</span>
       </Divider>
       <ButtonWrapper>
-        <Button onClick={() => handleProviderLogin("google")}>
+        <Button
+          onClick={() => handleProviderLogin("google")}
+          disabled={isGoogleSubmitting}
+        >
           <FaGoogle /> Google 登入
+          {isGoogleSubmitting ? "登入中..." : "登入"}
         </Button>
       </ButtonWrapper>
-      <ButtonWrapper>
+      {/* <ButtonWrapper>
         <Button onClick={() => handleProviderLogin("facebook")}>
           <FaFacebook /> Facebook 登入
+        {isFacebookSubmitting ? "登入中..." : "登入"}
         </Button>
-      </ButtonWrapper>
+      </ButtonWrapper> */}
       <Footer>
         <span>
           還沒有帳號？

@@ -13,8 +13,8 @@ import styled from "styled-components";
 
 const Line = styled(motion.div)`
   width: 60%;
-  height: 3px;
-  background-color: ${(props) => props.theme.colors.accent};
+  height: 5px;
+  background-color: ${(props) => props.theme.colors.secondary};
   transform-origin: center center; // 旋轉原點設置在中心
   position: absolute;
   top: 50%;

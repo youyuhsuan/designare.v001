@@ -60,6 +60,12 @@ export const SignupForm: React.FC<SignupFormProps> = ({
           await onSubmit(new FormData(formRef.current));
           // formRef.current 是DOM 元素
           // new FormData(formElement) 指定的form 元素中提取所有內容
+          setFormData({
+            username: "",
+            email: "",
+            password: "",
+            confirmPassword: "",
+          });
         }
       } catch (error) {
         console.error("Signup handleSubmit error", error);

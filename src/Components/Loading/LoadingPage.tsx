@@ -7,9 +7,9 @@ const LoadingContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
-  background-color: #222222; // 使用一个固定的颜色，避免主题相关的问题
+  background-color: ${({ theme }) => theme.colors.primary};
 `;
 
 const LoadingSpinner = styled.div`
@@ -30,10 +30,10 @@ const LoadingSpinner = styled.div`
   }
 `;
 
-const LoadingPage: React.FC = () => (
+const Loading: React.FC = () => (
   <LoadingContainer>
     <LoadingSpinner />
   </LoadingContainer>
 );
 
-export default LoadingPage;
+export default Loading;

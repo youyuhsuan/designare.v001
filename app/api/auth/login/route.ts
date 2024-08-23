@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { firebase_auth } from "@/src/config/firebaseClient";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { z } from "zod";
 import { loginSchema } from "@/src/libs/schemas/auth";
-import { createToken } from "@/src/libs/actions";
+import { createToken } from "@/src/utilities/token";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,59 +21,74 @@ export async function POST(request: NextRequest) {
       );
       const user = userCredential.user;
 
+      // 如果 displayName 為 null 或 undefined，嘗試從 providerData 中獲取
+      let displayName = user.displayName;
+      if (!displayName && user.providerData.length > 0) {
+        displayName = user.providerData[0].displayName || null;
+      }
+
+      // 如果仍然沒有 displayName，考慮使用郵箱的用戶名部分
+      if (!displayName) {
+        displayName = user.email ? user.email.split("@")[0] : null;
+      }
+
+      // 如果 displayName 存在但未同步到用戶資料，更新用戶資料
+      if (displayName && !user.displayName) {
+        try {
+          await updateProfile(user, { displayName: displayName });
+          console.log("Display name updated:", displayName);
+        } catch (updateError) {
+          console.error("Error updating display name:", updateError);
+        }
+      }
       // 創建會話
       const TokenData = await createToken(user);
-      console.log("login token setting success", TokenData);
 
       // 返回用戶信息和會話ID
       return NextResponse.json({
         user: {
           id: user.uid,
           email: user.email,
-          username: user.displayName || null,
+          name: user.displayName,
+          avatarUrl: user.photoURL || null,
         },
-        tokenId: TokenData.tokenId,
+        token: { id: TokenData.token.id },
       });
     } catch (error) {
-      // 處理 Firebase 錯誤
       if (error instanceof FirebaseError) {
         console.error("Firebase 認證錯誤:", error);
         switch (error.code) {
-          case "auth/user-not-found":
-          case "auth/wrong-password":
+          case "auth/invalid-credential":
             return NextResponse.json(
-              { error: "無效的電子郵件或密碼" },
-              { status: 401 }
+              { error: "電子郵件或密碼不正確" },
+              { status: 400 }
             );
           case "auth/user-disabled":
             return NextResponse.json(
-              { error: "此帳戶已被禁用" },
+              { error: "此帳戶已被停用" },
               { status: 403 }
             );
-          case "auth/too-many-requests":
+          case "auth/user-not-found":
             return NextResponse.json(
-              { error: "嘗試登入次數過多，請稍後再試" },
-              { status: 429 }
+              { error: "找不到此用戶" },
+              { status: 404 }
             );
           default:
             return NextResponse.json(
-              { error: "登入過程中發生錯誤" },
+              { error: "登入失敗，請稍後再試" },
               { status: 500 }
             );
         }
       }
-      // 如果錯誤不是 FirebaseError，重新拋出異常
-      throw error;
+      throw error; // 重新拋出非 FirebaseError 錯誤
     }
   } catch (error) {
-    // 處理 Zod 驗證錯誤
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "輸入數據無效", details: error.errors },
+        { error: "輸入資料無效", details: error.errors },
         { status: 400 }
       );
     }
-    // 處理其他錯誤
     console.error("登入錯誤:", error);
     return NextResponse.json({ error: "發生了意外錯誤" }, { status: 500 });
   }

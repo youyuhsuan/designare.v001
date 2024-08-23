@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, username, password } = signupSchema.parse(body);
+    console.log("Received signup request for:", email); // 新增日誌
 
     try {
       // Create user with email and password
@@ -22,17 +23,23 @@ export async function POST(request: NextRequest) {
         password
       );
       const user = userCredential.user;
+      // console.log("User created successfully:", user.uid);
 
       // Update user profile with username
       await updateProfile(user, { displayName: username });
-      return NextResponse.json({
+      // console.log("User profile updated with username:", username);
+
+      const response = NextResponse.json({
         user: {
           id: user.uid,
-          username: username,
+          name: username,
           email: user.email,
         },
         message: "註冊成功",
       });
+
+      // console.log("Sending response:", response);
+      return response;
     } catch (error) {
       if (error instanceof FirebaseError) {
         console.error("Firebase 認證錯誤:", error);
@@ -63,6 +70,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error("資料驗證錯誤:", error);
       return NextResponse.json(
         { error: "輸入資料無效", details: error.errors },
         { status: 400 }

@@ -45,6 +45,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       try {
         if (formRef.current) {
           await onSubmit(new FormData(formRef.current));
+          setFormData({ email: "" });
         }
       } catch (error) {
         console.error("ForgotPasswordForm handleSubmit error", error);

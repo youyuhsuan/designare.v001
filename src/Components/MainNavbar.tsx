@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { AuthModal } from "@/src/Components/Auth/AuthModal";
-import { useToken } from "@/src/utilities/token";
-import { UserMenu } from "./Auth/UserMenu";
+import { useToken } from "@/src/hook/useToken";
+import UserMenu from "@/src/Components/Auth/UserMenu";
 
 const Navbar = styled.nav`
   width: 100%;
@@ -32,6 +32,7 @@ const NavbarItems = styled.div`
 `;
 
 const NavbarItem = styled.div`
+  height: 100%;
   text-space: 0.2rem;
   color: ${({ theme }) => theme.colors.text};
   text-decoration: none;
@@ -48,37 +49,12 @@ const NavbarLink = styled(Link)`
   }
 `;
 
-interface TokenData {
-  tokenId: string;
-  userId: string;
-  username: string;
-  userEmail: string;
-  createdAt: {
-    seconds: number;
-    nanoseconds: number;
-  };
-  expiresAt: {
-    seconds: number;
-    nanoseconds: number;
-  };
-}
-
 function MainNav() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<
     "login" | "signup" | "forgot-password"
   >("login");
-  const { token, isLoading, error } = useToken();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
-
-  console.log("MainNav token", token);
+  const { token, loading, error, refreshToken, removeToken } = useToken();
 
   const openAuthModal = (mode: "login" | "signup" | "forgot-password") => {
     setAuthMode(mode);
@@ -109,7 +85,12 @@ function MainNav() {
         </NavbarBrand>
         <NavbarItems>
           {token ? (
-            <UserMenu userEmail={token.userEmail} onLogout={handleLogout} />
+            <UserMenu
+              name={token.user.name}
+              email={token.user.email}
+              avatarUrl={token.user.avatarUrl}
+              onLogout={handleLogout}
+            />
           ) : (
             <>
               <NavbarItem>
