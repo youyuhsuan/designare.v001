@@ -2,7 +2,9 @@ import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import type { Action, ThunkAction } from "@reduxjs/toolkit";
 import { counterSlice } from "./features/counter/counterSlice";
 import { quotesApiSlice } from "./features/quotes/quotesApiSlice";
+import { tokenSlice } from "./features/auth/tokenSlice";
 import { authSlice } from "./features/auth/authSlice";
+
 import { websiteBuilderSlice } from "./features/websiteBuilder/websiteBuilderSlice";
 
 // `combineSlices` automatically combines the reducers using
@@ -11,7 +13,8 @@ const rootReducer = combineSlices(
   counterSlice,
   quotesApiSlice,
   authSlice,
-  websiteBuilderSlice
+  websiteBuilderSlice,
+  tokenSlice
 );
 // Infer the `RootState` type from the root reducer
 export type RootState = ReturnType<typeof rootReducer>;

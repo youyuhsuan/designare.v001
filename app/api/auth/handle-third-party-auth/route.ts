@@ -1,6 +1,6 @@
+import admin from "@/src/config/firebaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
-import admin from "@/src/config/firebaseAdmin"; // 導入初始化後的 admin
-import { createThirdPartyToken, createToken } from "@/src/utilities/token";
+import { createThirdPartyToken, createToken } from "@/app/api/auth/token";
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,5 +1,5 @@
 import { firebase_db } from "@/src/config/firebaseClient";
-import { UserTokenData } from "@/src/utilities/token";
+import { UserTokenData } from "@/src/type/token";
 import {
   collection,
   addDoc,
@@ -9,6 +9,7 @@ import {
   deleteDoc,
   updateDoc,
   Timestamp,
+  DocumentData,
 } from "firebase/firestore";
 
 const TOKENS_COLLECTION = "tokens";
@@ -19,17 +20,14 @@ const tokenDB = {
       const cleanUserData = Object.fromEntries(
         Object.entries(TokenData.user).filter(([_, v]) => v !== undefined)
       );
-
       const cleanTokenData = {
         user: cleanUserData,
         token: TokenData.token,
       };
-
       const docRef = await addDoc(
         collection(firebase_db, TOKENS_COLLECTION),
         cleanTokenData
       );
-
       console.log(`Token inserted successfully with ID: ${docRef.id}`);
       return docRef.id;
     } catch (e) {
@@ -42,20 +40,20 @@ const tokenDB = {
     try {
       const q = query(
         collection(firebase_db, TOKENS_COLLECTION),
-        where("tokenId", "==", tokenId)
+        where("token.id", "==", tokenId)
       );
       const querySnapshot = await getDocs(q);
       if (querySnapshot.empty) {
         console.log("No matching token found");
         return null;
       }
-      return querySnapshot.docs[0].data() as UserTokenData;
+      const data = querySnapshot.docs[0].data();
+      return this.convertToUserTokenData(data);
     } catch (e) {
       console.error("Error finding token:", e);
       throw new Error("Failed to find token");
     }
   },
-
   async deleteToken(tokenId: string): Promise<boolean> {
     try {
       const q = query(
@@ -75,7 +73,6 @@ const tokenDB = {
       throw new Error("Failed to delete token");
     }
   },
-
   async updateTokenLastUsed(tokenId: string): Promise<boolean> {
     try {
       const q = query(
@@ -95,6 +92,22 @@ const tokenDB = {
       console.error(`Error updating last used time for token ${tokenId}:`, e);
       throw new Error(`Failed to update last used time for token ${tokenId}`);
     }
+  },
+  convertToUserTokenData(data: DocumentData): UserTokenData {
+    return {
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        avatarUrl: data.user.avatarUrl,
+      },
+      token: {
+        id: data.token.id,
+        createdAt: data.token.createdAt,
+        expiresAt: data.token.expiresAt,
+        lastUsedAt: data.token.lastUsedAt,
+      },
+    };
   },
 };
 

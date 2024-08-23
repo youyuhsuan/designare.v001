@@ -158,7 +158,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           onClick={() => handleProviderLogin("google")}
           disabled={isGoogleSubmitting}
         >
-          <FaGoogle /> Google 登入
+          <FaGoogle /> Google
           {isGoogleSubmitting ? "登入中..." : "登入"}
         </Button>
       </ButtonWrapper>

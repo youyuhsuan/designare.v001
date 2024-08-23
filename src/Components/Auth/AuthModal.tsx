@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "@/src/libs/store";
+import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
 import { clearError, clearMessage } from "@/src/libs/features/auth/authSlice";
 import { handleSubmit } from "@/src/libs/features/auth/authThunks";
 import {
@@ -18,6 +17,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: AuthMode;
+  onLogin: () => void;
 }
 
 export type ErrorsType = { [k: string]: string | null } | null;
@@ -28,9 +28,9 @@ export function AuthModal({
   initialMode = "login",
 }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const dispatch = useDispatch<AppDispatch>();
-  const errors = useSelector(selectAuthErrors) as ErrorsType;
-  const message = useSelector(selectAuthMessage);
+  const dispatch = useAppDispatch();
+  const errors = useAppSelector(selectAuthErrors) as ErrorsType;
+  const message = useAppSelector(selectAuthMessage);
   const [countdown, setCountdown] = useState<number | null>(null);
 
   const clearState = useCallback(() => {
@@ -59,7 +59,6 @@ export function AuthModal({
     let countdownTimer: NodeJS.Timeout;
 
     if (message === "註冊成功" || message === "密碼重置郵件已發送") {
-      // 清除消息，但可能想要延遲一下，讓用戶有時間看到
       const clearMessageTimer = setTimeout(() => {
         dispatch(clearMessage());
       }, 3000); // 3秒後清除消息

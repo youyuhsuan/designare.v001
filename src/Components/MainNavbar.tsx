@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { AuthModal } from "@/src/Components/Auth/AuthModal";
-import { useToken } from "@/src/hook/useToken";
-import UserMenu from "@/src/Components/Auth/UserMenu";
+import UserMenu, { UserMenuProps } from "@/src/Components/Auth/UserMenu";
+import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
+import { logout, fetchToken } from "@/src/libs/features/auth/tokenActions";
 
 const Navbar = styled.nav`
   width: 100%;
@@ -50,29 +51,54 @@ const NavbarLink = styled(Link)`
 `;
 
 function MainNav() {
+  const dispatch = useAppDispatch();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<
     "login" | "signup" | "forgot-password"
   >("login");
-  const { token, loading, error, refreshToken, removeToken } = useToken();
 
   const openAuthModal = (mode: "login" | "signup" | "forgot-password") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
   };
 
+  const { token, loading, error } = useAppSelector((state) => state.token);
+
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-      if (response.ok) {
-        console.error("Logout failed");
-        // setToken(null);
-      } else {
-        console.error("Logout failed");
-      }
+      await dispatch(logout()).unwrap();
+      window.location.reload();
     } catch (error) {
-      console.error("Error during logout:", error);
+      console.error("Logout failed:", error);
     }
+  };
+
+  useEffect(() => {
+    let ignore = false;
+
+    const getToken = async () => {
+      try {
+        if (!token && !ignore) {
+          await dispatch(fetchToken()).unwrap();
+        }
+      } catch (err) {
+        console.error("Failed to fetch token:", err);
+      }
+    };
+
+    getToken();
+
+    return () => {
+      ignore = true;
+    };
+  }, [dispatch, token]);
+
+  // if (loading) return <div>Loading...</div>;
+  // if (error) return <div>Error: {error}</div>;
+
+  const handleLogin = () => {
+    closeAuthModal();
+    dispatch(fetchToken());
   };
 
   const closeAuthModal = () => setIsAuthModalOpen(false);
@@ -118,6 +144,7 @@ function MainNav() {
                   isOpen={isAuthModalOpen}
                   onClose={closeAuthModal}
                   initialMode={authMode}
+                  onLogin={handleLogin}
                 />
               </NavbarItem>
             </>

@@ -207,7 +207,7 @@ export const elementConfigs: ElementConfigs = {
               },
             },
             defaultValue: (elementType: string) => {
-              return textDefaults[elementType]?.fontSize || {};
+              return textDefaults[elementType]?.size || {};
             },
           },
           fontSize: {

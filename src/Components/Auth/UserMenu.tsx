@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
+import nullAvatarImg from "@/src/image/nullAvatar.png"; // 確保路徑正確
 
-interface UserMenuProps {
+export interface UserMenuProps {
   name?: string | null;
   email?: string | null;
   avatarUrl?: string | null;
@@ -21,14 +22,18 @@ const UserMenuButton = styled.button`
   padding: 0;
 `;
 
-const UserAvatar = styled.div<UserMenuProps>`
+const UserAvatarContainer = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-image: url(${(props) =>
-    props.avatarUrl || "/src/image/nullAvatar.png"});
-  background-size: cover;
-  background-position: center;
+  overflow: hidden;
+`;
+
+const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 `;
 
 const DropdownMenu = styled.div`
@@ -44,6 +49,9 @@ const DropdownMenu = styled.div`
 `;
 
 const UserInfo = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: column;
   text-align: center;
   margin-bottom: 16px;
 `;
@@ -82,6 +90,8 @@ const UserMenu: React.FC<UserMenuProps> = ({
   avatarUrl,
   onLogout,
 }) => {
+  const avatarSrc = avatarUrl || nullAvatarImg.src;
+  console.log("Avatar URL:", avatarSrc);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -104,12 +114,16 @@ const UserMenu: React.FC<UserMenuProps> = ({
   return (
     <UserMenuContainer ref={dropdownRef}>
       <UserMenuButton onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-        <UserAvatar avatarUrl={avatarUrl} />
+        <UserAvatarContainer>
+          <AvatarImage src={avatarSrc} alt={name || "User avatar"} />
+        </UserAvatarContainer>{" "}
       </UserMenuButton>
       {isDropdownOpen && (
         <DropdownMenu>
           <UserInfo>
-            <UserAvatar avatarUrl={avatarUrl} />
+            <UserAvatarContainer>
+              <AvatarImage src={avatarSrc} alt={name || "User avatar"} />
+            </UserAvatarContainer>{" "}
             <Username>{name}</Username>
             <UserEmail>{email}</UserEmail>
           </UserInfo>

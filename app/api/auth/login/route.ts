@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { z } from "zod";
 import { loginSchema } from "@/src/libs/schemas/auth";
-import { createToken } from "@/src/utilities/token";
+import { createToken } from "@/app/api/auth/token";
 
 export async function POST(request: NextRequest) {
   try {

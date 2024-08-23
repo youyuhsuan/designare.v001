@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import Evervault from "@evervault/sdk";
 import { tokenDB } from "@/src/libs/db/tokenDB";
 import { cookies } from "next/headers";
-import { UserTokenData } from "@/src/utilities/token";
+import { UserTokenData } from "@/src/type/token";
+import Evervault from "@evervault/sdk";
 
 const evervault = new Evervault(
   process.env.EVERVAULT_APP_ID as string,
@@ -17,7 +17,9 @@ export async function GET(request: NextRequest) {
   try {
     const dataToDecrypt = JSON.parse(encryptedTokenData);
     const decryptedData: UserTokenData = await evervault.decrypt(dataToDecrypt);
+    console.log("decryptedData", decryptedData);
     const foundToken = await tokenDB.findToken(decryptedData.token.id);
+    console.log("foundToken", foundToken);
     await tokenDB.updateTokenLastUsed(decryptedData.token.id);
     if (!foundToken) {
       return NextResponse.json({ error: "Token not found" }, { status: 404 });

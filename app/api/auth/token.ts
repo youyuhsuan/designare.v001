@@ -1,8 +1,7 @@
 import { Timestamp } from "firebase/firestore";
-import Evervault from "@evervault/sdk";
 import { cookies } from "next/headers";
 import { tokenDB } from "@/src/libs/db/tokenDB";
-import { UserRecord } from "firebase-admin/auth";
+import Evervault from "@evervault/sdk";
 
 export interface User {
   id: string;
@@ -28,7 +27,6 @@ const evervault = new Evervault(
   process.env.EVERVAULT_API_KEY as string
 );
 
-// 生成 Token
 export async function createToken(user: any) {
   let displayName = user.displayName;
   if (!displayName && user.providerData && user.providerData.length > 0) {
@@ -136,106 +134,10 @@ export async function createThirdPartyToken(userRecord: any) {
   }
 }
 
-// const validateAndUpdateToken = async (tokenId) => {
-//   const tokenRef = doc(db, "tokens", tokenId);
-//   const tokenSnap = await getDoc(tokenRef);
-
-//   if (!tokenSnap.exists()) {
-//     throw new Error("Token not found");
-//   }
-
-//   const tokenData = tokenSnap.data();
-//   const now = Timestamp.now();
-
-//   if (tokenData.expiresAt.toDate() < now.toDate()) {
-//     throw new Error("Token has expired");
-//   }
-
-//   // 更新 lastUsedAt
-//   await updateDoc(tokenRef, {
-//     lastUsedAt: now,
-//   });
-
-//   return tokenData;
-// };
-
-export const fetchTokenData = async (): Promise<UserTokenData> => {
+export async function deleteServerToken(userId: string): Promise<void> {
   try {
-    const response = await fetch("/api/auth/token");
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data: UserTokenData = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch token data:", error);
-    throw error;
-  }
-};
-
-// 本地儲存中緩存的 token 資料
-// export async function getServerSideCachedToken(): Promise<UserTokenData | null> {
-//   const cookieStore = cookies();
-//   const encryptedToken = cookieStore.get("token");
-
-//   if (encryptedToken) {
-//     try {
-//       const decryptedToken = await evervault.decrypt(encryptedToken.value);
-//       const tokenData: UserTokenData = JSON.parse(decryptedToken);
-
-//       // 檢查 token 是否過期
-//       if (new Date(tokenData.token.expiresAt.seconds * 1000) > new Date()) {
-//         return tokenData;
-//       }
-//     } catch (error) {
-//       console.error("Error decrypting token:", error);
-//     }
-//   }
-
-//   return null;
-// }
-
-export async function getClientSideCachedToken(): Promise<UserTokenData | null> {
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(";").shift();
-  };
-
-  const encryptedToken = getCookie("token");
-
-  if (encryptedToken) {
-    try {
-      const decryptedToken = await evervault.decrypt(encryptedToken);
-      const tokenData: UserTokenData = JSON.parse(decryptedToken);
-
-      // 檢查 token 是否過期
-      if (new Date(tokenData.token.expiresAt.seconds * 1000) > new Date()) {
-        return tokenData;
-      }
-    } catch (error) {
-      console.error("Error decrypting token:", error);
-    }
-  }
-
-  return null;
-}
-
-export async function deleteToken(userId: string): Promise<void> {
-  try {
-    // 從數據庫中刪除 token
     await tokenDB.deleteToken(userId);
-
-    // 刪除 cookie
-    if (typeof window !== "undefined") {
-      // 客戶端刪除 cookie
-      document.cookie =
-        "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    } else {
-      // 服務器端刪除 cookie
-      cookies().delete("token");
-    }
-
+    cookies().delete("token");
     console.log("Token deleted successfully");
   } catch (error) {
     console.error("Failed to delete token:", error);
