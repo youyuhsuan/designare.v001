@@ -4,7 +4,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { AuthModal } from "@/src/Components/Auth/AuthModal";
-import UserMenu, { UserMenuProps } from "@/src/Components/Auth/UserMenu";
+import UserMenu from "@/src/Components/Auth/UserMenu";
 import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
 import { logout, fetchToken } from "@/src/libs/features/auth/tokenActions";
 

@@ -12,6 +12,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "success"
     | "warning"
     | "info";
+  $size?: "small" | "medium" | "large";
 }
 
 const buttonStyles = css<ButtonProps>`
@@ -30,6 +31,27 @@ const buttonStyles = css<ButtonProps>`
   ${(props) => {
     const color = props.$color || "primary";
     const variant = props.$variant || "filled";
+    const size = props.$size || "medium";
+
+    switch (size) {
+      case "small":
+        css`
+          padding: 0.4rem 0.8rem;
+          font-size: 0.875rem;
+        `;
+        break;
+      case "large":
+        css`
+          padding: 0.8rem 1.6rem;
+          font-size: 1.125rem;
+        `;
+        break;
+      default:
+        css`
+          padding: 0.625rem 1.25rem;
+          font-size: 1rem;
+        `;
+    }
 
     switch (variant) {
       case "outlined":
@@ -50,7 +72,7 @@ const buttonStyles = css<ButtonProps>`
             background-color: ${props.theme.button.hover[color]};
           }
         `;
-      default: // "filled"
+      default:
         return css`
           background-color: ${props.theme.button.background[color]};
           color: ${props.theme.button.text[color]};
@@ -77,9 +99,24 @@ const StyledButton = styled.button<ButtonProps>`
 `;
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ children, $variant = "filled", $color = "primary", ...rest }, ref) => {
+  (
+    {
+      children,
+      $variant = "filled",
+      $color = "primary",
+      $size = "medium",
+      ...rest
+    },
+    ref
+  ) => {
     return (
-      <StyledButton $variant={$variant} $color={$color} {...rest} ref={ref}>
+      <StyledButton
+        $variant={$variant}
+        $color={$color}
+        $size={$size}
+        {...rest}
+        ref={ref}
+      >
         {children}
       </StyledButton>
     );
@@ -87,3 +124,5 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
+
+export { StyledButton };

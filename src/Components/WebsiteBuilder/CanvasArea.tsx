@@ -19,21 +19,23 @@ import { SiteContainer } from "@/src/Components/WebsiteBuilder/SiteContainer";
 import { LocalElementType } from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import LayoutElement from "./BuilderElement/LayoutElement";
 import FreeDraggableElement from "./BuilderElement/FreeDraggableElement";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import styled from "styled-components";
 import {
-  selectCanvasHeight,
-  selectSiteWidth,
-} from "@/src/libs/features/websiteBuilder/websiteBuliderSelector";
+  selectCurrentDevice,
+  selectCurrentLayoutSettings,
+} from "@/src/libs/features/websiteBuilder/globalSelect";
 import { customModifier } from "@/src/utilities/customModifier";
+import { useAppDispatch } from "@/src/libs/hook";
+import { setLayoutSettings } from "@/src/libs/features/websiteBuilder/globalSettingsSlice";
 
 export const CanvasAreaContainer = styled.div`
   width: 100%;
 `;
 
-export const CanvasArea: React.FC = () => {
+export const CanvasArea: React.FC<{ websiteId: string }> = ({ websiteId }) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -41,9 +43,9 @@ export const CanvasArea: React.FC = () => {
     })
   );
 
-  // 從 Redux store 中選擇畫布的寬度和高度
-  const siteWidth = useSelector(selectSiteWidth);
-  const canvasHeight = useSelector(selectCanvasHeight);
+  const dispatch = useAppDispatch();
+  const currentDevice = useSelector(selectCurrentDevice);
+  const currentLayoutSettings = useSelector(selectCurrentLayoutSettings);
 
   const {
     elements,
@@ -55,6 +57,41 @@ export const CanvasArea: React.FC = () => {
   } = useElementContext();
 
   useElementsDebug();
+
+  useEffect(() => {
+    // 这里可以添加加载特定网站数据的逻辑
+    console.log(`Loading canvas data for website ID: ${websiteId}`);
+    // 例如：dispatch(loadCanvasData(websiteId));
+  }, [websiteId]);
+
+  useEffect(() => {
+    const defaultSettings = {
+      desktop: {
+        siteWidth: "1200px",
+        canvasHeight: "1200px",
+      },
+      tablet: {
+        siteWidth: "768px",
+        canvasHeight: "1024px",
+      },
+      mobile: {
+        siteWidth: "360px",
+        canvasHeight: "640px",
+      },
+    };
+
+    if (
+      JSON.stringify(currentLayoutSettings) !==
+      JSON.stringify(defaultSettings[currentDevice])
+    ) {
+      dispatch(
+        setLayoutSettings({
+          device: currentDevice,
+          settings: defaultSettings[currentDevice],
+        })
+      );
+    }
+  }, [currentDevice, currentLayoutSettings, dispatch]);
 
   // 添加日誌來檢查 elements 的內容
   // useEffect(() => {
@@ -159,8 +196,8 @@ export const CanvasArea: React.FC = () => {
     >
       <CanvasAreaContainer>
         <SiteContainer
-          width={siteWidth}
-          height={canvasHeight}
+          width={currentLayoutSettings.siteWidth}
+          height={currentLayoutSettings.canvasHeight}
           onClick={handleCanvasClick}
         >
           <SortableContext

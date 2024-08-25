@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { FaSearch, FaTh, FaList } from "react-icons/fa";
 import Link from "next/link";
 
-// Styled Components
 const DashboardContainer = styled.div`
   margin: 0 auto;
   padding: 20px;
@@ -98,7 +97,6 @@ const ListContainer = styled.div`
   gap: 20px;
 `;
 
-// Interfaces
 export interface ActionCard {
   title: string;
   description: string;

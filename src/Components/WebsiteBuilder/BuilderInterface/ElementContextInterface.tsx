@@ -92,4 +92,5 @@ export type Action =
       payload: { id: UniqueIdentifier; config: { height: number } };
     }
   // 設定選擇元素
-  | { type: "SELECTED_ELEMENT"; payload: UniqueIdentifier | null };
+  | { type: "SELECTED_ELEMENT"; payload: UniqueIdentifier | null }
+  | { type: "SET_ELEMENTS"; payload: LocalElementType[] }; // 添加这一行

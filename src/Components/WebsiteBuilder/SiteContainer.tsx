@@ -17,8 +17,8 @@ const Container = styled.div`
 
 export const SiteContainer: React.FC<SiteContainerProps> = ({
   children,
-  width = "100%",
-  height = "100dvh",
+  width,
+  height,
   onClick,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -13,13 +13,6 @@ export interface BaseElementData {
   [key: string]: any;
 }
 
-export interface GlobalElementType extends BaseElementData {
-  isLayout: boolean;
-  defaultProps: {
-    position?: Position;
-  };
-}
-
 export type LocalElementType = LayoutElementData | FreeDraggableElementData;
 
 export interface LayoutElementData extends BaseElementData {
@@ -28,7 +21,6 @@ export interface LayoutElementData extends BaseElementData {
   isLayout: true;
 }
 
-// TODO:寫完整
 export interface FreeDraggableElementData extends BaseElementData {
   isLayout: false;
   config: any;

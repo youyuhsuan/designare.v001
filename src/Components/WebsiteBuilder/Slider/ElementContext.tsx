@@ -18,6 +18,8 @@ import {
   Action,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
 import { UniqueIdentifier } from "@dnd-kit/core";
+import { useAppSelector } from "@/src/libs/hook";
+import { selectElementInstances } from "@/src/libs/features/websiteBuilder/elementLibrarySelector";
 
 // 遞歸遍歷嵌套對象的屬性路徑
 export const updateNestedProperty = (
@@ -117,6 +119,8 @@ const elementReducer = (
           ? { ...element, height: action.payload.config.height }
           : element
       );
+    case "SET_ELEMENTS":
+      return action.payload;
     default:
       return state;
   }
@@ -132,6 +136,13 @@ export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
   const [selectedElement, setSelectedElement] =
     useState<LocalElementType | null>(null);
 
+  const reduxElements = useAppSelector(selectElementInstances);
+
+  // 同步 Redux 元素到本地状态
+  useEffect(() => {
+    dispatch({ type: "SET_ELEMENTS", payload: Object.values(reduxElements) });
+  }, [reduxElements]);
+
   // Debug
   useEffect(() => {
     console.log("Elements updated:", elements);
@@ -139,6 +150,12 @@ export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     console.log("Current elements state:", elements);
+  }, [elements]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.log("Elements updated:", elements);
+    }
   }, [elements]);
 
   // ID 設置當前選中的元素
