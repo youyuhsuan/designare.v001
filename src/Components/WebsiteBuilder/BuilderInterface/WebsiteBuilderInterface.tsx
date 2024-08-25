@@ -26,11 +26,12 @@ export interface EditorSettings {
 }
 
 // Elements
-export interface ElementsState {
+export interface ElementLibrary {
   byId: Record<string, LocalElementType>;
   allIds: string[];
   selectedId: string | null;
-  configs: any;
+  configs?: any;
+  instances: Record<string, ElementInstance>;
 }
 
 export interface ElementInstance {
@@ -48,63 +49,3 @@ export interface CreateElementPayload {
   isLayout: boolean;
   elementType?: string;
 }
-
-// export interface WebsiteBuilderState {
-//   // 網站全局設置
-//   globalSettings: {
-//     desktop: LayoutSettings;
-//     tablet: LayoutSettings;
-//     mobile: LayoutSettings;
-//     currentDevice: "desktop" | "tablet" | "mobile";
-//   };
-
-//   // 元素庫
-//   elementLibrary: {
-//     elements: { [id: string]: GlobalElementType };
-//     configs: { [elementType: string]: { [property: string]: ElementConfig } };
-//   };
-
-//   // 歷史記錄和撤銷/重做功能
-//   history: {
-//     past: any[]; // 考虑为历史记录定义一个更具体的类型
-//     present: any | null;
-//     future: any[];
-//   };
-
-//   // 專案元信息
-//   websiteMetadata: {
-//     name: string;
-//     createdAt: string;
-//     lastModified: string;
-//   };
-
-//   // 發佈狀態
-//   publishStatus: {
-//     isPublished: boolean;
-//     lastPublishedAt: string | null;
-//     version: string;
-//   };
-
-//   // 用戶偏好設置
-//   userPreferences: {
-//     editorSettings: {
-//       showGrid: boolean;
-//       snapToGrid: boolean;
-//     };
-//   };
-
-//   // 全局拖拽狀態
-//   dragAndDrop: {
-//     currentDraggedElement: any | null;
-//     dragSource: any | null;
-//     dragTarget: any | null;
-//   };
-
-//   // 性能相關的全局標誌
-//   performanceFlags: {
-//     previewMode: boolean;
-//     advancedFeaturesEnabled: boolean;
-//   };
-//   activeElementId: string | null;
-//   instances: { [id: string]: any };
-// }

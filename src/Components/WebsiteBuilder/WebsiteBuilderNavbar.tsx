@@ -43,7 +43,19 @@ const IconButton = styled.button`
   }
 `;
 
-const WebsiteBuilderNavbar = () => {
+interface WebsiteBuilderNavbarProps {
+  // onPreview: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onCreate: () => void;
+}
+
+const WebsiteBuilderNavbar: React.FC<WebsiteBuilderNavbarProps> = ({
+  // onPreview,
+  onUndo,
+  onRedo,
+  onCreate,
+}) => {
   return (
     <NavbarWrapper>
       <NavbarSection>
@@ -57,23 +69,23 @@ const WebsiteBuilderNavbar = () => {
             {/* Save icon */}
           </svg>
         </IconButton>
-        <IconButton aria-label="Preview">
+        {/* <IconButton aria-label="Preview" onClick={onPreview}>
           <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
             <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"></path>
           </svg>
-        </IconButton>
-        <IconButton aria-label="Undo">
+        </IconButton> */}
+        <IconButton aria-label="Undo" onClick={onUndo}>
           <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
             <path d="M12.014 7.003H6.937l2.319-2.287-.701-.712-3.551 3.5 3.55 3.492.7-.713-2.316-2.28h5.076a5 5 0 0 1 0 10L10.002 18 10 19l2.015.003a6 6 0 1 0 0-12Z"></path>
           </svg>
         </IconButton>
-        <IconButton aria-label="Redo" disabled>
+        <IconButton aria-label="Redo" onClick={onRedo}>
           <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
             <path d="M11.986 7.003h5.077l-2.319-2.287.701-.712 3.551 3.5-3.55 3.492-.7-.713 2.316-2.28h-5.076a5 5 0 1 0 0 10L13.998 18 14 19l-2.015.003a6 6 0 1 1 0-12Z"></path>
           </svg>
         </IconButton>
 
-        <Button $variant="filled" $color="secondary">
+        <Button $variant="filled" $color="secondary" onClick={onCreate}>
           建立
         </Button>
       </NavbarSection>

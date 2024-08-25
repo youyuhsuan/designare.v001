@@ -17,9 +17,11 @@ import {
 import styled from "styled-components";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 import { elementConfigs } from "../SidebarEditor/elementConfigs";
-import { useAppDispatch } from "@/src/libs/hook";
+import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
 import { StyledButton } from "@/src/Components/Button";
 import { createElementInstance } from "@/src/libs/features/websiteBuilder/elementLibrarySlice";
+import { selectPresent } from "@/src/libs/features/websiteBuilder/historySelector";
+import { addToHistory } from "@/src/libs/features/websiteBuilder/historySlice";
 
 interface HandleAddElementParams {
   type: string;
@@ -58,6 +60,8 @@ const SectionTitle = styled.p`
 
 export function Toolbar() {
   const dispatch = useAppDispatch();
+  const presentState = useAppSelector(selectPresent);
+
   const handleAddElement = ({
     type,
     content,
@@ -65,6 +69,8 @@ export function Toolbar() {
     elementType,
   }: HandleAddElementParams) => {
     dispatch(createElementInstance({ type, content, isLayout, elementType }));
+    const updatedState = { ...presentState }; // 包含新添加元素的更新
+    dispatch(addToHistory(updatedState));
   };
 
   return (

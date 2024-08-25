@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { websiteDB } from "@/src/libs/db/websiteDB";
-import { WebsiteData } from "@/src/type/website";
+import { WebsiteMetadata } from "@/src/type/website";
 import Evervault from "@evervault/sdk";
 import { cookies } from "next/headers";
 import { UserTokenData } from "@/src/type/token";
 import { Timestamp } from "firebase/firestore";
+import { convertTimestamp } from "@/src/utilities/convertTimestamp";
 
 const evervault = new Evervault(
   process.env.EVERVAULT_APP_ID as string,
   process.env.EVERVAULT_API_KEY as string
 );
 
-export async function POST(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const encryptedTokenData = cookies().get("token")?.value;
   if (!encryptedTokenData) {
     return NextResponse.json({ error: "No token found" }, { status: 400 });
@@ -19,39 +23,33 @@ export async function POST(request: NextRequest) {
   try {
     const dataToDecrypt = JSON.parse(encryptedTokenData);
     const decryptedData: UserTokenData = await evervault.decrypt(dataToDecrypt);
-    const body = await request.json();
 
-    // 驗證請求體
-    if (!body.name || !body.userId) {
+    const website = await websiteDB.getWebsite(
+      decryptedData.token.id,
+      params.id
+    );
+    if (website) {
+      console.log("Website metadata:", website.metadata);
+      console.log("Element library:", website.elementLibrary);
+    } else {
+      console.log("Website not found or user not authorized");
+    }
+    if (!website) {
+      return NextResponse.json({ error: "Website not found" }, { status: 404 });
+    }
+
+    if (!website.metadata || website.metadata.id !== decryptedData.token.id) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
+        { error: "Unauthorized to access this website" },
+        { status: 403 }
       );
     }
 
-    const websiteData: WebsiteData = {
-      userId: decryptedData.token.id,
-      templateId: body.templateId || null,
-      name: body.name,
-      url:
-        body.url ||
-        `https://${body.name
-          .toLowerCase()
-          .replace(/\s+/g, "-")}-${Date.now()}.com`,
-      createdAt: Timestamp.now(),
-      lastModified: Timestamp.now(),
-    };
-
-    const newWebsiteId = await websiteDB.createWebsite(websiteData);
-
-    return NextResponse.json(
-      { id: newWebsiteId, ...websiteData },
-      { status: 201 }
-    );
+    return NextResponse.json(website, { status: 200 });
   } catch (error) {
-    console.error("Error creating website:", error);
+    console.error("Error fetching website:", error);
     return NextResponse.json(
-      { error: "Failed to create website" },
+      { error: "Failed to fetch website" },
       { status: 500 }
     );
   }
@@ -88,7 +86,10 @@ export async function PUT(
     }
 
     // 檢查用戶是否有權限更新該網站
-    if (existingWebsite.userId !== decryptedData.token.id) {
+    if (
+      !existingWebsite.metadata ||
+      existingWebsite.metadata.id !== decryptedData.token.id
+    ) {
       return NextResponse.json(
         { error: "Unauthorized to update this website" },
         { status: 403 }
@@ -96,12 +97,12 @@ export async function PUT(
     }
 
     // 更新網站數據
-    const updatedWebsiteData: Partial<WebsiteData> = {
+    const updatedWebsiteData: Partial<WebsiteMetadata> = {
       ...body,
-      lastModified: Timestamp.now(),
+      lastModified: convertTimestamp(Timestamp.now()),
     };
 
-    await websiteDB.updateWebsite(
+    await websiteDB.updateWebsiteData(
       decryptedData.token.id,
       params.id,
       updatedWebsiteData
@@ -142,7 +143,10 @@ export async function DELETE(
     }
 
     // 檢查用戶是否有權限刪除該網站
-    if (existingWebsite.userId !== decryptedData.token.id) {
+    if (
+      !existingWebsite.metadata ||
+      existingWebsite.metadata.id !== decryptedData.token.id
+    ) {
       return NextResponse.json(
         { error: "Unauthorized to delete this website" },
         { status: 403 }

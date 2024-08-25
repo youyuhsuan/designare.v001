@@ -35,7 +35,7 @@ export const CanvasAreaContainer = styled.div`
   width: 100%;
 `;
 
-export const CanvasArea: React.FC<{ websiteId: string }> = ({ websiteId }) => {
+export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -60,9 +60,9 @@ export const CanvasArea: React.FC<{ websiteId: string }> = ({ websiteId }) => {
 
   useEffect(() => {
     // 这里可以添加加载特定网站数据的逻辑
-    console.log(`Loading canvas data for website ID: ${websiteId}`);
-    // 例如：dispatch(loadCanvasData(websiteId));
-  }, [websiteId]);
+    console.log(`Loading canvas data for website ID: ${id}`);
+    // 例如：dispatch(loadCanvasData(id));
+  }, [id]);
 
   useEffect(() => {
     const defaultSettings = {

@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 import WebsiteBuilderNavbar from "@/src/Components/WebsiteBuilder/WebsiteBuilderNavbar";
 import { ElementProvider } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 import { Toolbar } from "@/src/Components/WebsiteBuilder/Toolbar/Toolbar";
 import SidebarEditor from "@/src/Components/WebsiteBuilder/SidebarEditor/SidebarEditor";
+import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
+import { undo, redo } from "@/src/libs/features/websiteBuilder/historySlice";
+import { createNewWebsite } from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
+import { selectWebsiteMetadata } from "@/src/libs/features/websiteBuilder/websiteMetadataSelector";
 
 const BuilderContainer = styled.div`
   display: flex;
@@ -50,10 +54,37 @@ export default function WebsiteBuilderLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const websiteMetadata = useAppSelector(selectWebsiteMetadata);
+  const dispatch = useAppDispatch();
+
+  // const handlePreview = useCallback(() => {
+  //   dispatch(preview());
+  // }, [dispatch]);
+
+  const handleUndo = useCallback(() => {
+    dispatch(undo());
+  }, [dispatch]);
+
+  const handleRedo = useCallback(() => {
+    dispatch(redo());
+  }, [dispatch]);
+
+  const handleCreate = useCallback(() => {
+    if (websiteMetadata) {
+      dispatch(createNewWebsite(websiteMetadata));
+    } else {
+      console.error("Website metadata is null");
+    }
+  }, [dispatch, websiteMetadata]);
+
   return (
     <ElementProvider>
       <BuilderContainer>
-        <WebsiteBuilderNavbar />
+        <WebsiteBuilderNavbar
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onCreate={handleCreate}
+        />
         <ContentContainer>
           <ToolbarWrapper>
             <Toolbar />

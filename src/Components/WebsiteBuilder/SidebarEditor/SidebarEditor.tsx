@@ -14,6 +14,7 @@ import ButtonGroup from "./ButtonGroup";
 import { getNestedValue } from "./getNestedValue";
 import { ColorPicker } from "./ColorPicker";
 import styled from "styled-components";
+import BoxModelEditor from "./BoxModelEditor";
 
 const EditorContainer = styled.div`
   z-index: 10;
@@ -272,10 +273,6 @@ const SidebarEditor: React.FC = () => {
                   : fieldConfig.defaultOpacity;
             }
           }
-
-          console.log("colorValue", colorValue);
-          console.log("opacityValue", opacityValue);
-
           return (
             <EditorWrapper key={key}>
               <Label htmlFor={`${selectedElement.id}-${key}`}>
@@ -318,33 +315,29 @@ const SidebarEditor: React.FC = () => {
               </span>
             </EditorWrapper>
           );
+        case "boxModel":
+          const boxModelValue = value || fieldConfig.defaultValue;
+          return (
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
+                {fieldConfig.label}
+              </Label>
+              <BoxModelEditor
+                value={boxModelValue}
+                onChange={(newValue) => {
+                  const processedValue =
+                    newValue === undefined || newValue === null
+                      ? fieldConfig.defaultValue
+                      : newValue;
+                  handleChange(key, processedValue);
+                }}
+              />
+            </EditorWrapper>
+          );
+
         case "composite":
           if (!fieldConfig.compositeFields) {
             return <p key={key}>No composite fields available</p>;
-          }
-          if (fieldConfig.renderCustomInput) {
-            const inputValue =
-              value !== undefined && value !== null
-                ? value
-                : fieldConfig.defaultValue;
-            return (
-              <EditorWrapper key={key}>
-                <Label htmlFor={`${selectedElement.id}-${key}`}>
-                  {fieldConfig.label}
-                </Label>
-                {fieldConfig.renderCustomInput({
-                  id: `${selectedElement.id}-${key}`,
-                  value: inputValue,
-                  onChange: (newValue) => {
-                    const processedValue =
-                      newValue === undefined || newValue === null
-                        ? fieldConfig.defaultValue
-                        : newValue;
-                    handleChange(`${key}`, processedValue);
-                  },
-                })}
-              </EditorWrapper>
-            );
           }
           return (
             <EditorWrapper key={key}>

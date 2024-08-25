@@ -1,21 +1,45 @@
-import { Timestamp } from "firebase/firestore";
+import {
+  ElementInstance,
+  ElementLibrary,
+} from "../Components/WebsiteBuilder/BuilderInterface";
 
-export interface Website {
+export interface SerializedTimestamp {
+  seconds: number;
+  nanoseconds: number;
+}
+
+export interface AllWebsite {
   id: string;
   userId: string;
   url: string;
   name: string;
-  lastModified: Timestamp;
-  createdAt: Timestamp;
+  lastModified: SerializedTimestamp;
+  createdAt: SerializedTimestamp;
 }
 
-export interface WebsiteData {
-  userId: string;
-  templateId?: string;
+export interface WebsiteMetadata {
+  id?: string;
+  userId?: string;
+  templateId?: string | null;
   name: string;
   url: string;
   description?: string;
-  content?: any;
-  createdAt: Timestamp;
-  lastModified: Timestamp;
+  createdAt: SerializedTimestamp;
+  lastModified: SerializedTimestamp;
+  status: "draft" | "published" | "archived";
+  publishedAt?: SerializedTimestamp;
+  isDeleted?: boolean;
+  version?: number;
+  settings?: {
+    theme?: string;
+    layout?: string;
+    customDomain?: string;
+  };
+}
+export interface WebsiteState {
+  metadata: WebsiteMetadata | null;
+  elementLibrary: ElementLibrary | null;
+  loadStatus: "idle" | "loading" | "succeeded" | "failed";
+  saveStatus: "idle" | "loading" | "succeeded" | "failed";
+  saveError: string | null;
 }

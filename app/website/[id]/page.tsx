@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useAppDispatch } from "@/src/libs/hook";
 import { CanvasArea } from "@/src/Components/WebsiteBuilder/CanvasArea";
 import { fetchWebsiteMetadata } from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
+import AutoSave from "@/src/Components/AutoSave";
+import { redo, undo } from "@/src/libs/features/websiteBuilder/historySlice";
 
 export default function WebsiteBuilderPage() {
   const params = useParams(); // 路由參數
@@ -21,5 +23,10 @@ export default function WebsiteBuilderPage() {
     return <div>Loading...</div>;
   }
 
-  return <CanvasArea websiteId={id} />;
+  return (
+    <>
+      <AutoSave id={id} />
+      <CanvasArea id={id} />
+    </>
+  );
 }

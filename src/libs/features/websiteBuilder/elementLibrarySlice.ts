@@ -1,5 +1,5 @@
 import {
-  ElementsState,
+  ElementLibrary,
   CreateElementPayload,
   LocalElementType,
   ElementInstance,
@@ -17,7 +17,7 @@ export const elementLibrarySlice = createSlice({
     allIds: [],
     selectedId: null,
     configs: elementConfigs,
-  } as ElementsState,
+  } as ElementLibrary,
   reducers: {
     // 新的默認樣式
     // addElementConfig: (state, action: PayloadAction<ElementConfig>) => {
@@ -77,19 +77,19 @@ export const elementLibrarySlice = createSlice({
       state.allIds.push(id);
       state.selectedId = id; // 可选：自动选择新创建的元素
     },
-    // updateElementInstance: (
-    //   state,
-    //   action: PayloadAction<{
-    //     id: string;
-    //     updates: DeepPartial<ElementInstance>;
-    //   }>
-    // ) => {
-    //   const { id, updates } = action.payload;
-    //   state.instances[id] = { ...state.instances[id], ...updates };
-    // },
-    // deleteElementInstance: (state, action: PayloadAction<string>) => {
-    //   delete state.instances[action.payload];
-    // },
+    updateElementInstance: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        updates: DeepPartial<ElementInstance>;
+      }>
+    ) => {
+      const { id, updates } = action.payload;
+      state.instances[id] = { ...state.instances[id], ...updates };
+    },
+    deleteElementInstance: (state, action: PayloadAction<string>) => {
+      delete state.instances[action.payload];
+    },
   },
 });
 

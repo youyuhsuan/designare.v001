@@ -1,6 +1,4 @@
 import { ElementConfigs } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
-import BoxModelEditor from "@/src/Components/WebsiteBuilder/SidebarEditor/BoxModelEditor";
-import { textDefaults } from "@/src/Components/WebsiteBuilder/ElementDefaults/index";
 
 export const elementConfigs: ElementConfigs = {
   layout: {
@@ -10,20 +8,17 @@ export const elementConfigs: ElementConfigs = {
       size: {
         label: "大小",
         type: "composite",
-        transform: Number,
         defaultValue: { width: 1200, height: 100 },
         compositeFields: {
           width: {
             label: "寬度",
             type: "number",
-            transform: Number,
             defaultValue: 1200,
             unit: "px",
           },
           height: {
             label: "高度",
             type: "number",
-            transform: Number,
             defaultValue: 100,
             unit: "px",
           },
@@ -42,25 +37,20 @@ export const elementConfigs: ElementConfigs = {
       },
       boxModelEditor: {
         label: "CSS 盒模型",
-        type: "composite",
+        type: "boxModel",
         defaultValue: { margin: [0, 0, 0, 0], padding: [0, 0, 0, 0] },
         compositeFields: {
           margin: {
             type: "number",
-            transform: Number,
             defaultValue: [0, 0, 0, 0],
             unit: "%",
           },
           padding: {
             type: "number",
-            transform: Number,
             defaultValue: [0, 0, 0, 0],
             unit: "%",
           },
         },
-        renderCustomInput: ({ value, onChange }) => (
-          <BoxModelEditor value={value} onChange={onChange} />
-        ),
       },
       backgroundColor: {
         label: "顏色",
@@ -157,20 +147,17 @@ export const elementConfigs: ElementConfigs = {
       position: {
         label: "位置",
         type: "composite",
-        transform: Number,
         defaultValue: { x: 0, y: 0 },
         compositeFields: {
           x: {
             label: "x",
             type: "number",
-            transform: Number,
             defaultValue: 0,
             unit: "px",
           },
           y: {
             label: "y",
             type: "number",
-            transform: Number,
             defaultValue: 0,
             unit: "px",
           },
@@ -191,51 +178,43 @@ export const elementConfigs: ElementConfigs = {
           size: {
             label: "大小",
             type: "composite",
-            transform: Number,
             compositeFields: {
               width: {
                 label: "寬度",
                 type: "number",
-                transform: Number,
                 unit: "px",
               },
               height: {
                 label: "高度",
                 type: "number",
-                transform: Number,
                 unit: "px",
               },
             },
-            defaultValue: (elementType: string) => {
-              return textDefaults[elementType]?.size || {};
+            defaultValue: {
+              H1: { width: 600, height: 86 },
+              H2: { width: 600, height: 55 },
+              H3: { width: 600, height: 49 },
+              H4: { width: 600, height: 44 },
+              H5: { width: 600, height: 31 },
+              pre1: { width: 390, height: 86 },
+              pre2: { width: 410, height: 77 },
+              pre3: { width: 400, height: 45 },
             },
           },
           fontSize: {
             label: "字體大小",
             type: "number",
-            defaultValue: (elementType: string) => {
-              return textDefaults[elementType]?.fontSize || {};
+            defaultValue: {
+              H1: 72,
+              H2: 42,
+              H3: 38,
+              H4: 34,
+              H5: 28,
+              pre1: 28,
+              pre2: 16,
+              pre3: 14,
             },
           },
-          // TODO:沒有處理好
-          fontType: {
-            label: "字體主題",
-            type: "select",
-            options: [
-              { value: "H1", label: "標題1", size: 72, unit: "px" },
-              { value: "H2", label: "標題2", size: 42, unit: "px" },
-              { value: "H3", label: "標題3", size: 38, unit: "px" },
-              { value: "H4", label: "標題4", size: 34, unit: "px" },
-              { value: "H5", label: "標題5", size: 28, unit: "px" },
-              { value: "pre1", label: "段落１", size: 28, unit: "px" },
-              { value: "pre2", label: "段落2", size: 16, unit: "px" },
-              { value: "pre3", label: "段落3", size: 14, unit: "px" },
-            ],
-            defaultValue: (elementType: string) => {
-              return textDefaults[elementType]?.fontSize || {};
-            },
-          },
-          // TODO:重新處理
           textColor: {
             label: "文字顏色",
             type: "color",
@@ -256,8 +235,15 @@ export const elementConfigs: ElementConfigs = {
           lineHeight: {
             label: "行距",
             type: "number",
-            defaultValue: (elementType: string) => {
-              return textDefaults[elementType]?.lineHeight || {};
+            defaultValue: {
+              H1: 1.2,
+              H2: 1.3,
+              H3: 1.4,
+              H4: 1.4,
+              H5: 1.5,
+              pre1: 1.6,
+              pre2: 1.6,
+              pre3: 1.6,
             },
             min: 1,
             max: 3,

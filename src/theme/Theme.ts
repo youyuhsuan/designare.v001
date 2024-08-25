@@ -92,7 +92,7 @@ const createTheme = (mode: "light" | "dark"): DefaultTheme => {
 export const lightTheme = createTheme("light");
 export const darkTheme = createTheme("dark");
 
-console.log("Light theme:", lightTheme);
-console.log("Dark theme:", darkTheme);
+// console.log("Light theme:", lightTheme);
+// console.log("Dark theme:", darkTheme);
 
 export default createTheme;

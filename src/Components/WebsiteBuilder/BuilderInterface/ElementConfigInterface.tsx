@@ -1,5 +1,3 @@
-import { TextType } from "../ElementDefaults";
-
 type ElementType = "layout" | "freeDraggable";
 type PropertyType =
   | "text"
@@ -12,6 +10,7 @@ type PropertyType =
   | "object"
   | "button"
   | "buttonGroup"
+  | "boxModel"
   | "composite";
 
 interface BaseOption {

@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Dashboard, { ActionCard } from "@/src/Components/Dashboard/Dashboard";
-import { Website } from "../type/website";
 import { Timestamp } from "firebase/firestore";
+import { AllWebsite, SerializedTimestamp } from "@/src/type/website";
+import { formatTimestamp } from "@/src/utilities/convertTimestamp";
+import Link from "next/dist/client/link";
 
 const DashboardContent: React.FC = () => {
   const actionCards: ActionCard[] = [
@@ -23,14 +25,14 @@ const DashboardContent: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [websites, setWebsites] = useState<Website[]>([]);
+  const [websites, setWebsites] = useState<AllWebsite[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/website/getAll");
+      const response = await fetch("/api/website");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -63,18 +65,16 @@ const DashboardContent: React.FC = () => {
     setViewMode(view);
   };
 
-  const formatTimestamp = (timestamp: Timestamp): string => {
-    return timestamp.toDate().toLocaleString();
-  };
-
   const RecentItems: React.FC = () => (
     <>
       {isLoading && <p>Loading...</p>}
       {error && <p>Error: {error}</p>}
       {filteredWebsites.map((website) => (
-        <div key={website.id}>
-          {website.name} - 最後編輯: {formatTimestamp(website.lastModified)}
-        </div>
+        <Link href={`/website/${website.id}`} key={website.id}>
+          <div key={website.id}>
+            {website.name} - 最後編輯: {formatTimestamp(website.lastModified)}
+          </div>
+        </Link>
       ))}
     </>
   );

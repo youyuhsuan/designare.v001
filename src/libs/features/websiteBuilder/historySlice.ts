@@ -10,18 +10,24 @@ export const historySlice = createSlice({
   reducers: {
     undo: (state) => {
       if (state.past.length > 0) {
-        const newPresent = state.past[state.past.length - 1];
-        state.future = [state.present, ...state.future];
-        state.present = newPresent;
-        state.past = state.past.slice(0, -1);
+        const previous = state.past[state.past.length - 1];
+        const newPast = state.past.slice(0, state.past.length - 1);
+        return {
+          past: newPast,
+          present: previous,
+          future: [state.present, ...state.future],
+        };
       }
     },
     redo: (state) => {
       if (state.future.length > 0) {
-        const newPresent = state.future[0];
-        state.past = [...state.past, state.present];
-        state.present = newPresent;
-        state.future = state.future.slice(1);
+        const next = state.future[0];
+        const newFuture = state.future.slice(1);
+        return {
+          past: [...state.past, state.present],
+          present: next,
+          future: newFuture,
+        };
       }
     },
     addToHistory: (state, action: PayloadAction<any>) => {

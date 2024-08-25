@@ -24,12 +24,20 @@ const createTextConfig = (
   properties: any,
   elementType: string
 ): ElementConfig => ({
-  size: properties.size.defaultValue(elementType),
-  fontSize: properties.fontSize.defaultValue(elementType),
-  fontType: properties.fontType.defaultValue(elementType),
+  size: properties.size.defaultValue[
+    elementType as keyof typeof properties.size.defaultValue
+  ],
+  fontSize:
+    properties.fontSize.defaultValue[
+      elementType as keyof typeof properties.fontSize.defaultValue
+    ],
   textColor: properties.textColor.defaultValue,
   letterSpacing: properties.letterSpacing.defaultValue,
-  lineHeight: properties.lineHeight.defaultValue(elementType),
+  lineHeight:
+    properties.lineHeight.defaultValue[
+      elementType as keyof typeof properties.lineHeight.defaultValue
+    ],
+
   fontFamily: properties.fontFamily.defaultValue,
 });
 
