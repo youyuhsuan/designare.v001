@@ -44,7 +44,6 @@ const createTextConfig = (
 const createFreeDraggableConfig = (properties: any): ElementConfig => ({
   horizontalAlignment: properties.horizontalAlignment.defaultValue,
   verticalAlignment: properties.verticalAlignment.defaultValue,
-  distribution: properties.distribution.defaultValue,
   position: properties.position.defaultValue,
 });
 

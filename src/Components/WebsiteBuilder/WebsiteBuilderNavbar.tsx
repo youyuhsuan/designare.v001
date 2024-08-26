@@ -2,7 +2,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import { Button } from "../Button";
+import { Button } from "@/src/Components/Button";
 import DeviceSelector from "../DeviceSelector";
 import Link from "next/link";
 

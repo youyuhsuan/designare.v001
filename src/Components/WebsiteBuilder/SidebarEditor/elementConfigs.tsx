@@ -56,28 +56,17 @@ export const elementConfigs: ElementConfigs = {
         label: "顏色",
         type: "color",
         defaultColor: "rgba(0,0,0,0)",
-        defaultOpacity: 1,
+        defaultOpacity: 100,
         step: 10,
         min: 0,
         max: 100,
       },
       media: {
         label: "媒體",
-        type: "object",
-        defaultValue: { type: "", url: "" },
-        properties: {
-          type: {
-            label: "媒體類型",
-            type: "select",
-            options: ["image", "video"],
-            defaultValue: "image",
-          },
-          url: {
-            label: "URL",
-            type: "text",
-            defaultValue: "",
-          },
-        },
+        type: "mediaUpload",
+        defaultValue: { type: "image", url: "" },
+        accept: "image/*,video/*",
+        maxSize: 5000000, // 最大文件大小（例如5MB）
       },
     },
   },
@@ -90,17 +79,17 @@ export const elementConfigs: ElementConfigs = {
         type: "buttonGroup",
         options: [
           {
+            value: { left: 0 },
             label: "靠左對齊",
-            value: "left",
             icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3 0v16H2V0h1Zm10 6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h7Z"></path></svg>',
           },
           {
-            value: "center",
+            value: { center: 0 },
             label: "對齊至水平置中",
             icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M9 12.001v4H8v-4h1Zm3-6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h7ZM9 0v4.001H8V0h1Z"></path></svg>',
           },
           {
-            value: "right",
+            value: { right: 0 },
             label: "靠右對齊",
             icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14 0v16h-1V0h1Zm-4 6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h7Z"></path></svg>',
           },
@@ -111,38 +100,23 @@ export const elementConfigs: ElementConfigs = {
         type: "buttonGroup",
         options: [
           {
-            value: "top",
+            value: { top: 0 },
             label: "置頂對齊",
             icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M9 5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2Zm7-3v1H0V2h16Z"></path></svg>',
           },
           {
-            value: "middle",
+            value: { center: 0 },
             label: "對齊至垂直中",
             icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M9 3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2Zm7.001 4v1H12V7h4.001ZM4 7v1H0V7h4Z"></path></svg>',
           },
           {
-            value: "bottom",
+            value: { bottom: 0 },
             label: "置底對齊",
             icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M16 13v1H0v-1h16ZM9 2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h2Z"></path></svg>',
           },
         ],
       },
-      distribution: {
-        label: "分佈",
-        type: "buttonGroup",
-        options: [
-          {
-            value: "horizontal",
-            label: "水平分佈",
-            icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 0v16H0V0h1Zm15 0v16h-1V0h1ZM9 4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2Z"></path></svg>',
-          },
-          {
-            value: "vertical",
-            label: "垂直分佈",
-            icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M16 15v1H0v-1h16Zm-5-9a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6Zm5-6v1H0V0h16Z"></path></svg>',
-          },
-        ],
-      },
+
       // TODO:位置處理 layout中
       position: {
         label: "位置",
@@ -214,6 +188,7 @@ export const elementConfigs: ElementConfigs = {
               pre2: 16,
               pre3: 14,
             },
+            unit: "pt",
           },
           textColor: {
             label: "文字顏色",
@@ -250,7 +225,20 @@ export const elementConfigs: ElementConfigs = {
           },
           fontFamily: {
             label: "字體系列",
-            type: "text",
+            type: "select",
+            options: [
+              "Arial",
+              "Verdana",
+              "Courier New",
+              "Georgia",
+              "Times New Roman",
+              "Tahoma",
+              "Trebuchet MS",
+              "Lucida Sans Unicode",
+              "Palatino Linotype",
+              "Arial Black",
+              "Comic Sans MS",
+            ],
             defaultValue: "Arial",
           },
           // fontWeight: {

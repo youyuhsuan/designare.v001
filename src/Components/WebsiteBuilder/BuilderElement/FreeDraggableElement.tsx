@@ -24,13 +24,50 @@ const ElementWrapper = styled.div<ContentProps>`
   opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
   border: 1px solid
     ${(props) =>
-      props.$isSelected ? props.theme.colors.accent : "transparent"};
+      props.$isSelected
+        ? props.theme.colors.accent
+        : props.theme.colors.border};
   width: ${(props) => props.$config.size.width}px;
   height: ${(props) => props.$config.size.height}px;
-  transform: translate(
-    ${(props) => props.$config.position.x}px,
-    ${(props) => props.$config.position.y}px
-  );
+  ${(props) => {
+    const { horizontalAlignment, verticalAlignment, size, position } =
+      props.$config;
+    let translateX = position.x;
+    let translateY = position.y;
+    let originX = "50%";
+    let originY = "50%";
+
+    // 水平對齊
+    if (horizontalAlignment) {
+      if (horizontalAlignment.left !== undefined) {
+        translateX = horizontalAlignment.left + size.width / 2;
+        originX = "0%";
+      } else if (horizontalAlignment.center !== undefined) {
+        translateX = horizontalAlignment.center;
+      } else if (horizontalAlignment.right !== undefined) {
+        translateX = horizontalAlignment.right - size.width / 2;
+        originX = "100%";
+      }
+    }
+
+    // 垂直對齊
+    if (verticalAlignment) {
+      if (verticalAlignment.top !== undefined) {
+        translateY = verticalAlignment.top + size.height / 2;
+        originY = "0%";
+      } else if (verticalAlignment.center !== undefined) {
+        translateY = verticalAlignment.center;
+      } else if (verticalAlignment.bottom !== undefined) {
+        translateY = verticalAlignment.bottom - size.height / 2;
+        originY = "100%";
+      }
+    }
+
+    return `
+      transform: translate(${translateX}px, ${translateY}px);
+      transform-origin: ${originX} ${originY};
+    `;
+  }}
 `;
 
 const P = styled.p<ContentProps>`

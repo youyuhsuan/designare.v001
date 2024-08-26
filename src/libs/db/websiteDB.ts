@@ -66,13 +66,13 @@ const websiteDB = {
 
       if (!websiteDoc.exists()) {
         console.log(`No website found with id ${id}`);
-        return null;
+        throw new Error("Website not found");
       }
 
       const websiteData = websiteDoc.data();
       if (websiteData.userId !== userId) {
         console.log(`Website ${id} does not belong to user ${userId}`);
-        return null;
+        throw new Error("Unauthorized access");
       }
 
       const metadata = parseWebsiteMetadata({
@@ -86,7 +86,6 @@ const websiteDB = {
         selectedId: null,
       };
 
-      // 構建符合 Website 接口的返回對象
       return {
         metadata: metadata,
         elementLibrary: elementLibrary,
@@ -95,8 +94,15 @@ const websiteDB = {
         saveError: null,
       };
     } catch (e) {
-      console.error("Error getting website:", e);
-      throw new Error("Failed to get website");
+      const error = e as Error;
+      console.error("Error getting website:", error);
+      if (error.message === "Website not found") {
+        throw new Error("Website not found");
+      } else if (error.message === "Unauthorized access") {
+        throw new Error("Unauthorized access");
+      } else {
+        throw new Error("Failed to get website");
+      }
     }
   },
   async updateWebsiteData(
@@ -153,7 +159,35 @@ const websiteDB = {
       throw new Error("Failed to update element library");
     }
   },
+  async getElementLibrary(
+    userId: string,
+    websiteId: string
+  ): Promise<ElementLibrary> {
+    try {
+      const websiteRef = doc(firebase_db, WEBSITES_COLLECTION, websiteId);
+      const websiteDoc = await getDoc(websiteRef);
 
+      if (!websiteDoc.exists()) {
+        throw new Error("Website not found");
+      }
+
+      const websiteData = websiteDoc.data();
+      if (websiteData.userId !== userId) {
+        throw new Error("Unauthorized access");
+      }
+
+      return (
+        websiteData.elementLibrary || {
+          byId: {},
+          allIds: [],
+          selectedId: null,
+        }
+      );
+    } catch (e) {
+      console.error("Error getting element library:", e);
+      throw e;
+    }
+  },
   async deleteWebsite(userId: string, websiteId: string): Promise<void> {
     try {
       const websiteRef = doc(firebase_db, WEBSITES_COLLECTION, websiteId);

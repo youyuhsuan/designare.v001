@@ -11,7 +11,7 @@ interface ColorPickerProps {
   onChange: (color: string, opacity: number) => void;
 }
 
-export const ColorPicker: React.FC<ColorPickerProps> = ({
+const ColorPicker: React.FC<ColorPickerProps> = ({
   color,
   opacity,
   defaultColor,
@@ -40,11 +40,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   };
 
   return (
-    <div>
+    <>
       <RgbaColorPicker color={currentColor} onChange={handleChange} />
-      <div>
-        <label>Opacity: {Math.round(currentColor.a * 100)}%</label>
-      </div>
-    </div>
+    </>
   );
 };
+
+export default ColorPicker;

@@ -7,7 +7,7 @@ type PropertyType =
   | "color"
   | "custom"
   | "slider"
-  | "object"
+  | "mediaUpload"
   | "button"
   | "buttonGroup"
   | "boxModel"
@@ -15,7 +15,7 @@ type PropertyType =
 
 interface BaseOption {
   label: string;
-  value: string;
+  value: any;
 }
 
 export interface FontTypeOption extends BaseOption {
@@ -60,6 +60,9 @@ export interface PropertyConfig {
   min?: number;
   max?: number;
 
+  accept?: string;
+  maxSize?: number;
+
   properties?: Record<string, PropertyConfig>; //  object 嵌套屬性
   compositeFields?: Record<string, Omit<PropertyConfig, "compositeFields">>;
   multiple?: boolean; //  buttonGroup 類型
@@ -99,5 +102,7 @@ export type ElementConfigs = {
 export interface ButtonGroupProps {
   options: ButtonOption[];
   value: string;
+  isAlignment: boolean;
   onChange: (value: string) => void;
+  groupKey: string;
 }

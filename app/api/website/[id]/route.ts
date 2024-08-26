@@ -18,33 +18,40 @@ export async function GET(
 ) {
   const encryptedTokenData = cookies().get("token")?.value;
   if (!encryptedTokenData) {
-    return NextResponse.json({ error: "No token found" }, { status: 400 });
+    console.log("No token found in cookies");
+    return NextResponse.json({ error: "No token found" }, { status: 401 });
   }
+
   try {
     const dataToDecrypt = JSON.parse(encryptedTokenData);
     const decryptedData: UserTokenData = await evervault.decrypt(dataToDecrypt);
+    const userId = decryptedData.token.id;
+    const websiteId = params.id;
 
-    const website = await websiteDB.getWebsite(
-      decryptedData.token.id,
-      params.id
-    );
-    if (website) {
-      console.log("Website metadata:", website.metadata);
-      console.log("Element library:", website.elementLibrary);
-    } else {
-      console.log("Website not found or user not authorized");
-    }
+    console.log(`Attempting to fetch website ${websiteId} for user ${userId}`);
+
+    const website = await websiteDB.getWebsite(userId, websiteId);
+
     if (!website) {
+      console.log(`Website ${websiteId} not found`);
       return NextResponse.json({ error: "Website not found" }, { status: 404 });
     }
 
-    if (!website.metadata || website.metadata.id !== decryptedData.token.id) {
+    console.log("Website metadata:", website.metadata);
+    console.log("Element library:", website.elementLibrary);
+
+    // 檢查網站所有者
+    if (!website.metadata || website.metadata.userId !== userId) {
+      console.log(
+        `User ${userId} is not authorized to access website ${websiteId}`
+      );
       return NextResponse.json(
         { error: "Unauthorized to access this website" },
         { status: 403 }
       );
     }
 
+    console.log(`Successfully fetched website ${websiteId} for user ${userId}`);
     return NextResponse.json(website, { status: 200 });
   } catch (error) {
     console.error("Error fetching website:", error);

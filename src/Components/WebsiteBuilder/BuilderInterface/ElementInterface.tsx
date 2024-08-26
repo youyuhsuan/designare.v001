@@ -15,6 +15,15 @@ export interface BaseElementData {
 
 export type LocalElementType = LayoutElementData | FreeDraggableElementData;
 
+export type ElementInstance = LocalElementType;
+
+export interface ElementLibrary {
+  byId: Record<string, LocalElementType>;
+  allIds: string[];
+  selectedId: string | null;
+  configs?: any;
+}
+
 export interface LayoutElementData extends BaseElementData {
   children?: UniqueIdentifier[];
   config: any;

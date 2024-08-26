@@ -29,6 +29,8 @@ export const colors = {
     shadow: "rgba(0, 0, 0, 0.1)",
     canvas: "rgb(248, 248, 248)",
     canvasBackground: "rgb(245, 245, 245)",
+    light: "rgb(248, 248, 248)",
+    dark: "rgb(248, 248, 248)",
   },
   dark: {
     background: "rgb(38, 37, 36)",
@@ -60,6 +62,8 @@ export const colors = {
     shadow: "rgba(0, 0, 0, 0.7)",
     canvas: "rgb(248, 248, 248)",
     canvasBackground: "rgb(245, 245, 245)",
+    light: "rgb(248, 248, 248)",
+    dark: "rgb(248, 248, 248)",
   },
 };
 

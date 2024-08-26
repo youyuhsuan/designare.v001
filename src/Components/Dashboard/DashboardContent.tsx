@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+
+// type
+import { AllWebsite } from "@/src/type/website";
+
+// Components
 import Dashboard, { ActionCard } from "@/src/Components/Dashboard/Dashboard";
-import { Timestamp } from "firebase/firestore";
-import { AllWebsite, SerializedTimestamp } from "@/src/type/website";
-import { formatTimestamp } from "@/src/utilities/convertTimestamp";
-import Link from "next/dist/client/link";
+import RecentItems from "@/src/Components/Dashboard/RecentItems";
 
 const DashboardContent: React.FC = () => {
   const actionCards: ActionCard[] = [
@@ -29,6 +31,7 @@ const DashboardContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 定義取得資料的函數
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -48,43 +51,68 @@ const DashboardContent: React.FC = () => {
     }
   }, []);
 
+  // 使用 effect 來在組件掛載時取得資料
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-  // fetchData 變化，需要重新執行
 
+  // 根據搜尋關鍵字過濾網站資料
   const filteredWebsites = websites.filter((website) =>
     website.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // 處理搜尋輸入變更
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
+  // 切換顯示模式
   const handleViewToggle = (view: "grid" | "list") => {
     setViewMode(view);
   };
 
-  const RecentItems: React.FC = () => (
-    <>
-      {isLoading && <p>Loading...</p>}
-      {error && <p>Error: {error}</p>}
-      {filteredWebsites.map((website) => (
-        <Link href={`/website/${website.id}`} key={website.id}>
-          <div key={website.id}>
-            {website.name} - 最後編輯: {formatTimestamp(website.lastModified)}
-          </div>
-        </Link>
-      ))}
-    </>
-  );
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/website/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // 删除成功后，更新本地状态
+      setWebsites((prevWebsites) =>
+        prevWebsites.filter((website) => website.id !== id)
+      );
+    } catch (err) {
+      console.error("Error deleting website:", err);
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
+    }
+  };
+
+  const handleUpdateWebsite = (updatedWebsite: AllWebsite) => {
+    setWebsites((prevWebsites) =>
+      prevWebsites.map((website) =>
+        website.id === updatedWebsite.id ? updatedWebsite : website
+      )
+    );
+  };
 
   return (
     <Dashboard
       actionCards={actionCards}
       onSearch={handleSearch}
       onViewToggle={handleViewToggle}
-      recentFiles={<RecentItems />}
+      recentFiles={
+        <RecentItems
+          websites={filteredWebsites}
+          isLoading={isLoading}
+          error={error}
+          onDelete={handleDelete}
+          onUpdateWebsite={handleUpdateWebsite}
+        />
+      }
       searchTerm={searchTerm}
       viewMode={viewMode}
     />

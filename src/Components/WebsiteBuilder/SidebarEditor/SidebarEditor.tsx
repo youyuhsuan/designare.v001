@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import styled from "styled-components";
 import {
   ButtonOption,
   CustomInputProps,
@@ -10,24 +16,42 @@ import {
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
 
 import { elementConfigs } from "./elementConfigs";
-import ButtonGroup from "./ButtonGroup";
 import { getNestedValue } from "./getNestedValue";
-import { ColorPicker } from "./ColorPicker";
-import styled from "styled-components";
+
+// UI
+import ButtonGroup from "./ButtonGroup";
 import BoxModelEditor from "./BoxModelEditor";
+import ColorPicker from "./ColorPicker";
+import CustomSelect from "./CustomSelect";
+import MediaUploader from "./MediaUploader";
+
+// Redux
+import { useAppDispatch } from "@/src/libs/hook";
+import { updateElementInstance } from "@/src/libs/features/websiteBuilder/elementLibrarySlice";
+
+// Usecontext
+import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 
 const EditorContainer = styled.div`
   z-index: 10;
   width: 15rem; //  240px
-  box-shadow: rgba(0, 0, 0, 0.1) -4px 9px 25px -6px;
+  box-shadow: ${(props) => props.theme.colors.shadow} -4px 9px 25px -6px;
   background-color: ${(props) => props.theme.colors.background};
   border-left: 1px solid ${(props) => props.theme.colors.border};
   overflow-y: auto;
-  padding: 16px;
+  padding: 1rem;
+`;
+
+const CompositeContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 1rem;
 `;
 
 const EditorWrapper = styled.div`
   margin-bottom: 1rem;
+  flex: 1;
 `;
 
 const Label = styled.label`
@@ -36,14 +60,20 @@ const Label = styled.label`
   color: ${(props) => props.theme.colors.border};
 `;
 
+const InputWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+`;
+
 const Input = styled.input`
   width: 100%;
   padding: 0.5rem;
   border: 1px solid ${(props) => props.theme.colors.border};
   border-radius: 0.375rem;
   background-color: ${(props) => props.theme.colors.background};
-  background-color: ${(props) => props.theme.colors.text};
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px ${(props) => props.theme.colors.shadow};
   &:focus {
     border-color: ${(props) => props.theme.colors.accent};
     outline: none;
@@ -51,51 +81,14 @@ const Input = styled.input`
   }
 `;
 
-const Span = styled.span`
-  margin-left: 0.5rem;
+const SubConfig = styled.span`
   color: ${(props) => props.theme.colors.border};
 `;
 
-const RangeInput = styled.input`
-  width: 100%;
-  -webkit-appearance: none;
-  background: ${(props) => props.theme.colors.background};
-  height: 0.25rem;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 50%;
-    background: ${(props) => props.theme.colors.accent};
-    cursor: pointer;
-  }
-  &::-moz-range-thumb {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 50%;
-    background: ${(props) => props.theme.colors.accent};
-    cursor: pointer;
-  }
-`;
-
-const CompositeContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const CompositeField = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const ObjectContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
 const SidebarEditor: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const deferredUpdatesRef = useRef<{ key: string; value: any }[]>([]);
+
   // 從 useElementContext 中取得選中的元素以及更新選中元素的函數
   const { selectedElement, updateSelectedElement } = useElementContext();
   // 使用 localElement 儲存選中的元素狀態
@@ -178,10 +171,25 @@ const SidebarEditor: React.FC = () => {
         updateSelectedElement(prev.id, `config.${propertyPath}`, value);
 
         console.log("updatedElement :", updatedElement);
+
+        dispatch(
+          updateElementInstance({
+            id: prev.id,
+            updates: { config: { [propertyPath]: value } },
+          })
+        );
+
         return updatedElement;
       });
     },
-    [updateSelectedElement]
+    [dispatch, updateSelectedElement]
+  );
+
+  const handleButtonGroupChange = useCallback(
+    (key: string, newValue: any) => {
+      handleChange(`${key}`, newValue);
+    },
+    [handleChange]
   );
 
   const renderField = useCallback(
@@ -209,31 +217,58 @@ const SidebarEditor: React.FC = () => {
               <Label htmlFor={`${selectedElement.id}-${key}`}>
                 {fieldConfig.label}
               </Label>
-              <Input
-                id={`${selectedElement.id}-${key}`}
-                type={fieldConfig.type}
-                value={value ?? ""}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  if (fieldConfig.type === "number") {
-                    const transformedValue =
-                      newValue === ""
-                        ? ""
-                        : fieldConfig.transform
-                        ? fieldConfig.transform(newValue)
-                        : Number(newValue);
-                    handleChange(key, transformedValue);
-                  } else {
+              <InputWrapper>
+                <Input
+                  id={`${selectedElement.id}-${key}`}
+                  type={fieldConfig.type}
+                  value={value ?? ""}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    if (fieldConfig.type === "number") {
+                      const transformedValue =
+                        newValue === ""
+                          ? ""
+                          : fieldConfig.transform
+                          ? fieldConfig.transform(newValue)
+                          : Number(newValue);
+                      handleChange(key, transformedValue);
+                    } else {
+                      handleChange(
+                        key,
+                        fieldConfig.transform
+                          ? fieldConfig.transform(newValue)
+                          : newValue
+                      );
+                    }
+                  }}
+                />
+                {fieldConfig.unit && <SubConfig>{fieldConfig.unit}</SubConfig>}
+              </InputWrapper>
+            </EditorWrapper>
+          );
+        case "select":
+          return (
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
+                {fieldConfig.label}
+              </Label>
+              <InputWrapper>
+                <CustomSelect
+                  id={`${selectedElement.id}-${key}`}
+                  options={fieldConfig.options as string[]}
+                  value={value ?? fieldConfig.defaultValue}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    const newValue = e.target.value;
                     handleChange(
                       key,
                       fieldConfig.transform
                         ? fieldConfig.transform(newValue)
                         : newValue
                     );
-                  }
-                }}
-              />
-              {fieldConfig.unit && <span>{fieldConfig.unit}</span>}
+                  }}
+                />
+                {fieldConfig.unit && <SubConfig>{fieldConfig.unit}</SubConfig>}
+              </InputWrapper>
             </EditorWrapper>
           );
         case "checkbox":
@@ -334,7 +369,6 @@ const SidebarEditor: React.FC = () => {
               />
             </EditorWrapper>
           );
-
         case "composite":
           if (!fieldConfig.compositeFields) {
             return <p key={key}>No composite fields available</p>;
@@ -342,123 +376,105 @@ const SidebarEditor: React.FC = () => {
           return (
             <EditorWrapper key={key}>
               <Label>{fieldConfig.label}</Label>
-              {Object.entries(fieldConfig.compositeFields).map(
-                ([subKey, subConfig]) => {
-                  const fullPath = `${key}.${subKey}`;
-                  let subValue = getNestedValue(currentValues.config, fullPath);
+              <CompositeContainer>
+                {Object.entries(fieldConfig.compositeFields).map(
+                  ([subKey, subConfig]) => {
+                    const fullPath = `${key}.${subKey}`;
+                    let subValue = getNestedValue(
+                      currentValues.config,
+                      fullPath
+                    );
 
-                  // 如果 subValue 是 undefined，使用默認值
-                  if (subValue === undefined) {
-                    subValue =
-                      fieldConfig.defaultValue &&
-                      typeof fieldConfig.defaultValue === "object"
-                        ? fieldConfig.defaultValue[subKey]
-                        : subConfig.defaultValue;
+                    // 如果 subValue 是 undefined，使用默認值
+                    if (subValue === undefined) {
+                      subValue =
+                        fieldConfig.defaultValue &&
+                        typeof fieldConfig.defaultValue === "object"
+                          ? fieldConfig.defaultValue[subKey]
+                          : subConfig.defaultValue;
+                    }
+
+                    console.log(
+                      `Composite subfield: ${fullPath}, value:`,
+                      subValue
+                    );
+
+                    return (
+                      <EditorWrapper key={fullPath}>
+                        <Label htmlFor={`${selectedElement.id}-${fullPath}`}>
+                          {subConfig.label}
+                        </Label>
+                        <InputWrapper>
+                          <Input
+                            id={`${selectedElement.id}-${fullPath}`}
+                            type={subConfig.type}
+                            value={subValue ?? ""}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              let transformedValue: number | string = newValue;
+
+                              if (subConfig.type === "number") {
+                                transformedValue =
+                                  newValue === "" ? 0 : Number(newValue);
+                              }
+
+                              if (
+                                subConfig.transform &&
+                                transformedValue !== null
+                              ) {
+                                transformedValue =
+                                  subConfig.transform(transformedValue);
+                              }
+
+                              console.log(
+                                `Updating ${fullPath} to:`,
+                                transformedValue
+                              );
+                              handleChange(fullPath, transformedValue);
+                            }}
+                          />
+                          {subConfig.unit && (
+                            <SubConfig>{subConfig.unit}</SubConfig>
+                          )}
+                        </InputWrapper>
+                      </EditorWrapper>
+                    );
                   }
-
-                  console.log(
-                    `Composite subfield: ${fullPath}, value:`,
-                    subValue
-                  );
-
-                  return (
-                    <EditorWrapper key={fullPath}>
-                      <Label htmlFor={`${selectedElement.id}-${fullPath}`}>
-                        {subConfig.label}
-                      </Label>
-                      <Input
-                        id={`${selectedElement.id}-${fullPath}`}
-                        type={subConfig.type}
-                        value={subValue ?? ""}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          let transformedValue: number | string = newValue;
-
-                          if (subConfig.type === "number") {
-                            transformedValue =
-                              newValue === "" ? 0 : Number(newValue);
-                          }
-
-                          if (
-                            subConfig.transform &&
-                            transformedValue !== null
-                          ) {
-                            transformedValue =
-                              subConfig.transform(transformedValue);
-                          }
-
-                          console.log(
-                            `Updating ${fullPath} to:`,
-                            transformedValue
-                          );
-                          handleChange(fullPath, transformedValue);
-                        }}
-                      />
-                      {subConfig.unit && <span>{subConfig.unit}</span>}
-                    </EditorWrapper>
-                  );
-                }
-              )}
+                )}
+              </CompositeContainer>
             </EditorWrapper>
           );
-        case "object":
-          if (!fieldConfig.properties) {
-            return <p key={key}>No object properties available</p>;
-          }
+        case "mediaUpload":
           return (
             <EditorWrapper key={key}>
               <Label>{fieldConfig.label}</Label>
-              {Object.entries(fieldConfig.properties).map(
-                ([subKey, subConfig]) =>
-                  renderField(
-                    `${key}.${subKey}`,
-                    subConfig as PropertyConfigWithComposite
-                  )
-              )}
+              <MediaUploader
+                value={value}
+                onChange={(newValue) => handleChange(`${key}`, newValue)}
+                accept={fieldConfig.accept as string}
+                maxSize={fieldConfig.maxSize as number}
+              />
             </EditorWrapper>
           );
         case "buttonGroup":
           if (!fieldConfig.options || !Array.isArray(fieldConfig.options)) {
             return <p key={key}>No valid options available for button group</p>;
           }
-          const buttonOptions: ButtonOption[] = fieldConfig.options.map(
-            (option) =>
-              typeof option === "string"
-                ? { label: option, value: option }
-                : option
-          );
           return (
-            <div key={key}>
-              <label>{fieldConfig.label}</label>
-              <ButtonGroup
-                options={buttonOptions}
-                value={value}
-                onChange={(newValue) => handleChange(`config.${key}`, newValue)}
-              />
-            </div>
+            <ButtonGroup
+              key={key}
+              options={fieldConfig.options}
+              value={value}
+              onChange={(newValue) => handleButtonGroupChange(key, newValue)}
+              groupKey={key}
+              label={fieldConfig.label as string}
+            />
           );
-        case "custom":
-          if (fieldConfig.renderCustomInput) {
-            return (
-              <div key={key}>
-                <label htmlFor={`${selectedElement.id}-${key}`}>
-                  {fieldConfig.label}
-                </label>
-                {fieldConfig.renderCustomInput({
-                  id: `${selectedElement.id}-${key}`,
-                  value,
-                  onChange: (newValue) =>
-                    handleChange(`config.${key}`, newValue),
-                } as CustomInputProps)}
-              </div>
-            );
-          }
-          return null;
         default:
           return null;
       }
     },
-    [handleChange, currentValues, selectedElement]
+    [selectedElement, currentValues, handleChange, handleButtonGroupChange]
   );
 
   const renderedContent = useMemo(() => {

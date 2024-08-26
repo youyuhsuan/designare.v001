@@ -13,6 +13,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "warning"
     | "info";
   $size?: "small" | "medium" | "large";
+  $isSelected?: boolean;
 }
 
 const buttonStyles = css<ButtonProps>`

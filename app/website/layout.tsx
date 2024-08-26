@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 import WebsiteBuilderNavbar from "@/src/Components/WebsiteBuilder/WebsiteBuilderNavbar";
 import { ElementProvider } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
@@ -8,8 +8,12 @@ import { Toolbar } from "@/src/Components/WebsiteBuilder/Toolbar/Toolbar";
 import SidebarEditor from "@/src/Components/WebsiteBuilder/SidebarEditor/SidebarEditor";
 import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
 import { undo, redo } from "@/src/libs/features/websiteBuilder/historySlice";
-import { createNewWebsite } from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
+import {
+  createNewWebsite,
+  fetchWebsiteMetadata,
+} from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
 import { selectWebsiteMetadata } from "@/src/libs/features/websiteBuilder/websiteMetadataSelector";
+import { useParams } from "next/navigation";
 
 const BuilderContainer = styled.div`
   display: flex;
@@ -56,6 +60,8 @@ export default function WebsiteBuilderLayout({
 }) {
   const websiteMetadata = useAppSelector(selectWebsiteMetadata);
   const dispatch = useAppDispatch();
+  const params = useParams(); // 路由參數
+  const id = params.id as string;
 
   // const handlePreview = useCallback(() => {
   //   dispatch(preview());
@@ -78,7 +84,7 @@ export default function WebsiteBuilderLayout({
   }, [dispatch, websiteMetadata]);
 
   return (
-    <ElementProvider>
+    <ElementProvider websiteId={id}>
       <BuilderContainer>
         <WebsiteBuilderNavbar
           onUndo={handleUndo}

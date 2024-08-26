@@ -14,7 +14,7 @@ export const selectElementAllInstances = createSelector(
   (elementsSlice) => elementsSlice.allIds
 );
 
-export const selectElementLibraryData = createSelector(
+export const selectElementLibrary = createSelector(
   selectElementLibraryState,
   (elementsSlice) => ({
     byId: elementsSlice.byId,
@@ -22,4 +22,15 @@ export const selectElementLibraryData = createSelector(
     selectedId: elementsSlice.selectedId,
     configs: elementsSlice.configs,
   })
+);
+
+export const selectElementsArray = createSelector(
+  selectElementInstances,
+  selectElementAllInstances,
+  (byId, allIds) => allIds.map((id) => byId[id])
+);
+
+export const selectSelectedElementId = createSelector(
+  selectElementLibraryState,
+  (elementsSlice) => elementsSlice.selectedId
 );

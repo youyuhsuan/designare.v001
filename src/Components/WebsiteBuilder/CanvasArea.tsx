@@ -16,10 +16,14 @@ import {
 import { useSelector } from "react-redux";
 import { useElementContext, useElementsDebug } from "./Slider/ElementContext";
 import { SiteContainer } from "@/src/Components/WebsiteBuilder/SiteContainer";
-import { LocalElementType } from "@/src/Components/WebsiteBuilder/BuilderInterface";
+import {
+  FreeDraggableElementData,
+  LayoutElementData,
+  LocalElementType,
+} from "@/src/Components/WebsiteBuilder/BuilderInterface";
 import LayoutElement from "./BuilderElement/LayoutElement";
 import FreeDraggableElement from "./BuilderElement/FreeDraggableElement";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import styled from "styled-components";
@@ -30,6 +34,13 @@ import {
 import { customModifier } from "@/src/utilities/customModifier";
 import { useAppDispatch } from "@/src/libs/hook";
 import { setLayoutSettings } from "@/src/libs/features/websiteBuilder/globalSettingsSlice";
+import {
+  selectElementsArray,
+  selectSelectedElementId,
+} from "@/src/libs/features/websiteBuilder/elementLibrarySelector";
+import { fetchElementLibrary } from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
+import isEqual from "lodash/isEqual";
+import { updateElementInstance } from "@/src/libs/features/websiteBuilder/elementLibrarySlice";
 
 export const CanvasAreaContainer = styled.div`
   width: 100%;
@@ -46,6 +57,56 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
   const dispatch = useAppDispatch();
   const currentDevice = useSelector(selectCurrentDevice);
   const currentLayoutSettings = useSelector(selectCurrentLayoutSettings);
+  const customCompare = (prev: any[], next: any[]) => {
+    const isEqualResult = isEqual(prev, next);
+    console.log("Custom compare result:", isEqualResult);
+    console.log("Prev:", prev);
+    console.log("Next:", next);
+    return isEqualResult;
+  };
+
+  const elementArray = useSelector(selectElementsArray, customCompare);
+
+  useEffect(() => {
+    console.log("Element array changed:", elementArray);
+  }, [elementArray]);
+
+  useEffect(() => {
+    dispatch(fetchElementLibrary(id));
+  }, [dispatch, id]);
+
+  // 获取元素库
+  useEffect(() => {
+    dispatch(fetchElementLibrary(id));
+  }, [dispatch, id]);
+
+  // 记录元素数组更新
+  useEffect(() => {
+    console.log("Element array updated:", elementArray);
+  }, [elementArray]);
+
+  // 使用 useMemo 来计算 layoutElements 和 freeDraggableElements
+  const { layoutElements, freeDraggableElements } = useMemo(() => {
+    return elementArray.reduce<{
+      layoutElements: LayoutElementData[];
+      freeDraggableElements: FreeDraggableElementData[];
+    }>(
+      (acc, element) => {
+        if (element.isLayout) {
+          acc.layoutElements.push(element as LayoutElementData);
+        } else {
+          acc.freeDraggableElements.push(element as FreeDraggableElementData);
+        }
+        return acc;
+      },
+      { layoutElements: [], freeDraggableElements: [] }
+    );
+  }, [elementArray]);
+
+  useEffect(() => {
+    console.log("Layout elements:", layoutElements);
+    console.log("Free draggable elements:", freeDraggableElements);
+  }, [layoutElements, freeDraggableElements]);
 
   const {
     elements,
@@ -92,11 +153,6 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
       );
     }
   }, [currentDevice, currentLayoutSettings, dispatch]);
-
-  // 添加日誌來檢查 elements 的內容
-  // useEffect(() => {
-  //   console.log("Current elements:", elements);
-  // }, [elements]);
 
   // 管理當前拖拽元素的 ID 和選中的元素 ID
   const [activeId, setActiveId] = useState<string | number | null>(null);
@@ -167,6 +223,17 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
         updateElementPosition(active.id, {
           position: newPosition,
         });
+
+        if (typeof active.id === "string") {
+          dispatch(
+            updateElementInstance({
+              id: active.id,
+              updates: { config: { position: newPosition } },
+            })
+          );
+        } else {
+          console.error("Expected string id, but got:", active.id);
+        }
       } else {
         console.warn("自由元素的 delta 未定義", active.id);
       }
@@ -182,10 +249,6 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
     console.log("handleElementUpdate 被調用", id, updates);
     updateElement(id, updates);
   };
-
-  // 過濾出布局元素和自由拖放元素
-  const layoutElements = elements.filter((el) => el.isLayout);
-  const freeDraggableElements = elements.filter((el) => !el.isLayout);
 
   return (
     <DndContext
@@ -208,9 +271,7 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
               <LayoutElement
                 key={element.id}
                 {...element}
-                onUpdate={(updates: any) =>
-                  handleElementUpdate(element.id, updates)
-                }
+                onUpdate={(updates) => handleElementUpdate(element.id, updates)}
                 onDelete={() => deleteElement(element.id)}
                 isSelected={element.id === selectedId}
                 onMouseUp={() => handleElementMouseUp(element.id)}

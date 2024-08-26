@@ -25,23 +25,6 @@ export interface EditorSettings {
   snapToGrid: boolean;
 }
 
-// Elements
-export interface ElementLibrary {
-  byId: Record<string, LocalElementType>;
-  allIds: string[];
-  selectedId: string | null;
-  configs?: any;
-  instances: Record<string, ElementInstance>;
-}
-
-export interface ElementInstance {
-  id: string;
-  type: string;
-  content: string;
-  isLayout: boolean;
-  config: any;
-}
-
 // Toolbar 創造 Instance
 export interface CreateElementPayload {
   type: string;

@@ -36,6 +36,7 @@ export interface WebsiteMetadata {
     customDomain?: string;
   };
 }
+
 export interface WebsiteState {
   metadata: WebsiteMetadata | null;
   elementLibrary: ElementLibrary | null;
