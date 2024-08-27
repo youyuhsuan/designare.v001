@@ -5,9 +5,7 @@ export default function Page() {
   return (
     <>
       <CreateWebsiteNavbar />
-      <main>
-        <SitePreviewer></SitePreviewer>
-      </main>
+      <SitePreviewer />
     </>
   );
 }

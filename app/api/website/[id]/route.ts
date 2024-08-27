@@ -132,36 +132,48 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // 獲取加密的 token
   const encryptedTokenData = cookies().get("token")?.value;
   if (!encryptedTokenData) {
+    console.log("No token found in cookies");
     return NextResponse.json({ error: "No token found" }, { status: 400 });
   }
+
   try {
+    // 解密 token
     const dataToDecrypt = JSON.parse(encryptedTokenData);
     const decryptedData: UserTokenData = await evervault.decrypt(dataToDecrypt);
+
+    console.log("Decrypted token data:", decryptedData);
 
     // 獲取現有網站數據
     const existingWebsite = await websiteDB.getWebsite(
       decryptedData.token.id,
       params.id
     );
+
     if (!existingWebsite) {
+      console.log(`Website with ID ${params.id} not found`);
       return NextResponse.json({ error: "Website not found" }, { status: 404 });
     }
+
+    console.log("Existing website data:", existingWebsite);
 
     // 檢查用戶是否有權限刪除該網站
     if (
       !existingWebsite.metadata ||
-      existingWebsite.metadata.id !== decryptedData.token.id
+      existingWebsite.metadata.userId !== decryptedData.user.id
     ) {
+      console.log("Unauthorized attempt to delete website");
       return NextResponse.json(
         { error: "Unauthorized to delete this website" },
         { status: 403 }
       );
     }
-
     // 刪除網站
     await websiteDB.deleteWebsite(decryptedData.token.id, params.id);
+
+    console.log(`Website with ID ${params.id} deleted successfully`);
 
     return NextResponse.json(
       { message: "Website deleted successfully" },

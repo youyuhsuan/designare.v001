@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "../Button";
 
 const WebsiteListButton = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,9 +40,9 @@ const WebsiteListButton = () => {
   };
 
   return (
-    <button onClick={handleClick} disabled={isLoading}>
-      {isLoading ? "Loading..." : "Create/Edit Website"}
-    </button>
+    <Button $variant="outlined" onClick={handleClick} disabled={isLoading}>
+      {isLoading ? "Loading..." : "建立新網站"}
+    </Button>
   );
 };
 

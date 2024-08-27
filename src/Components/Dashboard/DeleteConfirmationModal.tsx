@@ -48,7 +48,7 @@ const Input = styled.input`
   width: 100%;
   padding: 10px;
   margin-bottom: 20px;
-  background-color: ${(props) => props.theme.colors.inputBackground};
+  background-color: ${(props) => props.theme.colors.background};
   border: 1px solid ${(props) => props.theme.colors.border};
   color: ${(props) => props.theme.colors.text};
   border-radius: 4px;
@@ -75,6 +75,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState("");
   const dialogRef = useRef<ElementRef<"dialog">>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const dialogElement = dialogRef.current;
@@ -85,12 +86,18 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
     }
   }, [isOpen]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (inputValue === websiteName) {
-      onConfirm();
+      setIsLoading(true);
+      try {
+        await onConfirm();
+      } catch (error) {
+        console.error("刪除失敗:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
-
   const handleClose = () => {
     setInputValue("");
     onCancel();
@@ -126,8 +133,11 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
       />
       <ButtonGroup>
         <Button onClick={handleClose}>取消</Button>
-        <Button onClick={handleConfirm} disabled={inputValue !== websiteName}>
-          確認刪除
+        <Button
+          onClick={handleConfirm}
+          disabled={inputValue !== websiteName || isLoading}
+        >
+          {isLoading ? "刪除中..." : "確認刪除"}
         </Button>
       </ButtonGroup>
     </StyledDialog>

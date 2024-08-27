@@ -4,6 +4,7 @@ import React from "react";
 import styled from "styled-components";
 import DeviceSelector from "../DeviceSelector";
 import WebsiteListButton from "./WebsiteListButton";
+import Link from "next/link";
 
 const NavbarWrapper = styled.nav`
   display: flex;
@@ -20,7 +21,7 @@ const NavbarSection = styled.div`
   gap: 1rem;
 `;
 
-const NavbarBrand = styled.div`
+const NavbarBrand = styled(Link)`
   font-size: 1.2rem;
   font-weight: bold;
   color: ${(props) => props.theme.colors.primary};
@@ -30,7 +31,7 @@ const WebsiteBuilderNavbar = () => {
   return (
     <NavbarWrapper>
       <NavbarSection>
-        <NavbarBrand>Designera</NavbarBrand>
+        <NavbarBrand href="/">Designera</NavbarBrand>
         <DeviceSelector />
       </NavbarSection>
       <NavbarSection>

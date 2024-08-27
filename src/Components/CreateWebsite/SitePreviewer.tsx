@@ -1,28 +1,63 @@
 "use client";
 
+import React from "react";
 import styled from "styled-components";
 import graySquares from "@/src/image/graySquares.svg";
 
-const Background = styled.div`
-  &::after {
-    content: "";
-    background-image: url(${graySquares});
-    background-size: 20px 20px;
-    opacity: 0.125;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-    pointer-events: none;
-  }
+const MainContent = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: calc(100vh - 60px);
+  overflow: hidden;
 `;
 
-const SitePreviewer: React.FC = () => (
-  <>
-    <Background>{/* 其他内容 */}</Background>
-  </>
-);
+const Background = styled.div<{ backgroundImage: string }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background-image: url(${(props) => props.backgroundImage});
+  background-size: 20px 20px;
+  opacity: 0.125;
+`;
+
+const PreviewContainer = styled.div`
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  height: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+`;
+
+const PreviewHeader = styled.h1`
+  font-size: 24px;
+  margin-bottom: 20px;
+`;
+
+const SitePreviewer: React.FC = () => {
+  // 确保 graySquares 是一个字符串 URL
+  const backgroundImageUrl =
+    typeof graySquares === "object" && "src" in graySquares
+      ? graySquares.src
+      : (graySquares as string);
+
+  return (
+    <MainContent>
+      <Background backgroundImage={backgroundImageUrl} />
+      <PreviewContainer>
+        <PreviewHeader></PreviewHeader>
+      </PreviewContainer>
+    </MainContent>
+  );
+};
 
 export default SitePreviewer;

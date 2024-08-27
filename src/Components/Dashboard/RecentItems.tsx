@@ -107,6 +107,7 @@ interface RecentItemsProps {
   isLoading: boolean;
   error: string | null;
   onDelete: (id: string) => Promise<void>;
+  onUpdateWebsite: (updatedWebsite: AllWebsite) => Promise<void>;
 }
 
 const RecentItems: React.FC<RecentItemsProps> = ({
@@ -114,6 +115,7 @@ const RecentItems: React.FC<RecentItemsProps> = ({
   isLoading,
   error,
   onDelete,
+  onUpdateWebsite,
 }) => {
   const dispatch = useAppDispatch();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -149,18 +151,9 @@ const RecentItems: React.FC<RecentItemsProps> = ({
     if (!website) return;
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/website/${website.id}/metadata`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const updatedWebsite = await response.json();
-      dispatch(updateWebsiteName(editName));
+      const updatedWebsite = { ...website, name: editName };
+      await onUpdateWebsite(updatedWebsite);
       setEditingId(null);
-      onUpdateWebsite(updatedWebsite);
     } catch (error) {
       console.error("Failed to update website name:", error);
     } finally {
@@ -226,6 +219,9 @@ const RecentItems: React.FC<RecentItemsProps> = ({
             onChange={(e) => setEditName(e.target.value)}
           />
           <ButtonWrapper>
+            <Button $variant="outlined" onClick={() => setEditingId(null)}>
+              取消
+            </Button>
             <Button
               onClick={() => {
                 const websiteToUpdate = websites.find(
@@ -240,9 +236,6 @@ const RecentItems: React.FC<RecentItemsProps> = ({
               disabled={isSaving}
             >
               {isSaving ? "保存中..." : "保存"}
-            </Button>
-            <Button $variant="outlined" onClick={() => setEditingId(null)}>
-              取消
             </Button>
           </ButtonWrapper>
         </EditNameModal>

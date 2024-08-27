@@ -273,162 +273,136 @@ export const elementConfigs: ElementConfigs = {
           // },
         },
       },
-
-      // buttonElement: {
-      //   type: "buttonElement",
-      //   label: "按鈕元素",
-      //   properties: {
-      //     horizontalAlignment: {
-      //       label: "水平對齊",
-      //       type: "button",
-      //       options: {
-      //         left: { label: "靠左對齊", type: "button", transform: String },
-      //         center: {
-      //           label: "對齊至水平置中",
-      //           type: "button",
-      //           transform: String,
-      //         },
-      //         right: { label: "靠右對齊", type: "button", transform: String },
-      //       },
-      //       defaultValue: "left",
-      //     },
-      //     verticalAlignment: {
-      //       label: "垂直對齊",
-      //       type: "button",
-      //       options: {
-      //         top: { label: "置頂對齊", type: "button", transform: String },
-      //         middle: {
-      //           label: "對齊至垂直中",
-      //           type: "button",
-      //           transform: String,
-      //         },
-      //         bottom: { label: "下", type: "button", transform: String },
-      //       },
-      //       defaultValue: "top",
-      //     },
-      //     distribution: {
-      //       label: "分佈",
-      //       type: "button",
-      //       options: [
-      //         { value: "horizontal", label: "水平分佈" },
-      //         { value: "vertical", label: "垂直分佈" },
-      //       ],
-      //       defaultValue: "none",
-      //     },
-      //     size: {
-      //       label: "大小",
-      //       type: "custom",
-      //       defaultValue: { width: 100, height: 100, x: 0, y: 0 },
-      //       compositeFields: {
-      //         width: {
-      //           label: "寬度",
-      //           type: "number",
-      //           defaultValue: 100,
-      //           unit: "px",
-      //         },
-      //         height: {
-      //           label: "高度",
-      //           type: "number",
-      //           defaultValue: 100,
-      //           unit: "px",
-      //         },
-      //         x: { label: "X", type: "number", defaultValue: 0, unit: "px" },
-      //         y: { label: "Y", type: "number", defaultValue: 0, unit: "px" },
-      //       },
-      //     },
-      //     zIndex: {
-      //       label: "層級索引",
-      //       type: "number",
-      //       defaultValue: 0,
-      //     },
-      //     text: {
-      //       label: "按鈕文字",
-      //       type: "text",
-      //       defaultValue: "按鈕",
-      //     },
-      //     backgroundColor: {
-      //       label: "背景顏色",
-      //       type: "color",
-      //       defaultValue: "#ffffff",
-      //     },
-      //     textColor: {
-      //       label: "文字顏色",
-      //       type: "color",
-      //       defaultValue: "#000000",
-      //     },
-      //     border: {
-      //       label: "邊框",
-      //       type: "custom",
-      //       defaultValue: { width: 1, style: "solid", color: "#000000" },
-      //       compositeFields: {
-      //         width: {
-      //           label: "邊框寬度",
-      //           type: "number",
-      //           defaultValue: 1,
-      //           unit: "px",
-      //         },
-      //         style: {
-      //           label: "邊框樣式",
-      //           type: "button",
-      //           // options: { solid: "實線", dashed: "虛線", dotted: "點線" },
-      //           defaultValue: "solid",
-      //         },
-      //         color: {
-      //           label: "邊框顏色",
-      //           type: "color",
-      //           defaultValue: "#000000",
-      //         },
-      //       },
-      //     },
-      //     borderRadius: {
-      //       label: "邊框圓角",
-      //       type: "number",
-      //       defaultValue: 4,
-      //       unit: "px",
-      //     },
-      //     padding: {
-      //       label: "內邊距",
-      //       type: "custom",
-      //       defaultValue: { top: 10, right: 20, bottom: 10, left: 20 },
-      //       compositeFields: {
-      //         top: {
-      //           label: "上",
-      //           type: "number",
-      //           defaultValue: 10,
-      //           unit: "px",
-      //         },
-      //         right: {
-      //           label: "右",
-      //           type: "number",
-      //           defaultValue: 20,
-      //           unit: "px",
-      //         },
-      //         bottom: {
-      //           label: "下",
-      //           type: "number",
-      //           defaultValue: 10,
-      //           unit: "px",
-      //         },
-      //         left: {
-      //           label: "左",
-      //           type: "number",
-      //           defaultValue: 20,
-      //           unit: "px",
-      //         },
-      //       },
-      //     },
-      //     hoverBackgroundColor: {
-      //       label: "懸停背景顏色",
-      //       type: "color",
-      //       defaultValue: "#e0e0e0",
-      //     },
-      //     activeBackgroundColor: {
-      //       label: "按下背景顏色",
-      //       type: "color",
-      //       defaultValue: "#d0d0d0",
-      //     },
-      //   },
-      // },
+      buttonElement: {
+        type: "buttonElement",
+        label: "按鈕元素",
+        properties: {
+          size: {
+            label: "大小",
+            type: "composite",
+            compositeFields: {
+              width: {
+                label: "寬度",
+                type: "number",
+                unit: "px",
+              },
+              height: {
+                label: "高度",
+                type: "number",
+                unit: "px",
+              },
+            },
+            defaultValue: {
+              width: 142,
+              height: 42,
+            },
+          },
+          zIndex: {
+            label: "層級索引",
+            type: "number",
+            defaultValue: 0,
+          },
+          backgroundColor: {
+            label: "背景顏色",
+            type: "color",
+            defaultValue: {
+              filled: "#007bff",
+              outlined: "transparent",
+              text: "transparent",
+            },
+          },
+          textColor: {
+            label: "文字顏色",
+            type: "color",
+            defaultValue: {
+              filled: "#ffffff",
+              outlined: "#007bff",
+              text: "#007bff",
+            },
+          },
+          border: {
+            label: "邊框",
+            type: "custom",
+            defaultValue: {
+              filled: { width: 0, style: "none", color: "transparent" },
+              outlined: { width: 1, style: "solid", color: "#007bff" },
+              text: { width: 0, style: "none", color: "transparent" },
+            },
+            compositeFields: {
+              width: {
+                label: "邊框寬度",
+                type: "number",
+                unit: "px",
+              },
+              style: {
+                label: "邊框樣式",
+                type: "select", // 改为 select 类型
+                options: [
+                  { value: "solid", label: "實線" },
+                  { value: "dashed", label: "虛線" },
+                  { value: "dotted", label: "點線" },
+                  { value: "none", label: "無" },
+                ],
+              },
+              color: {
+                label: "邊框顏色",
+                type: "color",
+              },
+            },
+          },
+          borderRadius: {
+            label: "邊框圓角",
+            type: "number",
+            defaultValue: 4,
+            unit: "px",
+          },
+          padding: {
+            label: "內邊距",
+            type: "custom",
+            defaultValue: { top: 10, right: 20, bottom: 10, left: 20 },
+            compositeFields: {
+              top: {
+                label: "上",
+                type: "number",
+                unit: "px",
+              },
+              right: {
+                label: "右",
+                type: "number",
+                unit: "px",
+              },
+              bottom: {
+                label: "下",
+                type: "number",
+                unit: "px",
+              },
+              left: {
+                label: "左",
+                type: "number",
+                unit: "px",
+              },
+            },
+          },
+          hoverBackgroundColor: {
+            label: "懸停背景顏色",
+            type: "color",
+            defaultValue: {
+              filled: "#0056b3",
+              outlined: "#e6f2ff",
+              text: "#e6f2ff",
+            },
+          },
+          activeBackgroundColor: {
+            label: "按下背景顏色",
+            type: "color",
+            defaultValue: {
+              filled: "#004085",
+              outlined: "#cce5ff",
+              text: "#cce5ff",
+            },
+          },
+        },
+      },
 
       // image: {
       //   type: "image",

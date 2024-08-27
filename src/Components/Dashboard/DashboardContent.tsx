@@ -79,7 +79,6 @@ const DashboardContent: React.FC = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      // 删除成功后，更新本地状态
       setWebsites((prevWebsites) =>
         prevWebsites.filter((website) => website.id !== id)
       );
@@ -91,12 +90,26 @@ const DashboardContent: React.FC = () => {
     }
   };
 
-  const handleUpdateWebsite = (updatedWebsite: AllWebsite) => {
-    setWebsites((prevWebsites) =>
-      prevWebsites.map((website) =>
-        website.id === updatedWebsite.id ? updatedWebsite : website
-      )
-    );
+  const handleUpdateWebsite = async (updatedWebsite: AllWebsite) => {
+    try {
+      const response = await fetch(
+        `/api/website/${updatedWebsite.id}/metadata`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: updatedWebsite.name }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      await fetchData();
+    } catch (err) {
+      console.error("Error updating website:", err);
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
+    }
   };
 
   return (

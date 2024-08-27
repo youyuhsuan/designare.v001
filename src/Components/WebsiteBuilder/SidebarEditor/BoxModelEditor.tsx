@@ -84,13 +84,6 @@ const PaddingLabel = styled(Label)`
   left: 5px;
 `;
 
-const InputsContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-`;
-
 const PropertyInputs = styled.div`
   display: flex;
   flex-direction: column;
@@ -112,7 +105,7 @@ const InputWrapper = styled.div`
 
 const InputLabel = styled.label`
   min-width: 50px;
-  color: ${(props) => props.theme.colors.accent};
+  color: ${(props) => props.theme.colors.text};
 `;
 
 const Input = styled.input`
@@ -212,17 +205,15 @@ const BoxModelEditor: React.FC<BoxModelEditorProps> = ({ value, onChange }) => {
           </BorderBox>
         </MarginBox>
       </BoxModelVisualization>
-      <InputsContainer>
-        {(["margin", "padding"] as const).map((property) => (
-          <PropertyInputs key={property}>
-            <PropertyLabel>{property}</PropertyLabel>
-            {renderInput(property, 0, "top")}
-            {renderInput(property, 1, "right")}
-            {renderInput(property, 2, "bottom")}
-            {renderInput(property, 3, "left")}
-          </PropertyInputs>
-        ))}
-      </InputsContainer>
+      {(["margin", "padding"] as const).map((property) => (
+        <PropertyInputs key={property}>
+          <PropertyLabel>{property}</PropertyLabel>
+          {renderInput(property, 0, "top")}
+          {renderInput(property, 1, "right")}
+          {renderInput(property, 2, "bottom")}
+          {renderInput(property, 3, "left")}
+        </PropertyInputs>
+      ))}
     </EditorContainer>
   );
 };

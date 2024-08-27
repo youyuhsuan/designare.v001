@@ -34,19 +34,23 @@ import {
 import { customModifier } from "@/src/utilities/customModifier";
 import { useAppDispatch } from "@/src/libs/hook";
 import { setLayoutSettings } from "@/src/libs/features/websiteBuilder/globalSettingsSlice";
-import {
-  selectElementsArray,
-  selectSelectedElementId,
-} from "@/src/libs/features/websiteBuilder/elementLibrarySelector";
+import { selectElementsArray } from "@/src/libs/features/websiteBuilder/elementLibrarySelector";
 import { fetchElementLibrary } from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
 import isEqual from "lodash/isEqual";
 import { updateElementInstance } from "@/src/libs/features/websiteBuilder/elementLibrarySlice";
 
-export const CanvasAreaContainer = styled.div`
+// Styled-component 定義了畫布區域的容器樣式
+const CanvasAreaContainer = styled.div`
   width: 100%;
 `;
 
-export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
+interface CanvasAreaProps {
+  id?: string; // 用於標識畫布的 ID
+}
+
+// CanvasArea 組件
+export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
+  // 設置拖拽感應器
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -57,35 +61,30 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
   const dispatch = useAppDispatch();
   const currentDevice = useSelector(selectCurrentDevice);
   const currentLayoutSettings = useSelector(selectCurrentLayoutSettings);
+
+  // 自定義比較函數，用於比較元素數組的變化
   const customCompare = (prev: any[], next: any[]) => {
     const isEqualResult = isEqual(prev, next);
-    console.log("Custom compare result:", isEqualResult);
-    console.log("Prev:", prev);
-    console.log("Next:", next);
+    // console.log("Custom compare result:", isEqualResult);
+    // console.log("Prev:", prev);
+    // console.log("Next:", next);
     return isEqualResult;
   };
 
+  // 從 Redux 中選擇元素數組，並使用自定義比較函數
   const elementArray = useSelector(selectElementsArray, customCompare);
 
-  useEffect(() => {
-    console.log("Element array changed:", elementArray);
-  }, [elementArray]);
+  // 當元素數組變化時，打印變化的元素數組
+  // useEffect(() => {
+  //   console.log("Element array changed:", elementArray);
+  // }, [elementArray]);
 
+  // 載入元素庫
   useEffect(() => {
-    dispatch(fetchElementLibrary(id));
+    dispatch(fetchElementLibrary(id as string));
   }, [dispatch, id]);
 
-  // 获取元素库
-  useEffect(() => {
-    dispatch(fetchElementLibrary(id));
-  }, [dispatch, id]);
-
-  // 记录元素数组更新
-  useEffect(() => {
-    console.log("Element array updated:", elementArray);
-  }, [elementArray]);
-
-  // 使用 useMemo 来计算 layoutElements 和 freeDraggableElements
+  // 使用 useMemo 計算布局元素和自由拖拽元素
   const { layoutElements, freeDraggableElements } = useMemo(() => {
     return elementArray.reduce<{
       layoutElements: LayoutElementData[];
@@ -103,11 +102,13 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
     );
   }, [elementArray]);
 
+  // 當布局元素或自由拖拽元素變化時，打印這些元素
   useEffect(() => {
     console.log("Layout elements:", layoutElements);
     console.log("Free draggable elements:", freeDraggableElements);
   }, [layoutElements, freeDraggableElements]);
 
+  // 使用 ElementContext 中的函數和狀態
   const {
     elements,
     updateElementPosition,
@@ -117,14 +118,9 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
     setSelectedElement,
   } = useElementContext();
 
-  useElementsDebug();
+  // useElementsDebug(); // 啟用元素調試（如果有的話）
 
-  useEffect(() => {
-    // 这里可以添加加载特定网站数据的逻辑
-    console.log(`Loading canvas data for website ID: ${id}`);
-    // 例如：dispatch(loadCanvasData(id));
-  }, [id]);
-
+  // 設置默認的佈局設置，根據當前設備更新設置
   useEffect(() => {
     const defaultSettings = {
       desktop: {
@@ -176,11 +172,13 @@ export const CanvasArea: React.FC<{ id: string }> = ({ id }) => {
     }
   };
 
+  // 處理拖拽開始事件
   const handleDragStart = (event: DragStartEvent) => {
     // console.log("Drag started:", event.active.id);
     setActiveId(event.active.id);
   };
 
+  // 處理拖拽結束事件
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over, delta } = event;
 

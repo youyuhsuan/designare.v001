@@ -25,7 +25,13 @@ import {
   FacebookAuthProvider,
 } from "firebase/auth";
 import { firebase_auth } from "@/src/config/firebaseClient";
+import { styled } from "styled-components";
 
+const Or = styled.span`
+  margin: 10px 0;
+  color: ${(props) => props.theme.colors.text};
+  font-size: 10px;
+`;
 interface LoginFormProps {
   onModeChange: (mode: AuthMode) => void;
   onSubmit: (formData: FormData) => Promise<void>;
@@ -151,7 +157,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </Button>
       </form>
       <Divider>
-        <span>或</span>
+        <Or>或</Or>
       </Divider>
       <ButtonWrapper>
         <Button

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 import WebsiteBuilderNavbar from "@/src/Components/WebsiteBuilder/WebsiteBuilderNavbar";
 import { ElementProvider } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
-import { Toolbar } from "@/src/Components/WebsiteBuilder/Toolbar/Toolbar";
+import Toolbar from "@/src/Components/WebsiteBuilder/Toolbar/Toolbar";
 import SidebarEditor from "@/src/Components/WebsiteBuilder/SidebarEditor/SidebarEditor";
 import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
 import { undo, redo } from "@/src/libs/features/websiteBuilder/historySlice";

@@ -14,8 +14,16 @@ interface UploadAreaProps {
   $dragActive: boolean;
 }
 
-const OrText = styled.span`
+const Or = styled.span`
   margin: 10px 0;
+  color: ${(props) => props.theme.colors.text};
+  font-size: 10px;
+`;
+
+const Label = styled.label`
+  display: flex;
+  flex-direction: column;
+  align-item: center;
 `;
 
 // 上傳區域的樣式
@@ -152,14 +160,15 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           onChange={handleChange} // 處理檔案選擇事件
           style={{ display: "none" }} // 隱藏檔案選擇框
           id="file-upload"
+          ref={fileInputRef}
         />
-        <label htmlFor="file-upload">
-          <Button onClick={handleButtonClick} type="button">
+        <Label htmlFor="file-upload">
+          <Button $variant="outlined" onClick={handleButtonClick} type="button">
             點擊上傳
           </Button>
-          <OrText>或者</OrText>
+          <Or>或者</Or>
           <span>拖曳檔案到此處</span>
-        </label>{" "}
+        </Label>
         {loading && <Loader />}
       </UploadArea>
       {value && value.url && (

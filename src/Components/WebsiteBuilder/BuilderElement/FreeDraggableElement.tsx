@@ -27,11 +27,16 @@ const ElementWrapper = styled.div<ContentProps>`
       props.$isSelected
         ? props.theme.colors.accent
         : props.theme.colors.border};
-  width: ${(props) => props.$config.size.width}px;
-  height: ${(props) => props.$config.size.height}px;
+  width: ${(props) => props.$config?.size?.width ?? 100}px;
+  height: ${(props) => props.$config?.size?.height ?? 100}px;
   ${(props) => {
-    const { horizontalAlignment, verticalAlignment, size, position } =
-      props.$config;
+    const {
+      horizontalAlignment,
+      verticalAlignment,
+      size = { width: 100, height: 100 },
+      position = { x: 0, y: 0 },
+    } = props.$config || {};
+
     let translateX = position.x;
     let translateY = position.y;
     let originX = "50%";
