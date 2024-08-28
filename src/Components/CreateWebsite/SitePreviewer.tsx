@@ -2,7 +2,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import graySquares from "@/src/image/graySquares.svg";
+import graySquares from "@/public/svg/graySquares.svg";
 
 const MainContent = styled.div`
   display: flex;

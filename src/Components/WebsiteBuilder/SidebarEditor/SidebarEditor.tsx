@@ -9,8 +9,6 @@ import React, {
 } from "react";
 import styled from "styled-components";
 import {
-  ButtonOption,
-  CustomInputProps,
   LocalElementType,
   PropertyConfigWithComposite,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
@@ -31,6 +29,7 @@ import { updateElementInstance } from "@/src/libs/features/websiteBuilder/elemen
 
 // Usecontext
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
+import { createNestedObject } from "@/src/utilities/createNestedObject";
 
 const EditorContainer = styled.div`
   z-index: 10;
@@ -87,7 +86,6 @@ const SubConfig = styled.span`
 
 const SidebarEditor: React.FC = () => {
   const dispatch = useAppDispatch();
-  const deferredUpdatesRef = useRef<{ key: string; value: any }[]>([]);
 
   // 從 useElementContext 中取得選中的元素以及更新選中元素的函數
   const { selectedElement, updateSelectedElement } = useElementContext();
@@ -116,66 +114,91 @@ const SidebarEditor: React.FC = () => {
       setLocalElement((prev) => {
         if (!prev) return null;
 
-        // 創建 updatedElement 作為 prev 的淺拷貝
         const updatedElement = { ...prev };
-
-        // 創建 updatedElement.config 作為 prev.config 的淺拷貝
         updatedElement.config = { ...updatedElement.config };
 
-        // 將 propertyPath 分割成各個層級
+        // 将 propertyPath 分割成各个层级
         const pathParts = propertyPath.split(".");
         let current: any = updatedElement.config;
 
-        // 遍歷 pathParts，更新對象中的嵌套屬性
+        console.log("Initial current (config):", current);
+        console.log("Path parts:", pathParts);
+
+        // 遍历 pathParts，更新对象中的嵌套属性
         for (let i = 0; i < pathParts.length - 1; i++) {
-          // 如果當前層級的屬性不存在，則創建一個空對象
-          if (!current[pathParts[i]]) {
-            current[pathParts[i]] = {};
+          const part = pathParts[i];
+          console.log(`Processing part: ${part}`);
+
+          // 如果当前层级的属性不存在，则创建一个空对象
+          if (!current[part]) {
+            console.log(`Creating new object at: ${part}`);
+            current[part] = {};
           }
-          // 確保當前層級的屬性是對象
-          current[pathParts[i]] = { ...current[pathParts[i]] };
-          // 移動到下一層級
-          current = current[pathParts[i]];
+
+          // 确保当前层级的属性是对象
+          current[part] = { ...current[part] };
+          // 移动到下一层级
+          current = current[part];
         }
 
         const lastKey = pathParts[pathParts.length - 1];
+        console.log("Last key:", lastKey);
 
-        // 處理數組更新
+        // 处理数组更新
         if (Array.isArray(current[lastKey])) {
-          // 如果 value 是單個值，假設它是要更新數組中的某個索引
+          // 如果 value 是单个值，假设它是要更新数组中的某个索引
           if (!Array.isArray(value)) {
             const index = parseInt(lastKey);
-            if (!isNaN(index) && index >= 0 && index < current.length) {
-              current[index] = value;
+            if (
+              !isNaN(index) &&
+              index >= 0 &&
+              index < current[lastKey].length
+            ) {
+              console.log(
+                `Updating array at index ${index} with value:`,
+                value
+              );
+              current[lastKey][index] = value;
             }
           } else {
-            // 如果 value 是數組，直接替換整個數組
+            // 如果 value 是数组，直接替换整个数组
+            console.log(`Replacing array with value:`, value);
             current[lastKey] = value;
           }
         } else {
-          // 對於非數組類型，直接設置新值
+          // 对于非数组类型，直接设置新值
+          console.log(`Setting value at ${lastKey}:`, value);
           current[lastKey] = value;
         }
 
-        // 在最後一層級設置新值
+        // 在最后一层级设置新值
         current[pathParts[pathParts.length - 1]] = value;
 
-        // 如果 propertyPath 只包含一層，且 updatedElement 上存在這個屬性，則更新頂層屬性
+        // 如果 propertyPath 只包含一层，且 updatedElement 上存在这个属性，则更新顶层属性
         if (
           pathParts.length === 1 &&
           updatedElement.hasOwnProperty(pathParts[0])
         ) {
+          console.log(
+            `Updating top-level property ${pathParts[0]} with value:`,
+            value
+          );
           updatedElement[pathParts[0]] = value;
         }
 
+        // 调用 updateSelectedElement
         updateSelectedElement(prev.id, `config.${propertyPath}`, value);
 
-        console.log("updatedElement :", updatedElement);
+        console.log("Updated updatedElement:", updatedElement);
+        console.log("Property path:", propertyPath, "Value:", value);
 
+        const updates = createNestedObject(["config", ...pathParts], value);
+
+        // 构造并发送 Redux action
         dispatch(
           updateElementInstance({
             id: prev.id,
-            updates: { config: { [propertyPath]: value } },
+            updates: updates,
           })
         );
 
@@ -496,11 +519,9 @@ const SidebarEditor: React.FC = () => {
     return (
       <>
         <h2>Edit {elementType}</h2>
-        {/* 遍歷配置中的屬性並渲染相應的字段 */}
         {Object.entries(config.properties).map(([key, propertyConfig]) =>
           renderField(key, propertyConfig as PropertyConfigWithComposite)
         )}
-        {/* 如果存在子類型配置，渲染特定屬性 */}
         {subtypeConfig && (
           <>
             <h3>Specific Properties</h3>

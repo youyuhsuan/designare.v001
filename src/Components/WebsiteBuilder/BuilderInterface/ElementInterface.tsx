@@ -64,7 +64,8 @@ export interface FreeDraggableProps
 export interface ContentProps {
   $isDragging?: boolean;
   $isSelected?: boolean;
-  $config: any;
+  $config?: any;
+  borderRadius?: number;
 }
 
 export interface Selection {

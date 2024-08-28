@@ -13,6 +13,7 @@ export interface GlobalSettingsState {
   tablet: LayoutSettings;
   mobile: LayoutSettings;
   currentDevice: "desktop" | "tablet" | "mobile";
+  canvasOffset: { x: number; y: number };
 }
 
 // 對象類型 `T` 的所有屬性及其嵌套屬性變成可選

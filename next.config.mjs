@@ -4,6 +4,18 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  images: {
+    domains: ["localhost"],
+    path: "/_next/image",
+    loader: "default",
+    unoptimized: process.env.NODE_ENV !== "production",
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

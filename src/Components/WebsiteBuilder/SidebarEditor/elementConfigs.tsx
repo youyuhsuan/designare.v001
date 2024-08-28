@@ -66,7 +66,7 @@ export const elementConfigs: ElementConfigs = {
         type: "mediaUpload",
         defaultValue: { type: "image", url: "" },
         accept: "image/*,video/*",
-        maxSize: 5000000, // 最大文件大小（例如5MB）
+        maxSize: 5000000,
       },
     },
   },
@@ -116,8 +116,6 @@ export const elementConfigs: ElementConfigs = {
           },
         ],
       },
-
-      // TODO:位置處理 layout中
       position: {
         label: "位置",
         type: "composite",
@@ -336,7 +334,7 @@ export const elementConfigs: ElementConfigs = {
               },
               style: {
                 label: "邊框樣式",
-                type: "select", // 改为 select 类型
+                type: "select",
                 options: [
                   { value: "solid", label: "實線" },
                   { value: "dashed", label: "虛線" },
@@ -347,6 +345,11 @@ export const elementConfigs: ElementConfigs = {
               color: {
                 label: "邊框顏色",
                 type: "color",
+                defaultColor: "#000000",
+                defaultOpacity: 0,
+                step: 10,
+                min: 0,
+                max: 100,
               },
             },
           },
@@ -403,92 +406,92 @@ export const elementConfigs: ElementConfigs = {
           },
         },
       },
-
-      // image: {
-      //   type: "image",
-      //   label: "圖片",
-      //   properties: {
-      //     src: {
-      //       label: "圖片 URL",
-      //       type: "text",
-      //       defaultValue: "",
-      //     },
-      //     alt: {
-      //       label: "替代文字",
-      //       type: "text",
-      //       defaultValue: "",
-      //     },
-      //     size: {
-      //       label: "尺寸",
-      //       type: "custom",
-      //       defaultValue: { width: 100, height: 100 },
-      //       compositeFields: {
-      //         width: {
-      //           label: "寬度",
-      //           type: "number",
-      //           defaultValue: 100,
-      //           unit: "px",
-      //         },
-      //         height: {
-      //           label: "高度",
-      //           type: "number",
-      //           defaultValue: 100,
-      //           unit: "px",
-      //         },
-      //       },
-      //     },
-      //     border: {
-      //       label: "邊框",
-      //       type: "custom",
-      //       defaultValue: { width: 1, style: "solid", color: "#000000" },
-      //       compositeFields: {
-      //         width: {
-      //           label: "邊框寬度",
-      //           type: "number",
-      //           defaultValue: 1,
-      //           unit: "px",
-      //         },
-      //         style: {
-      //           label: "邊框樣式",
-      //           type: "button",
-      //           // options: { solid: "實線", dashed: "虛線", dotted: "點線" },
-      //           defaultValue: "solid",
-      //         },
-      //         color: {
-      //           label: "邊框顏色",
-      //           type: "color",
-      //           defaultValue: "#000000",
-      //         },
-      //       },
-      //     },
-      //     borderRadius: {
-      //       label: "邊框圓角",
-      //       type: "number",
-      //       defaultValue: 0,
-      //       unit: "px",
-      //     },
-      //     alignment: {
-      //       label: "對齊",
-      //       type: "button",
-      //       options: {
-      //         left: { label: "靠左對齊", type: "button", transform: String },
-      //         center: { label: "置中對齊", type: "button", transform: String },
-      //         right: { label: "靠右對齊", type: "button", transform: String },
-      //       },
-      //       defaultValue: "center",
-      //     },
-      //     link: {
-      //       label: "連結",
-      //       type: "text",
-      //       defaultValue: "",
-      //     },
-      //     caption: {
-      //       label: "說明文字",
-      //       type: "text",
-      //       defaultValue: "",
-      //     },
-      //   },
-      // },
+      image: {
+        type: "image",
+        label: "圖片",
+        properties: {
+          size: {
+            label: "尺寸",
+            type: "custom",
+            defaultValue: {
+              circle: { width: 300, height: 300 },
+              square: { width: 300, height: 300 },
+              fourTwo: { width: 600, height: 300 },
+              fourThree: { width: 900, height: 300 },
+              fullWidth: { width: 1200, height: 300 },
+            },
+            compositeFields: {
+              width: {
+                label: "寬度",
+                type: "number",
+                unit: "px",
+              },
+              height: {
+                label: "高度",
+                type: "number",
+                unit: "px",
+              },
+            },
+          },
+          media: {
+            label: "媒體",
+            type: "mediaUpload",
+            defaultValue: { type: "image", url: "" },
+            accept: "image/*,video/*",
+            maxSize: 5000000,
+          },
+          alt: {
+            label: "替代文字",
+            type: "text",
+            defaultValue: "",
+          },
+          border: {
+            label: "邊框",
+            type: "custom",
+            defaultValue: { width: 0, style: "solid", color: "#000000" },
+            compositeFields: {
+              width: {
+                label: "邊框寬度",
+                type: "number",
+                unit: "px",
+              },
+              style: {
+                label: "邊框樣式",
+                type: "select",
+                options: ["solid", "dashed", "dotted", "none"],
+                defaultValue: "none",
+              },
+              color: {
+                label: "邊框顏色",
+                type: "color",
+                defaultColor: "#000000",
+                defaultOpacity: 0,
+                step: 10,
+                min: 0,
+                max: 100,
+              },
+            },
+          },
+          borderRadius: {
+            label: "邊框圓角",
+            type: "number",
+            defaultValue: {
+              circle: 50,
+              square: 0,
+              fourTwo: 0,
+              fourThree: 0,
+              fullWidth: 0,
+            },
+            unit: "%",
+          },
+          objectFit: {
+            label: "圖片適應方式",
+            type: "select",
+            options: ["cover", "contain", "fill", "scale-down", "none"],
+            defaultValue: "cover",
+          },
+        },
+      },
 
       // menu: {
       //   type: "menu",

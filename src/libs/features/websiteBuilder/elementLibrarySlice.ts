@@ -95,7 +95,7 @@ export const elementLibrarySlice = createSlice({
     },
     // 更新元素實例
     updateElementInstance: (
-      state,
+      state: { byId: Record<string, LocalElementType> },
       action: PayloadAction<{
         id: string;
         updates: DeepPartial<LocalElementType>;

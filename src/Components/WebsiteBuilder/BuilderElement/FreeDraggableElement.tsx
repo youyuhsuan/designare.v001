@@ -18,61 +18,28 @@ import { commonStyles } from "./commonStyles";
 
 const ElementWrapper = styled.div<ContentProps>`
   position: absolute;
-  border: none;
   cursor: move;
   user-select: none;
+  object-fit: ${(props) => props.$config?.objectFit};
+  letter-spacing: ${(props) => props.$config.letterSpacing};
+  line-height: ${(props) => props.$config.lineHeight};
   opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
   border: 1px solid
-    ${(props) =>
-      props.$isSelected
-        ? props.theme.colors.accent
-        : props.theme.colors.border};
-  width: ${(props) => props.$config?.size?.width ?? 100}px;
-  height: ${(props) => props.$config?.size?.height ?? 100}px;
-  ${(props) => {
-    const {
-      horizontalAlignment,
-      verticalAlignment,
-      size = { width: 100, height: 100 },
-      position = { x: 0, y: 0 },
-    } = props.$config || {};
+    ${(props) => (props.$isSelected ? props.theme.colors.accent : "none")};
+  width: ${(props) => props.$config?.size?.width}px;
+  height: ${(props) => props.$config?.size?.height}px;
+`;
 
-    let translateX = position.x;
-    let translateY = position.y;
-    let originX = "50%";
-    let originY = "50%";
+const ElementImageWrapper = styled.div<ContentProps>`
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: ${(props) => `${props.$config?.borderRadius}%`};
+`;
 
-    // 水平對齊
-    if (horizontalAlignment) {
-      if (horizontalAlignment.left !== undefined) {
-        translateX = horizontalAlignment.left + size.width / 2;
-        originX = "0%";
-      } else if (horizontalAlignment.center !== undefined) {
-        translateX = horizontalAlignment.center;
-      } else if (horizontalAlignment.right !== undefined) {
-        translateX = horizontalAlignment.right - size.width / 2;
-        originX = "100%";
-      }
-    }
-
-    // 垂直對齊
-    if (verticalAlignment) {
-      if (verticalAlignment.top !== undefined) {
-        translateY = verticalAlignment.top + size.height / 2;
-        originY = "0%";
-      } else if (verticalAlignment.center !== undefined) {
-        translateY = verticalAlignment.center;
-      } else if (verticalAlignment.bottom !== undefined) {
-        translateY = verticalAlignment.bottom - size.height / 2;
-        originY = "100%";
-      }
-    }
-
-    return `
-      transform: translate(${translateX}px, ${translateY}px);
-      transform-origin: ${originX} ${originY};
-    `;
-  }}
+const ElementImage = styled(Image)<ContentProps>`
+  object-fit: ${(props) => props.$config?.objectFit};
 `;
 
 const P = styled.p<ContentProps>`
@@ -96,6 +63,8 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   content,
   config,
   type,
+  calculatePosition,
+  alignmentConfig,
   isLayout,
   onUpdate,
   onDelete,
@@ -104,91 +73,67 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
 }) => {
   const { updateSelectedElement } = useElementContext();
 
-  // 編輯模式狀態
   const [isEditing, setIsEditing] = useState(false);
-  // 編輯內容的值
   const [editableContent, setEditableContent] = useState(content as string);
-  // 元素選擇狀態
   const [isElementSelected, setIsElementSelected] = useState(isSelected);
 
-  // 引用輸入框元素
   const elementRef = useRef<
     HTMLInputElement | HTMLButtonElement | HTMLParagraphElement | null
   >(null);
 
-  // 記錄是否正在調整大小
   const resizingRef = useRef(false);
-  // 是否剛進入編輯模式
-  const justEnteredEditMode = useRef(false);
-  // 是否應該選擇所有內容
   const [shouldSelectAll, setShouldSelectAll] = useState(false);
-  // 是否為第一次編輯
   const isFirstEditRef = useRef(true);
-
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id,
       data: { type },
     });
 
-  const style = useMemo(() => {
-    const { x, y } = config.position;
-    // 計算應用於 translate3d 的位移值
-    const translateX = isDragging && transform ? x + transform.x : x;
-    const translateY = isDragging && transform ? y + transform.y : y;
-
-    const baseStyle: React.CSSProperties = {
+  const style = React.useMemo(() => {
+    const position = calculatePosition({ id, config }, alignmentConfig);
+    const baseStyle = {
       position: "absolute" as const,
-      transform: `translate3d(${translateX}px, ${translateY}px, 0)`,
+      transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
       transition: isDragging ? "none" : "transform 0.3s ease-out",
+      width: `${config.size.width}px`,
+      height: `${config.size.height}px`,
+      ...config.style,
     };
-    return { ...baseStyle, ...(config || {}) };
-  }, [config, isDragging, transform]);
 
-  useEffect(() => {
-    console.log("Editable content updated:", editableContent);
-  }, [editableContent]);
+    // 只有在元素類型為 "image" 時才添加 borderRadius
+    if (type === "image" && config.media?.type === "image") {
+      return {
+        ...baseStyle,
+        borderRadius: `${config?.borderRadius ?? 0}%`,
+      };
+    }
 
+    return baseStyle;
+  }, [id, config, calculatePosition, isDragging, alignmentConfig, type]);
+
+  // 添加日誌來追蹤元素狀態
   useEffect(() => {
     console.log(
-      `Component ${id} mounted/updated. isEditing:`,
-      isEditing,
-      "isSelected:",
-      isSelected,
-      "content:",
-      content
+      `Element ${id} - isEditing: ${isEditing}, isSelected: ${isSelected}`
     );
-  }, [id, isEditing, isSelected, content]);
-
-  useEffect(() => {
-    console.log("isEditing:", isEditing);
-    console.log("elementRef.current:", elementRef.current);
-  }, [isEditing]);
-
-  useEffect(() => {
-    console.log(`Editable content for ${id} updated:`, editableContent);
-  }, [id, editableContent]);
-
-  useEffect(() => {
-    console.log("isEditing changed:", isEditing);
-  }, [isEditing]);
-
-  console.log("onDelete function:", onDelete);
+  }, [id, isEditing, isSelected]);
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest(`[id="${id}"]`)) return;
-      setIsElementSelected(true);
-      justEnteredEditMode.current = true;
-      console.log("Set editing to true");
+      if ((e.target as HTMLElement).closest(`[id="${id}"]`)) {
+        return;
+      }
+      setIsElementSelected(false);
+      setIsEditing(false);
     },
     [id]
   );
 
   useEffect(() => {
-    document.addEventListener("mouseup", handleOutsideClick);
+    document.addEventListener("mousedown", handleOutsideClick);
     return () => {
-      document.removeEventListener("mouseup", handleOutsideClick);
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [handleOutsideClick]);
 
@@ -196,15 +141,10 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     setShouldSelectAll(false);
   }, []);
 
-  // 雙擊事件處理函式，用於進入編輯模式
   const handleDoubleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      console.log(`Double click event triggered on element ${id}`);
       if (type === "text" || type === "button") {
-        console.log(
-          `Entering edit mode for element ${id}, current content: "${content}"`
-        );
         setIsEditing(true);
         setIsElementSelected(false);
         setEditableContent(content as string);
@@ -216,24 +156,17 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
         }
       }
     },
-    [id, type, content, setIsEditing, setIsElementSelected, setEditableContent]
+    [type, content, setIsEditing, setIsElementSelected, setEditableContent]
   );
 
   // 失去焦點處理函式，保存編輯內容並更新元素
   const handleBlur = useCallback(() => {
-    console.log(`Blur event triggered for ${id}`);
     setIsEditing(false);
     if (editableContent !== content) {
-      console.log(
-        `Updating content for ${id} from`,
-        content,
-        "to",
-        editableContent
-      );
       onUpdate({ content: editableContent });
       updateSelectedElement(id, "content", editableContent);
     }
-    isFirstEditRef.current = true; // Reset for next edit token
+    isFirstEditRef.current = true;
   }, [
     id,
     setIsEditing,
@@ -247,18 +180,14 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   const handleContentChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
-      console.log(
-        `Content changing for ${id} from "${editableContent}" to "${newValue}"`
-      );
       setEditableContent(newValue);
     },
-    [id, editableContent]
+    []
   );
 
   // 在編輯模式中設置文本選擇範圍
   useEffect(() => {
     if (isEditing && elementRef.current) {
-      console.log("isEditing && elementRef.current", elementRef.current);
       elementRef.current.focus();
       if (
         elementRef.current instanceof HTMLInputElement &&
@@ -358,16 +287,11 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   // 鍵盤事件處理函式
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (!element) return;
       if (isEditing) {
         return;
       }
-
-      if (
-        event.key === "Backspace" &&
-        elementRef.current &&
-        document.activeElement === elementRef.current
-      ) {
-        console.log("Backspace pressed, attempting to delete");
+      if (event.key === "Backspace" && document.activeElement === element) {
         event.preventDefault();
         event.stopPropagation();
         onDelete();
@@ -375,8 +299,8 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     };
 
     const element = elementRef.current;
+
     if (element) {
-      element.addEventListener("keydown", handleKeyDown as EventListener);
       return () => {
         element.removeEventListener("keydown", handleKeyDown as EventListener);
       };
@@ -384,14 +308,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   }, [isEditing, onDelete]);
 
   const renderContent = () => {
-    console.log(
-      `Rendering content for ${id}, isEditing:`,
-      isEditing,
-      "editableContent:",
-      editableContent,
-      "shouldSelectAll:",
-      shouldSelectAll
-    );
     if (isEditing) {
       return (
         <EditInput
@@ -406,8 +322,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
         />
       );
     }
-
-    console.log(`Rendering non-editable content for ${id}, content:`, content);
     const commonProps = {
       style: {
         margin: 0,
@@ -423,6 +337,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
           <P
             {...commonProps}
             ref={elementRef as React.RefObject<HTMLParagraphElement>}
+            tabIndex={0}
             onDoubleClick={handleDoubleClick}
             data-testid={`non-editable-content-${id}`}
             $config={config}
@@ -435,6 +350,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
           <button
             {...commonProps}
             ref={elementRef as React.RefObject<HTMLButtonElement>}
+            tabIndex={0}
             onDoubleClick={handleDoubleClick}
             data-testid={`non-editable-content-${id}`}
           >
@@ -442,19 +358,30 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
           </button>
         );
       case "image":
+        let imageSrc = content as string;
+        if (imageSrc.startsWith("/")) {
+          imageSrc = `${process.env.NEXT_PUBLIC_BASE_URL || ""}${imageSrc}`;
+        }
         return (
-          <div
+          <ElementImageWrapper
             {...commonProps}
             ref={elementRef as React.RefObject<HTMLDivElement>}
-            data-testid={`non-editable-content-${id}`}
+            $config={config}
+            tabIndex={0}
+            data-testid={id}
           >
-            <Image
-              src={content as string}
-              alt="Draggable"
+            <ElementImage
+              src={
+                config.media?.type === "image" && config.media.url
+                  ? config.media.url
+                  : imageSrc
+              }
+              alt={config.alt}
               layout="fill"
-              objectFit="contain"
+              sizes="100vw"
+              $config={config}
             />
-          </div>
+          </ElementImageWrapper>
         );
       case "list":
       default:
@@ -479,15 +406,11 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       onMouseUp={onMouseUp}
       onDoubleClick={handleDoubleClick}
       tabIndex={0}
-      data-testid={`element-wrapper-${id}`}
-      onKeyDown={(e) => {
-        console.log("Key pressed in ElementWrapper:", e.key);
-        if (!isEditing && e.key === "Backspace") {
-          e.preventDefault();
-          e.stopPropagation();
-          onDelete();
-        }
+      onFocus={(e) => {
+        // 防止焦点引起的位移
+        e.target.style.outline = "none";
       }}
+      data-testid={`element-wrapper-${id}`}
       {...(isLayout || isEditing ? {} : { ...attributes, ...listeners })}
     >
       {renderContent()}

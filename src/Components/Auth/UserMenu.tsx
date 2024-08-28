@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import nullAvatarImg from "@/src/image/nullAvatar.png"; // 確保路徑正確
+import nullAvatarImg from "@/public/images/nullAvatar.png";
 
 export interface UserMenuProps {
   name?: string | null;
@@ -91,7 +91,6 @@ const UserMenu: React.FC<UserMenuProps> = ({
   onLogout,
 }) => {
   const avatarSrc = avatarUrl || nullAvatarImg.src;
-  console.log("Avatar URL:", avatarSrc);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

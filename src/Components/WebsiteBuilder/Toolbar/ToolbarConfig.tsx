@@ -70,8 +70,28 @@ export const toolbarItems: ToolbarItem[] = [
     icon: FaImage,
     label: "Image",
     type: "image",
-    elementType: "Image",
-    content: "https://via.placeholder.com/300x200",
+    items: [
+      {
+        label: "Circle",
+        elementType: "circle",
+      },
+      {
+        label: "Square",
+        elementType: "square",
+      },
+      {
+        label: "4:2 Ratio",
+        elementType: "fourTwo",
+      },
+      {
+        label: "4:3 Ratio",
+        elementType: "fourThree",
+      },
+      {
+        label: "Full Width",
+        elementType: "fullWidth",
+      },
+    ],
   },
   {
     icon: FaFont,
@@ -98,10 +118,8 @@ export const toolbarItems: ToolbarItem[] = [
   {
     icon: FaColumns,
     label: "Column",
-    type: "column",
+    type: "columns",
     isLayout: true,
-    elementType: "column",
-    content: "New Column",
   },
   {
     icon: FaShapes,

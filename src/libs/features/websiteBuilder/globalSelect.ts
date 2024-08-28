@@ -12,3 +12,8 @@ export const selectCurrentLayoutSettings = createSelector(
   [selectGlobalSettings],
   (globalSettings) => globalSettings[globalSettings.currentDevice]
 );
+
+export const selectCanvasOffset = createSelector(
+  [selectGlobalSettings],
+  (globalSettings) => globalSettings.canvasOffset
+);

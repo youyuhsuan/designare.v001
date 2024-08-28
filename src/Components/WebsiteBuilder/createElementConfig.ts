@@ -1,5 +1,5 @@
 interface ElementConfig {
-  [key: string]: any; // 这里可以更具体地定义配置项
+  [key: string]: any;
 }
 
 const createLayoutConfig = (properties: any): ElementConfig => ({
@@ -18,6 +18,23 @@ const createLayoutConfig = (properties: any): ElementConfig => ({
     defaultOpacity: properties.backgroundColor.defaultOpacity,
   },
   media: properties.media.defaultValue,
+});
+
+const createImageConfig = (
+  properties: any,
+  elementType: string
+): ElementConfig => ({
+  size: properties.size.defaultValue[
+    elementType as keyof typeof properties.size.defaultValue
+  ],
+  media: properties.media.defaultValue,
+  alt: properties.alt.defaultValue,
+  border: properties.border.defaultValue,
+  borderRadius:
+    properties.borderRadius.defaultValue[
+      elementType as keyof typeof properties.borderRadius.defaultValue
+    ],
+  objectFit: properties.objectFit.defaultValue,
 });
 
 const createTextConfig = (
@@ -50,6 +67,7 @@ const createFreeDraggableConfig = (properties: any): ElementConfig => ({
 const configCreators = {
   layout: createLayoutConfig,
   text: createTextConfig,
+  image: createImageConfig,
   freeDraggable: createFreeDraggableConfig,
 };
 
@@ -73,5 +91,14 @@ export function createElementConfig(
     };
   }
 
+  if (type === "image") {
+    return {
+      ...configCreators.freeDraggable(configs.freeDraggable.properties),
+      ...configCreators.image(
+        configs.freeDraggable.subtypes.image.properties,
+        elementType
+      ),
+    };
+  }
   return configCreators.freeDraggable(configs.freeDraggable.properties);
 }

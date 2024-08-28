@@ -19,6 +19,7 @@ const initialState: GlobalSettingsState = {
     canvasHeight: "640px",
   },
   currentDevice: "desktop",
+  canvasOffset: { x: 0, y: 0 },
 };
 
 export const globalSettingsSlice = createSlice({
@@ -40,6 +41,12 @@ export const globalSettingsSlice = createSlice({
       action: PayloadAction<"desktop" | "tablet" | "mobile">
     ) => {
       state.currentDevice = action.payload;
+    },
+    setCanvasOffset: (
+      state,
+      action: PayloadAction<{ x: number; y: number }>
+    ) => {
+      state.canvasOffset = action.payload;
     },
   },
 });

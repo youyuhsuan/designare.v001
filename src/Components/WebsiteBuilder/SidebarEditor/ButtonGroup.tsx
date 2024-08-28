@@ -18,12 +18,12 @@ interface ButtonGroupProps {
 const ButtonGroupWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem; // 8px
 `;
 
 const ButtonsContainer = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 0.5rem; // 8px
 `;
 
 const Button = styled.button<{ $isSelected: boolean }>`
@@ -76,6 +76,14 @@ const ButtonGroup: React.FC<ButtonGroupProps> = ({
     return value === optionValue;
   };
 
+  const handleClick = (optionValue: any) => {
+    if (isSelected(optionValue)) {
+      onChange(null);
+    } else {
+      onChange(optionValue);
+    }
+  };
+
   return (
     <ButtonGroupWrapper>
       <Label>{label}</Label>
@@ -84,7 +92,7 @@ const ButtonGroup: React.FC<ButtonGroupProps> = ({
           <Button
             key={`${groupKey}-${option.value}-${index}`}
             $isSelected={isSelected(option.value)}
-            onClick={() => onChange(option.value)}
+            onClick={() => handleClick(option.value)}
             title={option.label}
           >
             {option.icon ? (

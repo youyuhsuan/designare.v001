@@ -9,35 +9,32 @@ import React, {
   useEffect,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { isEqual } from "lodash";
+import { UniqueIdentifier } from "@dnd-kit/core";
 import {
   LocalElementType,
-  FreeDraggableElementData,
   Position,
   LayoutElementData,
+  FreeDraggableElementData,
   ElementContextType,
   Action,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
-import { UniqueIdentifier } from "@dnd-kit/core";
 import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
 import { selectElementInstances } from "@/src/libs/features/websiteBuilder/elementLibrarySelector";
 import { updateElementLibrary } from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
-import { isEqual } from "lodash";
+import { updateNestedProperty } from "@/src/utilities/updateNestedProperty";
 
-// 遞歸遍歷嵌套對象的屬性路徑
-export const updateNestedProperty = (
-  obj: any,
-  path: string[],
-  value: any
-): any => {
-  const [head, ...rest] = path;
-  if (rest.length === 0) {
-    return { ...obj, [head]: value };
-  }
-  return {
-    ...obj,
-    [head]: updateNestedProperty(obj[head] || {}, rest, value),
-  };
-};
+// elementReducer
+// 處理各種狀態更新操作
+
+// ElementContext ElementProvider
+// 提供和管理元素狀態，並向子組件提供上下文
+
+// useElementContext
+// 提供上下文的 hook
+
+// Action Creators
+// 創建不同的 Redux 動作
 
 // 處理狀態更新操作的 reducer，實際執行更新邏輯
 const elementReducer = (
@@ -114,13 +111,6 @@ const elementReducer = (
 
       // 合併更新後的布局元素和其他元素
       return [...updatedLayoutElements, ...otherElements];
-
-    case "RESIZE_ELEMENT":
-      return state.map((element) =>
-        element.id === action.payload.id
-          ? { ...element, height: action.payload.config.height }
-          : element
-      );
     case "SET_ELEMENTS":
       return action.payload;
     default:
@@ -128,9 +118,10 @@ const elementReducer = (
   }
 };
 
+// 創建 ElementContext 用於狀態管理
 const ElementContext = createContext<ElementContextType | undefined>(undefined);
 
-// 管理狀態和提供上下文
+// ElementProvider 組件，提供狀態和功能給子組件
 export const ElementProvider: React.FC<{
   children: React.ReactNode;
   websiteId: string;
@@ -258,13 +249,6 @@ export const ElementProvider: React.FC<{
     []
   );
 
-  const resizeElement = useCallback(
-    (id: UniqueIdentifier, config: { height: number }) => {
-      localDispatch({ type: "RESIZE_ELEMENT", payload: { id, config } });
-    },
-    []
-  );
-
   const contextValue: ElementContextType = {
     elements,
     selectedElement,
@@ -277,7 +261,6 @@ export const ElementProvider: React.FC<{
     deleteElement,
     reorderElement,
     updateElementPosition,
-    resizeElement,
   };
 
   return (
@@ -319,12 +302,4 @@ export const updateElementPosition = (
 export const deleteElement = (id: UniqueIdentifier): Action => ({
   type: "DELETE_ELEMENT",
   payload: { id },
-});
-
-export const resizeElement = (
-  id: UniqueIdentifier,
-  config: { height: number }
-): Action => ({
-  type: "RESIZE_ELEMENT",
-  payload: { id, config },
 });
