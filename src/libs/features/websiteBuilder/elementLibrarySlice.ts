@@ -9,6 +9,7 @@ import { createElementConfig } from "@/src/Components/WebsiteBuilder/createEleme
 import { elementConfigs } from "@/src/Components/WebsiteBuilder/SidebarEditor/elementConfigs";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { v4 as uuidv4 } from "uuid";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
 export const elementLibrarySlice = createSlice({
   name: "elementLibrary",
@@ -79,7 +80,7 @@ export const elementLibrarySlice = createSlice({
       state.selectedId = id; // 可選：自動選擇新創建的元素
     },
     // 刪除元素實例
-    deleteElementInstance: (state, action: PayloadAction<string>) => {
+    deleteElementInstance: (state, action: PayloadAction<UniqueIdentifier>) => {
       const id = action.payload;
       if (state.byId[id]) {
         delete state.byId[id]; // 刪除 byId 中的元素

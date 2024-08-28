@@ -18,7 +18,7 @@ import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { throttle } from "lodash";
 
 import { useSelector } from "react-redux";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useElementContext, useElementsDebug } from "./Slider/ElementContext";
 
@@ -53,7 +53,7 @@ const CanvasAreaContainer = styled.div`
   width: 100%;
 `;
 
-interface Size {
+export interface Size {
   width: number;
   height: number;
 }
@@ -76,15 +76,17 @@ interface CanvasAreaProps {
   id?: string;
 }
 
-type AlignmentConfig = {
+export type AlignmentConfig = {
   horizontalAlignment?:
     | { left?: number }
     | { center?: number }
-    | { right?: number };
+    | { right?: number }
+    | null;
   verticalAlignment?:
     | { top?: number }
     | { center?: number }
-    | { bottom?: number };
+    | { bottom?: number }
+    | null;
 };
 
 export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
@@ -100,6 +102,8 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
   const currentDevice = useSelector(selectCurrentDevice);
   const currentLayoutSettings = useSelector(selectCurrentLayoutSettings);
   const canvasOffset = useAppSelector(selectCanvasOffset);
+  const handleResizeRef =
+    useRef<(elementId: string, newSize: Size, direction: string) => void>();
 
   // 自定義比較函數，用於比較元素數組的變化
   const customCompare = (prev: any[], next: any[]) => {
@@ -186,21 +190,8 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
       const { size, position, horizontalAlignment, verticalAlignment } =
         element.config;
       let newPosition = { ...position };
-
-      console.log("Initial Position:", newPosition);
-      console.log("Element Config:", {
-        size,
-        position,
-        horizontalAlignment,
-        verticalAlignment,
-      });
-
       const canvasWidth = parseInt(currentLayoutSettings.siteWidth);
       const canvasHeight = parseInt(currentLayoutSettings.canvasHeight);
-
-      console.log("Canvas Width:", canvasWidth);
-      console.log("Canvas Height:", canvasHeight);
-
       if (horizontalAlignment) {
         if ("left" in horizontalAlignment) {
           newPosition.x = (horizontalAlignment.left as number) || 0;
@@ -214,7 +205,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
             size.width -
             ((horizontalAlignment.right as number) || 0);
         }
-        console.log("Calculated X Position:", newPosition.x);
       }
 
       if (verticalAlignment) {
@@ -230,15 +220,9 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
             size.height -
             ((verticalAlignment.bottom as number) || 0);
         }
-        console.log("Calculated Y Position:", newPosition.y);
       }
-
-      // Adjust position with canvas offsets
       newPosition.x += canvasOffset.x;
       newPosition.y += canvasOffset.y;
-
-      console.log("Final Position with Offset:", newPosition);
-
       return newPosition;
     },
     [
@@ -280,26 +264,29 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
   };
 
   const handleResize = useCallback(
-    throttle((elementId: string, newSize: Size, direction: string) => {
+    (elementId: string, newSize: Size, direction: string) => {
       if (!isDragResizeEnabled) return;
 
       const element = elementArray.find((el) => el.id === elementId);
       if (!element) return;
 
-      // Create a temporary element with the new size for position calculation
+      // 創建一個臨時元素用於位置計算
       const tempElement = {
         ...element,
         config: { ...element.config, size: newSize },
       };
 
-      // Use the current alignment configuration
+      // 使用當前的對齊配置
       let newPosition = calculateElementPosition(tempElement);
 
       if (!isAlignmentEnabled) {
-        if (direction.includes("left"))
+        // 如果不啟用對齊，調整位置以保持元素的左上角固定
+        if (direction.includes("left")) {
           newPosition.x -= newSize.width - element.config.size.width;
-        if (direction.includes("top"))
+        }
+        if (direction.includes("top")) {
           newPosition.y -= newSize.height - element.config.size.height;
+        }
       }
 
       dispatch(
@@ -314,16 +301,19 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
           },
         })
       );
-    }, 16),
+    },
     [
       elementArray,
       dispatch,
       isDragResizeEnabled,
       isAlignmentEnabled,
       calculateElementPosition,
-      alignmentConfig,
     ]
   );
+
+  useEffect(() => {
+    handleResizeRef.current = throttle(handleResize, 16);
+  }, [handleResize]);
 
   // 使用 useMemo 計算布局元素和自由拖拽元素
   const { layoutElements, freeDraggableElements } = useMemo(() => {
@@ -372,7 +362,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
   // 處理拖拽開始事件
   const handleDragStart = (event: DragStartEvent) => {
     if (isDragResizeEnabled) {
-      // console.log("Drag started:", event.active.id);
       setActiveId(event.active.id);
     }
   };
@@ -393,7 +382,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
       const activeElement = elements.find((el) => el.id === active.id);
 
       if (!activeElement) {
-        console.warn("找不到活動元素");
         setActiveId(null);
         return;
       }
@@ -419,36 +407,37 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
             newPosition = calculateElementPosition(activeElement);
             console.log("handleDragEnd isAlignmentEnabled", newPosition);
           } else {
-            newPosition = {
-              x: (activeElement.config?.position?.x || 0) + delta.x,
-              y: (activeElement.config?.position?.y || 0) + delta.y,
-            };
+            if (Math.abs(delta.x) > 5 || Math.abs(delta.y) > 5) {
+              newPosition = {
+                x: (activeElement.config?.position?.x || 0) + delta.x,
+                y: (activeElement.config?.position?.y || 0) + delta.y,
+              };
+            }
           }
-
-          console.log("newPosition", newPosition);
-
-          updateElementPosition(active.id, {
-            position: { x: newPosition.x, y: newPosition.y },
-          });
-
-          if (typeof active.id === "string") {
-            dispatch(
-              updateElementInstance({
-                id: active.id,
-                updates: {
-                  config: { position: { x: newPosition.x, y: newPosition.y } },
-                },
-              })
-            );
+          if (newPosition) {
+            updateElementPosition(active.id, {
+              position: { x: newPosition.x, y: newPosition.y },
+            });
+            if (typeof active.id === "string") {
+              dispatch(
+                updateElementInstance({
+                  id: active.id,
+                  updates: {
+                    config: {
+                      position: { x: newPosition.x, y: newPosition.y },
+                    },
+                  },
+                })
+              );
+            } else {
+              console.error("Expected string id, but got:", active.id);
+            }
           } else {
-            console.error("Expected string id, but got:", active.id);
+            console.warn("自由元素的 delta 未定義", active.id);
           }
-        } else {
-          console.warn("自由元素的 delta 未定義", active.id);
         }
       }
-
-      setActiveId(null); // 清除當前拖拽的元素 ID
+      setActiveId(null);
     },
     [
       isDragResizeEnabled,
@@ -501,7 +490,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
               onMouseUp={() => handleElementMouseUp(element.id)}
               calculatePosition={() => calculateElementPosition(element)}
               alignmentConfig={alignmentConfig}
-              onResize={handleResize}
+              handleResize={handleResize}
             />
           ))}
         </SiteContainer>

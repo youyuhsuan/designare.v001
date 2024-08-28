@@ -23,6 +23,7 @@ import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
 import { selectElementInstances } from "@/src/libs/features/websiteBuilder/elementLibrarySelector";
 import { updateElementLibrary } from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
 import { updateNestedProperty } from "@/src/utilities/updateNestedProperty";
+import { deleteElementInstance } from "@/src/libs/features/websiteBuilder/elementLibrarySlice";
 
 // elementReducer
 // 處理各種狀態更新操作
@@ -231,9 +232,14 @@ export const ElementProvider: React.FC<{
     []
   );
 
-  const deleteElement = useCallback((id: UniqueIdentifier) => {
-    localDispatch({ type: "DELETE_ELEMENT", payload: { id } });
-  }, []);
+  const deleteElement = useCallback(
+    (id: UniqueIdentifier) => {
+      localDispatch({ type: "DELETE_ELEMENT", payload: { id } });
+      reduxDispatch(deleteElementInstance(id));
+      console.log(`Element ${id} has been deleted`);
+    },
+    [reduxDispatch]
+  );
 
   const reorderElement = useCallback((newOrder: UniqueIdentifier[]) => {
     localDispatch({ type: "REORDER_ELEMENT", payload: { newOrder } });
