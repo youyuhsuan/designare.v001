@@ -9,31 +9,33 @@ import React, {
   useEffect,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { isEqual } from "lodash";
+import { UniqueIdentifier } from "@dnd-kit/core";
 import {
   LocalElementType,
-  FreeDraggableElementData,
   Position,
   LayoutElementData,
+  FreeDraggableElementData,
   ElementContextType,
   Action,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
-import { UniqueIdentifier } from "@dnd-kit/core";
+import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
+import { selectElementInstances } from "@/src/libs/features/websiteBuilder/elementLibrarySelector";
+import { updateElementLibrary } from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
+import { updateNestedProperty } from "@/src/utilities/updateNestedProperty";
+import { deleteElementInstance } from "@/src/libs/features/websiteBuilder/elementLibrarySlice";
 
-// 遞歸遍歷嵌套對象的屬性路徑
-export const updateNestedProperty = (
-  obj: any,
-  path: string[],
-  value: any
-): any => {
-  const [head, ...rest] = path;
-  if (rest.length === 0) {
-    return { ...obj, [head]: value };
-  }
-  return {
-    ...obj,
-    [head]: updateNestedProperty(obj[head] || {}, rest, value),
-  };
-};
+// elementReducer
+// 處理各種狀態更新操作
+
+// ElementContext ElementProvider
+// 提供和管理元素狀態，並向子組件提供上下文
+
+// useElementContext
+// 提供上下文的 hook
+
+// Action Creators
+// 創建不同的 Redux 動作
 
 // 處理狀態更新操作的 reducer，實際執行更新邏輯
 const elementReducer = (
@@ -110,66 +112,109 @@ const elementReducer = (
 
       // 合併更新後的布局元素和其他元素
       return [...updatedLayoutElements, ...otherElements];
-
-    case "RESIZE_ELEMENT":
-      return state.map((element) =>
-        element.id === action.payload.id
-          ? { ...element, height: action.payload.config.height }
-          : element
-      );
+    case "SET_ELEMENTS":
+      return action.payload;
     default:
       return state;
   }
 };
 
+// 創建 ElementContext 用於狀態管理
 const ElementContext = createContext<ElementContextType | undefined>(undefined);
 
-// 管理狀態和提供上下文
-export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [elements, dispatch] = useReducer(elementReducer, []);
+// ElementProvider 組件，提供狀態和功能給子組件
+export const ElementProvider: React.FC<{
+  children: React.ReactNode;
+  websiteId: string;
+}> = ({ children, websiteId }) => {
+  const [elements, localDispatch] = useReducer(elementReducer, []);
   const [selectedElement, setSelectedElement] =
     useState<LocalElementType | null>(null);
-
-  // Debug
-  useEffect(() => {
-    console.log("Elements updated:", elements);
-  }, [elements]);
+  const reduxElements = useAppSelector(selectElementInstances);
+  const reduxDispatch = useAppDispatch();
 
   useEffect(() => {
-    console.log("Current elements state:", elements);
-  }, [elements]);
+    console.log("Syncing Redux elements to local state:", reduxElements);
+    localDispatch({
+      type: "SET_ELEMENTS",
+      payload: Object.values(reduxElements),
+    });
+  }, [reduxElements]);
 
-  // ID 設置當前選中的元素
-  const setSelectedElementId = (id: UniqueIdentifier | null) => {
-    if (id === null) {
-      setSelectedElement(null);
-    } else {
-      const element = elements.find((el) => el.id === id);
-      setSelectedElement(element || null);
+  useEffect(() => {
+    console.log("Syncing local state to Redux:", elements);
+    // ... 现有的代码 ...
+  }, [elements, reduxElements, reduxDispatch, websiteId]);
+
+  // 同步 Redux 元素到本地狀態
+  useEffect(() => {
+    localDispatch({
+      type: "SET_ELEMENTS",
+      payload: Object.values(reduxElements),
+    });
+  }, [reduxElements]);
+
+  // 同步本地狀態到 Redux
+  useEffect(() => {
+    const elementsObject = elements.reduce((acc, element) => {
+      acc[element.id] = element;
+      return acc;
+    }, {} as Record<string, LocalElementType>);
+
+    if (!isEqual(elementsObject, reduxElements)) {
+      reduxDispatch(
+        updateElementLibrary({
+          websiteId,
+          updates: { byId: elementsObject },
+          deletedIds: Object.keys(reduxElements).filter(
+            (id) => !elementsObject[id]
+          ),
+        })
+      );
     }
-  };
+  }, [elements, reduxElements, reduxDispatch, websiteId]);
 
-  // 添加新元素，元素不包含 ID
-  const addElement = useCallback((element: Omit<LocalElementType, "id">) => {
-    const newElement = { ...element, id: uuidv4() };
-    // console.log("Adding new element:", newElement);
-    dispatch({ type: "ADD_ELEMENT", payload: newElement });
-  }, []);
+  // Debug 日誌
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.log("Elements updated:", elements);
+    }
+  }, [elements]);
 
-  // 更新指定 ID 的元素
-  const updateElement = useCallback(
-    (id: UniqueIdentifier, updates: Partial<LocalElementType>) => {
-      dispatch({ type: "UPDATE_ELEMENT", payload: { id, updates } });
+  const setSelectedElementId = useCallback(
+    (id: UniqueIdentifier | null) => {
+      if (id === null) {
+        setSelectedElement(null);
+      } else {
+        const element = elements.find((el) => el.id === id);
+        setSelectedElement(element || null);
+      }
     },
-    []
+    [elements]
   );
 
-  // 所有元素的属性更新，通常在整个元素库或所有元素的上下文中使用
+  const addElement = useCallback((element: Omit<LocalElementType, "id">) => {
+    const newElement = { ...element, id: uuidv4() };
+    localDispatch({ type: "ADD_ELEMENT", payload: newElement });
+  }, []);
+
+  const updateElement = useCallback(
+    (id: UniqueIdentifier, updates: Partial<LocalElementType>) => {
+      localDispatch({ type: "UPDATE_ELEMENT", payload: { id, updates } });
+      reduxDispatch(
+        updateElementLibrary({
+          websiteId,
+          updates: { [id]: updates },
+          deletedIds: [],
+        })
+      );
+    },
+    [reduxDispatch, websiteId]
+  );
+
   const updateElementProperty = useCallback(
     (id: UniqueIdentifier, propertyPath: string, value: any) => {
-      dispatch({
+      localDispatch({
         type: "UPDATE_ELEMENT_PROPERTY",
         payload: { id, propertyPath, value },
       });
@@ -179,7 +224,7 @@ export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const updateSelectedElement = useCallback(
     (id: UniqueIdentifier, propertyPath: string, value: any) => {
-      dispatch({
+      localDispatch({
         type: "UPDATE_SELECTED_ELEMENT",
         payload: { id, propertyPath, value },
       });
@@ -187,36 +232,25 @@ export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   );
 
-  // 刪除指定 ID 的元素
-  const deleteElement = useCallback((id: UniqueIdentifier) => {
-    dispatch({ type: "DELETE_ELEMENT", payload: { id } });
-  }, []);
+  const deleteElement = useCallback(
+    (id: UniqueIdentifier) => {
+      localDispatch({ type: "DELETE_ELEMENT", payload: { id } });
+      reduxDispatch(deleteElementInstance(id));
+      console.log(`Element ${id} has been deleted`);
+    },
+    [reduxDispatch]
+  );
 
-  // 重新排序元素
   const reorderElement = useCallback((newOrder: UniqueIdentifier[]) => {
-    dispatch({ type: "REORDER_ELEMENT", payload: { newOrder } });
+    localDispatch({ type: "REORDER_ELEMENT", payload: { newOrder } });
   }, []);
 
-  // 更新指定 ID 元素的位置
   const updateElementPosition = useCallback(
-    (
-      id: UniqueIdentifier,
-      config: {
-        position: Position;
-      }
-    ) => {
-      dispatch({
+    (id: UniqueIdentifier, config: { position: Position }) => {
+      localDispatch({
         type: "UPDATE_ELEMENT_POSITION",
         payload: { id, config },
       });
-    },
-    []
-  );
-
-  //  調整指定 ID 元素的高度
-  const resizeElement = useCallback(
-    (id: UniqueIdentifier, config: { height: number }) => {
-      dispatch({ type: "RESIZE_ELEMENT", payload: { id, config } });
     },
     []
   );
@@ -233,7 +267,6 @@ export const ElementProvider: React.FC<{ children: React.ReactNode }> = ({
     deleteElement,
     reorderElement,
     updateElementPosition,
-    resizeElement,
   };
 
   return (
@@ -254,7 +287,7 @@ export const useElementContext = () => {
 // Debug
 export const useElementsDebug = () => {
   const { elements } = useElementContext();
-  // console.log("Current elements:", elements);
+  console.log("Current elements:", elements);
   return elements;
 };
 
@@ -275,12 +308,4 @@ export const updateElementPosition = (
 export const deleteElement = (id: UniqueIdentifier): Action => ({
   type: "DELETE_ELEMENT",
   payload: { id },
-});
-
-export const resizeElement = (
-  id: UniqueIdentifier,
-  config: { height: number }
-): Action => ({
-  type: "RESIZE_ELEMENT",
-  payload: { id, config },
 });

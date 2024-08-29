@@ -1,4 +1,6 @@
 import { UniqueIdentifier } from "@dnd-kit/core";
+import { AlignmentConfig, Size } from "../CanvasArea";
+import { ElementConfig } from "./ElementConfigInterface";
 
 export interface Position {
   x: number;
@@ -13,14 +15,16 @@ export interface BaseElementData {
   [key: string]: any;
 }
 
-export interface GlobalElementType extends BaseElementData {
-  isLayout: boolean;
-  defaultProps: {
-    position?: Position;
-  };
-}
-
 export type LocalElementType = LayoutElementData | FreeDraggableElementData;
+
+export type ElementInstance = LocalElementType;
+
+export interface ElementLibrary {
+  byId: Record<string, LocalElementType>;
+  allIds: string[];
+  selectedId: string | null;
+  configs?: any;
+}
 
 export interface LayoutElementData extends BaseElementData {
   children?: UniqueIdentifier[];
@@ -28,7 +32,6 @@ export interface LayoutElementData extends BaseElementData {
   isLayout: true;
 }
 
-// TODO:寫完整
 export interface FreeDraggableElementData extends BaseElementData {
   isLayout: false;
   config: any;
@@ -37,16 +40,25 @@ export interface FreeDraggableElementData extends BaseElementData {
 export interface ElementCallbacks {
   onUpdate: (updates: Partial<LocalElementType>) => void;
   onDelete: () => void;
-  onClick: (event: React.MouseEvent) => void;
   isSelected: boolean;
 }
 
+export interface FreeDraggableElementCallbacks {
+  onMouseUp: (event: React.MouseEvent) => void; // 移除可選性
+  calculatePosition: (
+    element: { id: string; config: ElementConfig },
+    alignmentConfig: AlignmentConfig
+  ) => Position; // 更新參數
+  alignmentConfig: AlignmentConfig; // 移除可選性
+  handleResize: (elementId: string, newSize: Size, direction: string) => void;
+}
 // 布局元素（包含回调）
 export type LayoutElementProps = LayoutElementData & ElementCallbacks;
 
 // 自由拖動元素（包含回调）
 export type FreeDraggableElementProps = FreeDraggableElementData &
-  ElementCallbacks;
+  ElementCallbacks &
+  FreeDraggableElementCallbacks;
 
 export interface LayoutProps extends LayoutElementData, ElementCallbacks {
   key: string;
@@ -62,8 +74,9 @@ export interface FreeDraggableProps
 
 export interface ContentProps {
   $isDragging?: boolean;
-  isSelected?: boolean;
-  $config: any;
+  $isSelected?: boolean;
+  $config?: any;
+  borderRadius?: number;
 }
 
 export interface Selection {

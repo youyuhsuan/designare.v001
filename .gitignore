@@ -34,3 +34,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# firebase-adminsdk
+src/config/designare-d73bc-firebase-adminsdk-t0zrw-8b4e5b52ea.json

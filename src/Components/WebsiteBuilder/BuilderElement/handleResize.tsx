@@ -1,22 +1,29 @@
 import styled from "styled-components";
 import React from "react";
 
+interface ResizeHandlesProps {
+  onResize: (
+    event: React.MouseEvent<HTMLDivElement>,
+    position: HandlePosition
+  ) => void;
+}
+
 const theme = {
   handleSize: "10px",
-  handleColor: "blue",
   handleOffset: "-5px",
 };
 
 const ResizeHandleBase = styled.div`
   position: absolute;
+  width: 100%;
+  height: 100%;
   width: var(--handle-size, ${theme.handleSize});
   height: var(--handle-size, ${theme.handleSize});
-  background-color: var(--handle-color, ${theme.handleColor});
+  background-color: ${(props) => props.theme.colors.accent};
   z-index: 10;
 `;
 
 const ResizeHandleContainer = styled.div`
-  position: relative;
   width: 100%;
   height: 100%;
 `;
@@ -37,7 +44,7 @@ const createPositionedHandle = (position: HandlePosition) => styled(
   ${() => {
     switch (position) {
       case "top-left":
-        return `top: ${theme.handleOffset}; left: ${theme.handleOffset}; cursor: nwse-resize;`;
+        return `top:${theme.handleOffset}; left: ${theme.handleOffset}; cursor: nwse-resize;`;
       case "top-right":
         return `top: ${theme.handleOffset}; right: ${theme.handleOffset}; cursor: nesw-resize;`;
       case "bottom-left":
@@ -66,13 +73,6 @@ const LeftHandle = createPositionedHandle("left");
 const RightHandle = createPositionedHandle("right");
 const TopHandle = createPositionedHandle("top");
 const BottomHandle = createPositionedHandle("bottom");
-
-interface ResizeHandlesProps {
-  onResize: (
-    event: React.MouseEvent<HTMLDivElement>,
-    position: HandlePosition
-  ) => void;
-}
 
 const ResizeHandles: React.FC<ResizeHandlesProps> = ({ onResize }) => (
   <ResizeHandleContainer>

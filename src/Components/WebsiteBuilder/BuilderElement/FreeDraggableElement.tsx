@@ -1,54 +1,30 @@
 "use client";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import styled from "styled-components";
-import Image from "next/image";
-import {
-  ContentProps,
-  FreeDraggableElementProps,
-  Selection,
-} from "../BuilderInterface";
+import { ContentProps, FreeDraggableElementProps } from "../BuilderInterface";
 import { useElementContext } from "../Slider/ElementContext";
 import ResizeHandles from "./handleResize";
+import EditInput from "./EditInput";
+import {
+  ButtonElement,
+  PElement,
+  ImageWrapperElement,
+  ImageElement,
+} from "./Styles";
+import { arrayToCssValue } from "@/src/utilities/arrayToCssValue";
 
 const ElementWrapper = styled.div<ContentProps>`
   position: absolute;
   cursor: move;
-  position: absolute;
   user-select: none;
+  object-fit: ${(props) => props.$config?.objectFit};
   opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
-  border: 1px solid ${(props) => (props.isSelected ? "blue" : "transparent")};
-`;
-
-const EditInput = styled.input<ContentProps>`
-  border: none;
-  background: transparent;
-  color: ${(props) => props.$config.textColor};
-  opacity: ${(props) => props.$config.opacity};
-  font-size: ${(props) => props.$config.fontSize};
-  font-family: ${(props) => props.$config.fontFamily};
-  padding: 0;
-  margin: 0;
-  &::selection {
-    background-color: #b3d4fc;
-  }
-`;
-
-const DeleteButton = styled.button`
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: #ff4136;
-  color: white;
-  border: none;
-  padding: 5px;
-  cursor: pointer;
+  border: 1px solid
+    ${(props) => (props.$isSelected ? props.theme.colors.accent : "none")};
+  width: ${(props) => props.$config?.size?.width}px;
+  height: ${(props) => props.$config?.size?.height}px;
 `;
 
 const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
@@ -56,33 +32,40 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   content,
   config,
   type,
+  calculatePosition,
+  alignmentConfig,
   isLayout,
   onUpdate,
   onDelete,
   isSelected,
-  onClick,
+  onMouseUp: parentOnMouseUp,
+  handleResize: parentHandleResize,
 }) => {
-  // 使用自訂 Hook 獲取上下文中的函式
+  // 使用上下文來更新選中的元素
   const { updateSelectedElement } = useElementContext();
 
-  // 狀態
-  // 編輯模式
+  // 狀態：編輯模式和內容
   const [isEditing, setIsEditing] = useState(false);
-  // 編輯內容的值
   const [editableContent, setEditableContent] = useState(content as string);
-
   const [isElementSelected, setIsElementSelected] = useState(isSelected);
-  // 文本選擇範圍
-  const [selection, setSelection] = useState<Selection | null>(null);
+  const [interactionMode, setInteractionMode] = useState<
+    "none" | "dragging" | "resizing" | "edi"
+  >("none");
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStartRef = useRef<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>({ x: 0, y: 0, width: 0, height: 0 });
+  const resizeDirectionRef = useRef<string | null>(null);
 
-  // 引用記錄是否正在調整大小
-  const resizingRef = useRef(false);
-  const isDraggingRef = useRef(false);
+  const elementRef = useRef<
+    HTMLInputElement | HTMLButtonElement | HTMLParagraphElement | null
+  >(null);
 
-  // 引用輸入框元素以便焦點管理
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [shouldSelectAll, setShouldSelectAll] = useState(false);
+  const isFirstEditRef = useRef(true);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -90,319 +73,376 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       data: { type },
     });
 
-  const style = useMemo(() => {
-    const { x, y } = config.position;
-    // 計算應用於 translate3d 的位移值
-    const translateX = isDragging && transform ? x + transform.x : x;
-    const translateY = isDragging && transform ? y + transform.y : y;
-
-    const baseStyle: React.CSSProperties = {
+  const style = React.useMemo(() => {
+    const position = calculatePosition({ id, config }, alignmentConfig);
+    const baseStyle = {
       position: "absolute" as const,
-      transform: `translate3d(${translateX}px, ${translateY}px, 0)`,
+      transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
       transition: isDragging ? "none" : "transform 0.3s ease-out",
-      color: config.textColor,
-      // width: config.size.width,
-      // height: config.size.height,
+      width: `${config.size.width}px`,
+      height: `${config.size.height}px`,
+      ...config.style,
     };
 
-    if (config.opacity) {
-      baseStyle.opacity = config.textColorOpacity;
+    if (type === "image" && config.media?.type === "image") {
+      return {
+        ...baseStyle,
+        borderRadius: `${config?.borderRadius ?? 0}%`,
+      };
     }
 
-    return { ...baseStyle, ...(config || {}) };
-  }, [config, isDragging, transform]);
+    if (type === "buttonElement") {
+      const marginValue = arrayToCssValue(config.boxModelEditor.margin, "%");
+      const paddingValue = arrayToCssValue(config.boxModelEditor.padding, "%");
+      return {
+        ...baseStyle,
+        margin: marginValue,
+        padding: paddingValue,
+      };
+    }
 
-  // 點擊事件處理函式，避免事件冒泡並調用傳入的 onClick 函式
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (!isDraggingRef.current) {
-        setIsElementSelected(true);
-        onClick(e);
-      }
-    },
-    [onClick]
-  );
+    return baseStyle;
+  }, [id, config, calculatePosition, isDragging, alignmentConfig, type]);
+
+  // 添加日誌來追蹤元素狀態
+  useEffect(() => {
+    console.log(
+      `Element ${id} - isEditing: ${isEditing}, isSelected: ${isSelected}`
+    );
+  }, [id, isEditing, isSelected]);
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest(`[data-id="${id}"]`)) return;
+      if ((e.target as HTMLElement).closest(`[id="${id}"]`)) {
+        return;
+      }
       setIsElementSelected(false);
+      setIsEditing(false);
     },
     [id]
   );
 
   useEffect(() => {
-    document.addEventListener("click", handleOutsideClick);
+    document.addEventListener("mousedown", handleOutsideClick);
     return () => {
-      document.removeEventListener("click", handleOutsideClick);
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [handleOutsideClick]);
 
-  // 雙擊事件處理函式，用於進入編輯模式
+  const handleSelectComplete = useCallback(() => {
+    setShouldSelectAll(false);
+  }, []);
+
   const handleDoubleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (type === "text" || type === "button") {
         setIsEditing(true);
         setIsElementSelected(false);
-        setSelection({ start: 0, end: editableContent.length }); // 設置文本選擇範圍
-        console.log("Set editing to true, selection:", {
-          start: 0,
-          end: editableContent.length,
-        });
+        setEditableContent(content as string);
+        if (isFirstEditRef.current) {
+          setTimeout(() => {
+            setShouldSelectAll(true);
+          }, 50);
+          isFirstEditRef.current = false;
+        }
       }
     },
-    [type, editableContent]
+    [type, content, setIsEditing, setIsElementSelected, setEditableContent]
   );
 
   // 失去焦點處理函式，保存編輯內容並更新元素
   const handleBlur = useCallback(() => {
     setIsEditing(false);
-    setSelection(null);
-    console.log("Blur event triggered");
     if (editableContent !== content) {
       onUpdate({ content: editableContent });
       updateSelectedElement(id, "content", editableContent);
     }
-  }, [editableContent, content, id, onUpdate, updateSelectedElement]);
+    isFirstEditRef.current = true;
+  }, [
+    id,
+    setIsEditing,
+    editableContent,
+    content,
+    onUpdate,
+    updateSelectedElement,
+  ]);
 
   // 輸入內容變更處理函式
   const handleContentChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEditableContent(e.target.value);
+      const newValue = e.target.value;
+      setEditableContent(newValue);
     },
     []
   );
 
-  // TODO:FIX
   // 在編輯模式中設置文本選擇範圍
   useEffect(() => {
-    if (!selection || !isEditing) return;
-
-    const selectText = () => {
-      if (inputRef.current) {
-        inputRef.current.setSelectionRange(selection.start, selection.end);
-        inputRef.current.focus();
-      } else {
-        console.log("Input ref is null");
-      }
-    };
-
-    // 使用 requestAnimationFrame 確保在下一個動畫幀執行選擇操作
-    const frameId = requestAnimationFrame(() => {
-      selectText();
-      // 為了更高的可靠性，我們再次嘗試在短暫延遲後選擇文本
-      setTimeout(selectText, 0);
-    });
-
-    return () => cancelAnimationFrame(frameId);
-  }, [selection, isEditing]);
-
-  // 鍵盤事件處理函式
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (isEditing && document.activeElement === inputRef.current) {
-        if (event.key === "Escape") {
-          // 按下 Escape 退出編輯模式
-          setIsEditing(false);
-          setEditableContent(content as string); // 恢復原始內容
-        } else if (event.key === "Enter") {
-          // 按下 Enter 保存修改
-          handleBlur();
-        }
-      } else if (
-        !isEditing &&
-        event.key === "Backspace" &&
-        document.activeElement === inputRef.current
+    if (isEditing && elementRef.current) {
+      elementRef.current.focus();
+      if (
+        elementRef.current instanceof HTMLInputElement &&
+        isFirstEditRef.current
       ) {
-        event.preventDefault();
-        event.stopPropagation();
-        onDelete();
-        // console.log(`Element ${id} - Deleted`);
+        elementRef.current.setSelectionRange(0, editableContent.length);
+        isFirstEditRef.current = false;
       }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [id, onDelete, isEditing, editableContent, content, handleBlur]);
+    } else if (!isEditing) {
+      isFirstEditRef.current = true;
+    }
+  }, [isEditing, editableContent]);
 
   const handleResize = useCallback(
-    (e: React.MouseEvent, direction: string) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (resizingRef.current) return;
-      resizingRef.current = true;
+    (e: MouseEvent) => {
+      if (!resizeStartRef.current || !resizeDirectionRef.current) return;
 
-      const startX = e.clientX;
-      const startY = e.clientY;
-      const startWidth = config.size.width;
-      const startHeight = config.size.height;
-      const startLeft = config.position.x;
-      const startTop = config.position.y;
+      const deltaX = e.clientX - resizeStartRef.current.x;
+      const deltaY = e.clientY - resizeStartRef.current.y;
 
-      const handleMouseMove = (moveEvent: MouseEvent) => {
-        if (resizingRef.current) {
-          let newWidth = startWidth;
-          let newHeight = startHeight;
-          let newLeft = startLeft;
-          let newTop = startTop;
+      let newWidth = resizeStartRef.current.width;
+      let newHeight = resizeStartRef.current.height;
 
-          const deltaX = moveEvent.clientX - startX;
-          const deltaY = moveEvent.clientY - startY;
+      const direction = resizeDirectionRef.current;
 
-          switch (direction) {
-            case "right":
-              newWidth = Math.max(50, startWidth + deltaX);
-              break;
-            case "left":
-              newWidth = Math.max(50, startWidth - deltaX);
-              newLeft = startLeft + startWidth - newWidth;
-              break;
-            case "bottom":
-              newHeight = Math.max(50, startHeight + deltaY);
-              break;
-            case "top":
-              newHeight = Math.max(50, startHeight - deltaY);
-              newTop = startTop + startHeight - newHeight;
-              break;
-            case "top-left":
-              newWidth = Math.max(50, startWidth - deltaX);
-              newHeight = Math.max(50, startHeight - deltaY);
-              newLeft = startLeft + startWidth - newWidth;
-              newTop = startTop + startHeight - newHeight;
-              break;
-            case "top-right":
-              newWidth = Math.max(50, startWidth + deltaX);
-              newHeight = Math.max(50, startHeight - deltaY);
-              newTop = startTop + startHeight - newHeight;
-              break;
-            case "bottom-left":
-              newWidth = Math.max(50, startWidth - deltaX);
-              newHeight = Math.max(50, startHeight + deltaY);
-              newLeft = startLeft + startWidth - newWidth;
-              break;
-            case "bottom-right":
-              newWidth = Math.max(50, startWidth + deltaX);
-              newHeight = Math.max(50, startHeight + deltaY);
-              break;
-          }
+      // 計算新的尺寸
+      if (direction.includes("right")) {
+        newWidth = Math.max(50, resizeStartRef.current.width + deltaX);
+      } else if (direction.includes("left")) {
+        newWidth = Math.max(50, resizeStartRef.current.width - deltaX);
+      }
 
-          onUpdate({
-            config: {
-              ...config,
-              size: { width: newWidth, height: newHeight },
-              position: { x: newLeft, y: newTop },
-            },
-          });
-        }
-      };
+      if (direction.includes("bottom")) {
+        newHeight = Math.max(50, resizeStartRef.current.height + deltaY);
+      } else if (direction.includes("top")) {
+        newHeight = Math.max(50, resizeStartRef.current.height - deltaY);
+      }
 
-      const handleMouseUp = () => {
-        resizingRef.current = false;
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-      };
-
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+      // 更新本地 UI 狀態
+      onUpdate({
+        config: {
+          ...config,
+          size: { width: newWidth, height: newHeight },
+        },
+      });
     },
     [config, onUpdate]
   );
 
-  const customListeners = useMemo(
-    () => ({
-      ...listeners,
-      onMouseDown: (e: React.MouseEvent) => {
-        isDraggingRef.current = false;
-        listeners?.onMouseDown?.(e);
-      },
-      onMouseMove: (e: React.MouseEvent) => {
-        isDraggingRef.current = true;
-        listeners?.onMouseMove?.(e);
-      },
-      onMouseUp: (e: React.MouseEvent) => {
-        if (!isDraggingRef.current) {
-          handleClick(e);
-        }
-        isDraggingRef.current = false;
-        listeners?.onMouseUp?.(e);
-      },
-    }),
-    [listeners, handleClick]
+  const handleResizeEnd = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // 立即移除事件監聽器
+      document.removeEventListener("mousemove", handleResize);
+      document.removeEventListener("mouseup", handleResizeEnd);
+
+      setIsResizing(false);
+
+      if (resizeDirectionRef.current) {
+        // 使用最終的尺寸調用父組件的 handleResize 函數
+        parentHandleResize(
+          id,
+          {
+            width: config.size.width,
+            height: config.size.height,
+          },
+          resizeDirectionRef.current
+        );
+      }
+
+      resizeStartRef.current = { x: 0, y: 0, width: 0, height: 0 };
+      resizeDirectionRef.current = null;
+    },
+    [
+      handleResize,
+      parentHandleResize,
+      id,
+      config.size.width,
+      config.size.height,
+    ]
   );
+
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent, direction: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsResizing(true);
+      resizeStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        width: config.size.width,
+        height: config.size.height,
+      };
+      resizeDirectionRef.current = direction;
+
+      document.addEventListener("mousemove", handleResize);
+      document.addEventListener("mouseup", handleResizeEnd);
+    },
+    [config.size.width, config.size.height, handleResize, handleResizeEnd]
+  );
+
+  useEffect(() => {
+    return () => {
+      // 確保在組件卸載時清理所有事件監聽器
+      document.removeEventListener("mousemove", handleResize);
+      document.removeEventListener("mouseup", handleResizeEnd);
+    };
+  }, [handleResize, handleResizeEnd]);
+  // 鍵盤事件處理函式
+  useEffect(() => {
+    const handleKeyDown: EventListener = (event: Event) => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (isEditing) {
+        return;
+      }
+
+      if (
+        keyboardEvent.key === "Backspace" &&
+        document.activeElement === elementRef.current &&
+        isSelected
+      ) {
+        keyboardEvent.preventDefault();
+        keyboardEvent.stopPropagation();
+        try {
+          onDelete();
+        } catch (error) {
+          console.error(`Error deleting element ${id}:`, error);
+        }
+      }
+    };
+
+    const element = elementRef.current;
+    if (element) {
+      element.addEventListener("keydown", handleKeyDown);
+      return () => {
+        element.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [id, isEditing, isSelected, onDelete]);
 
   const renderContent = () => {
     if (isEditing) {
       return (
         <EditInput
-          ref={inputRef}
+          ref={elementRef as React.RefObject<HTMLInputElement>}
           value={editableContent}
-          $config={config}
           onChange={handleContentChange}
           onBlur={handleBlur}
-          onKeyDown={(e) => {
-            console.log("Key pressed:", e.key);
-            if (e.key === "Enter") {
-              e.preventDefault(); // 防止在文本區域中添加新行
-              handleBlur();
-            }
-          }}
-          autoFocus // 添加 autoFocus 屬性
+          $config={config}
+          shouldSelectAll={shouldSelectAll}
+          onSelectComplete={handleSelectComplete}
+          data-testid={`edit-input-${id}`}
         />
       );
     }
+    const commonProps = {
+      style: {
+        margin: 0,
+        padding: 0,
+      },
+      tabIndex: 0,
+      onDoubleClick: handleDoubleClick,
+    };
 
     switch (type) {
       case "text":
         return (
-          <p ref={textRef} onDoubleClick={handleDoubleClick}>
+          <PElement
+            {...commonProps}
+            ref={elementRef as React.RefObject<HTMLParagraphElement>}
+            onDoubleClick={handleDoubleClick}
+            data-testid={`non-editable-content-${id}`}
+            $config={config}
+          >
             {content}
-          </p>
+          </PElement>
         );
-      case "button":
+      case "buttonElement":
         return (
-          <button ref={buttonRef} onDoubleClick={handleDoubleClick}>
+          <ButtonElement
+            {...commonProps}
+            ref={elementRef as React.RefObject<HTMLButtonElement>}
+            data-testid={`non-editable-content-${id}`}
+            $config={config}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             {content}
-          </button>
+          </ButtonElement>
         );
       case "image":
+        let imageSrc = content as string;
+        if (imageSrc.startsWith("/")) {
+          imageSrc = `${process.env.NEXT_PUBLIC_BASE_URL || ""}${imageSrc}`;
+        }
         return (
-          <Image
-            src={content as string}
-            alt="Draggable"
-            layout="fill"
-            objectFit="contain"
-          />
+          <ImageWrapperElement
+            {...commonProps}
+            ref={elementRef as React.RefObject<HTMLDivElement>}
+            $config={config}
+            data-testid={id}
+          >
+            <ImageElement
+              src={
+                config.media?.type === "image" && config.media.url
+                  ? config.media.url
+                  : imageSrc
+              }
+              alt={config.alt}
+              layout="fill"
+              sizes="100vw"
+              $config={config}
+            />
+          </ImageWrapperElement>
         );
-      case "columns":
-      case "container":
       case "list":
       default:
-        return <div>{content}</div>;
+        return (
+          <div
+            {...commonProps}
+            ref={elementRef as React.RefObject<HTMLDivElement>}
+          >
+            {content}
+          </div>
+        );
     }
   };
 
   return (
     <ElementWrapper
-      ref={setNodeRef} // 設置節點引用
-      style={style} // 應用計算好的樣式
-      $config={config} // 傳遞配置
-      $isDragging={isDragging} // 傳遞拖動狀態
-      isSelected={isSelected} // 傳遞選中狀態
-      onClick={handleClick} // 點擊事件處理函式
-      onDoubleClick={handleDoubleClick} // 雙擊事件處理函式
+      ref={setNodeRef}
+      style={style}
+      $config={config}
+      $isDragging={isDragging}
+      $isSelected={isSelected}
+      onMouseUp={parentOnMouseUp}
+      onMouseDown={(e) => {
+        if (!isEditing) {
+          setIsElementSelected(true);
+        }
+      }}
+      onDoubleClick={handleDoubleClick}
+      tabIndex={isElementSelected ? 0 : -1}
+      onFocus={(e) => {
+        console.log(`Focus gained on element ${id}`);
+        e.target.style.outline = "none";
+      }}
+      onBlur={() => {
+        if (!isEditing) {
+          setIsElementSelected(false);
+        }
+      }}
+      data-testid={`element-wrapper-${id}`}
       {...(isLayout || isEditing ? {} : { ...attributes, ...listeners })}
     >
       {renderContent()}
-      {isElementSelected && !isLayout && !isEditing && (
-        <ResizeHandles onResize={handleResize} />
+      {isSelected && !isLayout && !isEditing && (
+        <ResizeHandles onResize={handleResizeStart} />
       )}
     </ElementWrapper>
   );
 };
-
 export default FreeDraggableElement;

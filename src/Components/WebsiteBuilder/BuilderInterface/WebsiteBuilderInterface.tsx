@@ -1,78 +1,35 @@
 import { ElementConfig } from "./ElementConfigInterface";
-import { GlobalElementType } from "./ElementInterface";
+import { LocalElementType } from "./ElementInterface";
+// import { GlobalElementType } from "./ElementInterface";
 
-export interface WebsiteBuilderState {
-  // 全局佈局結構
-  layout: {
-    sections: any[];
-  };
+export interface LayoutSettings {
+  siteWidth: string;
+  canvasHeight: string;
+}
 
-  // 網站全局設置
-  globalSettings: {
-    siteWidth: string;
-    canvasHeight: string;
-    theme: {
-      primaryColor: string;
-      secondaryColor: string;
-      // ... 其他主題設置
-    };
-    globalStyles: {
-      fontFamily: string;
-      fontSize: string;
-      // ... 其他全局樣式
-    };
-  };
+// 網站全局設置
+export interface GlobalSettingsState {
+  desktop: LayoutSettings;
+  tablet: LayoutSettings;
+  mobile: LayoutSettings;
+  currentDevice: "desktop" | "tablet" | "mobile";
+  canvasOffset: { x: number; y: number };
+}
 
-  // 元素庫
-  elementLibrary: {
-    elements: { [id: string]: GlobalElementType };
-    configs: { [elementType: string]: { [property: string]: ElementConfig } };
-  };
+// 對象類型 `T` 的所有屬性及其嵌套屬性變成可選
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
 
-  // 歷史記錄和撤銷/重做功能
-  history: {
-    past: any[]; // 考虑为历史记录定义一个更具体的类型
-    present: any | null;
-    future: any[];
-  };
+export interface EditorSettings {
+  showGrid: boolean;
+  snapToGrid: boolean;
+}
 
-  // 專案元信息
-  projectMetadata: {
-    name: string;
-    createdAt: string;
-    lastModified: string;
-    collaborators: string[];
-  };
-
-  // 發佈狀態
-  publishStatus: {
-    isPublished: boolean;
-    lastPublishedAt: string | null;
-    version: string;
-  };
-
-  // 用戶偏好設置
-  userPreferences: {
-    language: string;
-    editorSettings: {
-      showGrid: boolean;
-      snapToGrid: boolean;
-      // ... 其他編輯器設置
-    };
-  };
-
-  // 全局拖拽狀態
-  dragAndDrop: {
-    currentDraggedElement: any | null;
-    dragSource: any | null;
-    dragTarget: any | null;
-  };
-
-  // 性能相關的全局標誌
-  performanceFlags: {
-    previewMode: boolean;
-    advancedFeaturesEnabled: boolean;
-  };
-  activeElementId: string | null;
-  instances: { [id: string]: any };
+// Toolbar 創造 Instance
+export interface CreateElementPayload {
+  type: string;
+  content: string;
+  isLayout: boolean;
+  elementType?: string;
 }

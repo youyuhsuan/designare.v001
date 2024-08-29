@@ -83,7 +83,7 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
   onUpdate,
   onDelete,
   isSelected,
-  onClick,
+  onMouseUp,
 }) => {
   const { updateSelectedElement } = useElementContext();
   const elementRef = useRef<HTMLDivElement>(null);
@@ -224,8 +224,8 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
       $config={config}
       aria-label={`${type} content`}
       $isDragging={isDragging}
-      isSelected={isSelected}
-      onClick={onClick}
+      $isSelected={isSelected}
+      onMouseUp={onMouseUp}
     >
       <Section $config={config} ref={elementRef} tabIndex={0}>
         {isSelected && (

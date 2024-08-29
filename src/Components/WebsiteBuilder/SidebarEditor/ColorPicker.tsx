@@ -10,8 +10,7 @@ interface ColorPickerProps {
   defaultOpacity: number;
   onChange: (color: string, opacity: number) => void;
 }
-
-export const ColorPicker: React.FC<ColorPickerProps> = ({
+const ColorPicker: React.FC<ColorPickerProps> = ({
   color,
   opacity,
   defaultColor,
@@ -20,6 +19,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 }) => {
   const parseColor = useCallback(
     (inputColor: string): RgbaColor => {
+      if (inputColor === "transparent" || defaultColor === "transparent") {
+        return { r: 0, g: 0, b: 0, a: 0 }; // 透明色
+      }
       const [r, g, b, a] = parseToRgba(inputColor || defaultColor);
       return { r, g, b, a: a !== undefined ? a : opacity / 100 };
     },
@@ -40,11 +42,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   };
 
   return (
-    <div>
+    <>
       <RgbaColorPicker color={currentColor} onChange={handleChange} />
-      <div>
-        <label>Opacity: {Math.round(currentColor.a * 100)}%</label>
-      </div>
-    </div>
+    </>
   );
 };
+
+export default ColorPicker;

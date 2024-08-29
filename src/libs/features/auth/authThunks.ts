@@ -36,6 +36,7 @@ export const handleSubmit =
   async (dispatch) => {
     dispatch(clearError());
     dispatch(clearMessage());
+    // 將 FormData 轉換為普通對象
     const formObject = Object.fromEntries(formData.entries());
     //  formObject = {
     //    key: value,
@@ -57,6 +58,7 @@ export const handleSubmit =
           result = await callApi("/api/auth/login", validatedData);
           // result = await authenticate(validatedData, "login");
           dispatch(setAuthState(result));
+          dispatch(setMessage("登入成功"));
           break;
         case "signup":
           schema = signupSchema;
@@ -64,6 +66,7 @@ export const handleSubmit =
           result = await callApi("/api/auth/signup", validatedData);
           // result = await authenticate(validatedData, "signup");
           dispatch(setAuthState(result));
+          dispatch(setMessage("註冊成功"));
           break;
         case "forgot-password":
           schema = forgotPasswordSchema;
@@ -90,15 +93,16 @@ export const handleSubmit =
         //  ]
         // 使用 reduce 來將數組轉換為對象
         const errors = error.issues.reduce((acc, issue) => {
-          const path = issue.path[0] as string;
-          acc[path] = issue.message;
+          const path = issue.path[0] as string; // 提取錯誤路徑
+          acc[path] = issue.message; // 將錯誤信息映射到路徑
           return acc;
         }, {} as { [key: string]: string });
 
         //  空對象 {}
         //  類型斷言 as { [key: string]: string }
-        dispatch(setError(errors));
+        dispatch(setError(errors)); // 設置驗證錯誤
       } else {
+        // 如果錯誤不是 ZodError
         dispatch(
           setError({
             global: error instanceof Error ? error.message : "發生未知錯誤",

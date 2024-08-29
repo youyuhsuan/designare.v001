@@ -56,7 +56,7 @@ const PaddingBox = styled(BaseBox)`
 const ContentBox = styled(BaseBox)`
   width: 30%;
   height: 30%;
-  background-color: #ffffff;
+  background-color: ${(props) => props.theme.colors.background};
   border: none;
   &::hover {
     background-color: #95b5c0;
@@ -66,7 +66,7 @@ const ContentBox = styled(BaseBox)`
 const Label = styled.div`
   position: absolute;
   font-size: 12px;
-  color: #666;
+  color: ${(props) => props.theme.colors.border};
 `;
 
 const MarginLabel = styled(Label)`
@@ -84,13 +84,6 @@ const PaddingLabel = styled(Label)`
   left: 5px;
 `;
 
-const InputsContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-`;
-
 const PropertyInputs = styled.div`
   display: flex;
   flex-direction: column;
@@ -100,7 +93,7 @@ const PropertyInputs = styled.div`
 
 const PropertyLabel = styled.div`
   font-weight: bold;
-  color: #333;
+  color: ${(props) => props.theme.colors.text};
   text-transform: capitalize;
 `;
 
@@ -112,19 +105,19 @@ const InputWrapper = styled.div`
 
 const InputLabel = styled.label`
   min-width: 50px;
-  color: #666;
+  color: ${(props) => props.theme.colors.text};
 `;
 
 const Input = styled.input`
   width: 60px;
   padding: 5px;
-  border: 1px solid #ccc;
+  border: 1px solid ${(props) => props.theme.colors.border};
   border-radius: 4px;
   font-size: 14px;
 
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: ${(props) => props.theme.colors.border};
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
 `;
@@ -212,17 +205,15 @@ const BoxModelEditor: React.FC<BoxModelEditorProps> = ({ value, onChange }) => {
           </BorderBox>
         </MarginBox>
       </BoxModelVisualization>
-      <InputsContainer>
-        {(["margin", "padding"] as const).map((property) => (
-          <PropertyInputs key={property}>
-            <PropertyLabel>{property}</PropertyLabel>
-            {renderInput(property, 0, "top")}
-            {renderInput(property, 1, "right")}
-            {renderInput(property, 2, "bottom")}
-            {renderInput(property, 3, "left")}
-          </PropertyInputs>
-        ))}
-      </InputsContainer>
+      {(["margin", "padding"] as const).map((property) => (
+        <PropertyInputs key={property}>
+          <PropertyLabel>{property}</PropertyLabel>
+          {renderInput(property, 0, "top")}
+          {renderInput(property, 1, "right")}
+          {renderInput(property, 2, "bottom")}
+          {renderInput(property, 3, "left")}
+        </PropertyInputs>
+      ))}
     </EditorContainer>
   );
 };

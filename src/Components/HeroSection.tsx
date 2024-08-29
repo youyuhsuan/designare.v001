@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { Button } from "@/src/Components/Button";
+import FrostedLiquidButton from "./FrostedLiquidButton";
+import dynamic from "next/dynamic";
+const BackgroundLines = dynamic(() => import("./BackgroundLines"), {
+  ssr: false,
+  loading: () => <div style={{ height: "100%", width: "100%" }}></div>,
+});
 
 const HeroContainer = styled.section`
-  height: 100vh;
-  padding: 2%;
+  height: 90dvh;
   background: ${(props) => props.theme.colors.background};
   overflow: hidden;
   position: relative;
@@ -34,173 +37,57 @@ const Subtitle = styled(motion.h2)`
   margin-bottom: 2rem;
 `;
 
-const ButtonContainer = styled(motion(Button))`
-  position: relative;
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
-  border-radius: 50px;
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  box-shadow: 0 4px 6px ${(props) => props.theme.colors.shadow};
-`;
-
-const ButtonText = styled(motion.span)`
-  position: relative;
-  z-index: 2;
-  mix-blend-mode: difference;
-`;
-
-const LiquidBackground = styled(motion.div)`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: ${(props) => props.theme.button.backgroundColor.primary};
-  backdrop-filter: blur(5px);
-  border-radius: 50px;
-`;
-
-const ArrowIcon = styled(motion.span)`
-  display: inline-block;
-  margin-left: 10px;
-`;
-
-const LineContainer = styled.div`
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  grid-template-rows: repeat(20, 1fr);
-`;
-
-const Line = styled(motion.div)`
-  width: 60%;
-  height: 3px;
-  background-color: ${(props) => props.theme.colors.accent};
-  transform-origin: center center;
-`;
-
-const ButtonLink = styled(Link)`
-  text-decoration: none;
-`;
-
-const BackgroundLines: React.FC = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("resize", handleResize);
-
-    handleResize();
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  const lines = [];
-  const rows = 20;
-  const cols = 20;
-
-  for (let i = 0; i < rows * cols; i++) {
-    const row = Math.floor(i / cols);
-    const col = i % cols;
-    const centerX = ((col + 0.5) / cols) * windowSize.width;
-    const centerY = ((row + 0.5) / rows) * windowSize.height;
-
-    lines.push(
-      <Line
-        key={i}
-        animate={{
-          rotate:
-            Math.atan2(mousePosition.y - centerY, mousePosition.x - centerX) *
-            (180 / Math.PI),
-        }}
-        transition={{ type: "spring", stiffness: 100, damping: 10 }}
-      />
-    );
-  }
-
-  return <LineContainer>{lines}</LineContainer>;
-};
-
-const FrostedLiquidButton: React.FC = () => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <ButtonLink href="/dashboard">
-      <ButtonContainer
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-        whileTap={{ scale: 0.95 }}
-      >
-        <LiquidBackground
-          initial={{ x: "-100%" }}
-          animate={{ x: isHovered ? 0 : "-100%" }}
-          transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-        />
-        <ButtonText>
-          開始設計
-          <ArrowIcon
-            animate={{ x: isHovered ? 5 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            →
-          </ArrowIcon>
-        </ButtonText>
-      </ButtonContainer>
-    </ButtonLink>
-  );
-};
-
 const words = ["網站", "夢想", "創意", "未來"];
 
-export default function HeroSection() {
+const HeroSection: React.FC = () => {
+  // 定義狀態來跟踪當前顯示的單詞索引
   const [currentWord, setCurrentWord] = useState(0);
+
+  useEffect(() => {
+    // 設置一個定時器，每3秒更換顯示的單詞
+    const interval = setInterval(() => {
+      setCurrentWord((prev) => (prev + 1) % words.length); // 更新當前單詞索引，循環顯示
+    }, 3000); // 3秒後更新單詞
+
+    // 清除定時器以防止內存洩漏
+    return () => clearInterval(interval);
+  }, []); // 空依賴數組，僅在組件首次渲染時設置定時器
 
   return (
     <HeroContainer>
+      {/* 背景線條裝飾 */}
       <BackgroundLines />
       <ContentWrapper>
+        {/* 顯示標題，初始時不透明度為0並向上偏移50px，動畫中不透明度設為1並回到原位置 */}
         <Title
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
           Designare
         </Title>
         <Subtitle>
+          {/* 顯示副標題，包含動畫效果的單詞 */}
           將您的
           <AnimatePresence mode="wait">
             <motion.span
-              key={currentWord}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              onAnimationComplete={() => {
-                setCurrentWord((prev) => (prev + 1) % words.length);
-              }}
+              key={currentWord} // 使用當前單詞的索引作為唯一鍵
+              initial={{ opacity: 0, y: 20 }} // 初始狀態，不透明度為0，向下偏移20px
+              animate={{ opacity: 1, y: 0 }} // 動畫狀態，不透明度設為1，回到原位置
+              exit={{ opacity: 0, y: -20 }} // 離開時狀態，不透明度為0，向上偏移20px
+              transition={{ duration: 0.3 }} // 動畫持續時間為0.3秒
             >
               {" "}
-              {words[currentWord]}
+              {words[currentWord]} {/* 當前顯示的單詞 */}
             </motion.span>
           </AnimatePresence>{" "}
           變為現實
         </Subtitle>
+        {/* 顯示一個透明度效果的按鈕 */}
         <FrostedLiquidButton />
       </ContentWrapper>
     </HeroContainer>
   );
-}
+};
+
+export default HeroSection;

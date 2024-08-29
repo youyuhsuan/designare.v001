@@ -1,4 +1,3 @@
-// 實現網站容器，接受全局設置作為 props
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -18,8 +17,8 @@ const Container = styled.div`
 
 export const SiteContainer: React.FC<SiteContainerProps> = ({
   children,
-  width = "100%",
-  height = "100dvh",
+  width,
+  height,
   onClick,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,6 +41,7 @@ export const SiteContainer: React.FC<SiteContainerProps> = ({
       ref={containerRef}
       style={{ width: width, height: height }}
       onClick={handleClick}
+      data-element-id="viewport"
     >
       {children}
     </Container>

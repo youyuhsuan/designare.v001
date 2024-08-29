@@ -1,19 +1,92 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import styled from "styled-components";
 import {
-  ButtonOption,
-  CustomInputProps,
   LocalElementType,
   PropertyConfigWithComposite,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
+
 import { elementConfigs } from "./elementConfigs";
-import ButtonGroup from "./ButtonGroup";
 import { getNestedValue } from "./getNestedValue";
-import { ColorPicker } from "./ColorPicker";
+
+// UI
+import ButtonGroup from "./ButtonGroup";
+import BoxModelEditor from "./BoxModelEditor";
+import ColorPicker from "./ColorPicker";
+import CustomSelect from "./CustomSelect";
+import MediaUploader from "./MediaUploader";
+
+// Redux
+import { useAppDispatch } from "@/src/libs/hook";
+import { updateElementInstance } from "@/src/libs/features/websiteBuilder/elementLibrarySlice";
+
+// Usecontext
+import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
+import { createNestedObject } from "@/src/utilities/createNestedObject";
+
+const EditorContainer = styled.div`
+  z-index: 10;
+  width: 15rem; //  240px
+  box-shadow: ${(props) => props.theme.colors.shadow} -4px 9px 25px -6px;
+  background-color: ${(props) => props.theme.colors.background};
+  border-left: 1px solid ${(props) => props.theme.colors.border};
+  overflow-y: auto;
+  padding: 1rem;
+`;
+
+const CompositeContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 1rem;
+`;
+
+const EditorWrapper = styled.div`
+  margin-bottom: 1rem;
+  flex: 1;
+`;
+
+const Label = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  color: ${(props) => props.theme.colors.border};
+`;
+
+const InputWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid ${(props) => props.theme.colors.border};
+  border-radius: 0.375rem;
+  background-color: ${(props) => props.theme.colors.background};
+  box-shadow: 0 1px 2px ${(props) => props.theme.colors.shadow};
+  &:focus {
+    border-color: ${(props) => props.theme.colors.accent};
+    outline: none;
+    box-shadow: 0 0 0 1px ${(props) => props.theme.colors.accent};
+  }
+`;
+
+const SubConfig = styled.span`
+  color: ${(props) => props.theme.colors.border};
+`;
 
 const SidebarEditor: React.FC = () => {
+  const dispatch = useAppDispatch();
+
   // 從 useElementContext 中取得選中的元素以及更新選中元素的函數
   const { selectedElement, updateSelectedElement } = useElementContext();
   // 使用 localElement 儲存選中的元素狀態
@@ -41,65 +114,105 @@ const SidebarEditor: React.FC = () => {
       setLocalElement((prev) => {
         if (!prev) return null;
 
-        // 創建 updatedElement 作為 prev 的淺拷貝
         const updatedElement = { ...prev };
-
-        // 創建 updatedElement.config 作為 prev.config 的淺拷貝
         updatedElement.config = { ...updatedElement.config };
 
-        // 將 propertyPath 分割成各個層級
+        // 将 propertyPath 分割成各个层级
         const pathParts = propertyPath.split(".");
         let current: any = updatedElement.config;
 
-        // 遍歷 pathParts，更新對象中的嵌套屬性
+        console.log("Initial current (config):", current);
+        console.log("Path parts:", pathParts);
+
+        // 遍历 pathParts，更新对象中的嵌套属性
         for (let i = 0; i < pathParts.length - 1; i++) {
-          // 如果當前層級的屬性不存在，則創建一個空對象
-          if (!current[pathParts[i]]) {
-            current[pathParts[i]] = {};
+          const part = pathParts[i];
+          console.log(`Processing part: ${part}`);
+
+          // 如果当前层级的属性不存在，则创建一个空对象
+          if (!current[part]) {
+            console.log(`Creating new object at: ${part}`);
+            current[part] = {};
           }
-          // 確保當前層級的屬性是對象
-          current[pathParts[i]] = { ...current[pathParts[i]] };
-          // 移動到下一層級
-          current = current[pathParts[i]];
+
+          // 确保当前层级的属性是对象
+          current[part] = { ...current[part] };
+          // 移动到下一层级
+          current = current[part];
         }
 
         const lastKey = pathParts[pathParts.length - 1];
+        console.log("Last key:", lastKey);
 
-        // 處理數組更新
+        // 处理数组更新
         if (Array.isArray(current[lastKey])) {
-          // 如果 value 是單個值，假設它是要更新數組中的某個索引
+          // 如果 value 是单个值，假设它是要更新数组中的某个索引
           if (!Array.isArray(value)) {
             const index = parseInt(lastKey);
-            if (!isNaN(index) && index >= 0 && index < current.length) {
-              current[index] = value;
+            if (
+              !isNaN(index) &&
+              index >= 0 &&
+              index < current[lastKey].length
+            ) {
+              console.log(
+                `Updating array at index ${index} with value:`,
+                value
+              );
+              current[lastKey][index] = value;
             }
           } else {
-            // 如果 value 是數組，直接替換整個數組
+            // 如果 value 是数组，直接替换整个数组
+            console.log(`Replacing array with value:`, value);
             current[lastKey] = value;
           }
         } else {
-          // 對於非數組類型，直接設置新值
+          // 对于非数组类型，直接设置新值
+          console.log(`Setting value at ${lastKey}:`, value);
           current[lastKey] = value;
         }
 
-        // 在最後一層級設置新值
+        // 在最后一层级设置新值
         current[pathParts[pathParts.length - 1]] = value;
 
-        // 如果 propertyPath 只包含一層，且 updatedElement 上存在這個屬性，則更新頂層屬性
+        // 如果 propertyPath 只包含一层，且 updatedElement 上存在这个属性，则更新顶层属性
         if (
           pathParts.length === 1 &&
           updatedElement.hasOwnProperty(pathParts[0])
         ) {
+          console.log(
+            `Updating top-level property ${pathParts[0]} with value:`,
+            value
+          );
           updatedElement[pathParts[0]] = value;
         }
 
+        // 调用 updateSelectedElement
         updateSelectedElement(prev.id, `config.${propertyPath}`, value);
 
-        console.log("updatedElement :", updatedElement);
+        console.log("Updated updatedElement:", updatedElement);
+        console.log("Property path:", propertyPath, "Value:", value);
+
+        const updates = createNestedObject(["config", ...pathParts], value);
+
+        // 构造并发送 Redux action
+        dispatch(
+          updateElementInstance({
+            id: prev.id,
+            updates: updates,
+          })
+        );
+
         return updatedElement;
       });
     },
-    [updateSelectedElement]
+    [dispatch, updateSelectedElement]
+  );
+
+  const handleButtonGroupChange = useCallback(
+    (key: string, newValue: any) => {
+      handleChange(`${key}`, newValue);
+    },
+    [handleChange]
   );
 
   const renderField = useCallback(
@@ -123,50 +236,77 @@ const SidebarEditor: React.FC = () => {
         case "text":
         case "number":
           return (
-            <div key={key}>
-              <label htmlFor={`${selectedElement.id}-${key}`}>
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
                 {fieldConfig.label}
-              </label>
-              <input
-                id={`${selectedElement.id}-${key}`}
-                type={fieldConfig.type}
-                value={value ?? ""}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  if (fieldConfig.type === "number") {
-                    const transformedValue =
-                      newValue === ""
-                        ? ""
-                        : fieldConfig.transform
-                        ? fieldConfig.transform(newValue)
-                        : Number(newValue);
-                    handleChange(key, transformedValue);
-                  } else {
+              </Label>
+              <InputWrapper>
+                <Input
+                  id={`${selectedElement.id}-${key}`}
+                  type={fieldConfig.type}
+                  value={value ?? ""}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    if (fieldConfig.type === "number") {
+                      const transformedValue =
+                        newValue === ""
+                          ? ""
+                          : fieldConfig.transform
+                          ? fieldConfig.transform(newValue)
+                          : Number(newValue);
+                      handleChange(key, transformedValue);
+                    } else {
+                      handleChange(
+                        key,
+                        fieldConfig.transform
+                          ? fieldConfig.transform(newValue)
+                          : newValue
+                      );
+                    }
+                  }}
+                />
+                {fieldConfig.unit && <SubConfig>{fieldConfig.unit}</SubConfig>}
+              </InputWrapper>
+            </EditorWrapper>
+          );
+        case "select":
+          return (
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
+                {fieldConfig.label}
+              </Label>
+              <InputWrapper>
+                <CustomSelect
+                  id={`${selectedElement.id}-${key}`}
+                  options={fieldConfig.options as string[]}
+                  value={value ?? fieldConfig.defaultValue}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    const newValue = e.target.value;
                     handleChange(
                       key,
                       fieldConfig.transform
                         ? fieldConfig.transform(newValue)
                         : newValue
                     );
-                  }
-                }}
-              />
-              {fieldConfig.unit && <span>{fieldConfig.unit}</span>}
-            </div>
+                  }}
+                />
+                {fieldConfig.unit && <SubConfig>{fieldConfig.unit}</SubConfig>}
+              </InputWrapper>
+            </EditorWrapper>
           );
         case "checkbox":
           return (
-            <div key={key}>
-              <label>
-                <input
+            <EditorWrapper key={key}>
+              <Label>
+                <Input
                   id={`${selectedElement.id}-${key}`}
                   type="checkbox"
                   checked={!!value}
                   onChange={(e) => handleChange(key, e.target.checked)}
                 />
                 {fieldConfig.label}
-              </label>
-            </div>
+              </Label>
+            </EditorWrapper>
           );
         case "color":
           let colorValue = fieldConfig.defaultColor;
@@ -191,15 +331,11 @@ const SidebarEditor: React.FC = () => {
                   : fieldConfig.defaultOpacity;
             }
           }
-
-          console.log("colorValue", colorValue);
-          console.log("opacityValue", opacityValue);
-
           return (
-            <div key={key}>
-              <label htmlFor={`${selectedElement.id}-${key}`}>
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
                 {fieldConfig.label}
-              </label>
+              </Label>
               <ColorPicker
                 id={`${selectedElement.id}-${key}`}
                 color={colorValue}
@@ -211,15 +347,15 @@ const SidebarEditor: React.FC = () => {
                   handleChange(`${key}Opacity`, newOpacity);
                 }}
               />
-            </div>
+            </EditorWrapper>
           );
         case "slider":
           return (
-            <div key={key}>
-              <label htmlFor={`${selectedElement.id}-${key}`}>
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
                 {fieldConfig.label}
-              </label>
-              <input
+              </Label>
+              <Input
                 id={`${selectedElement.id}-${key}`}
                 type="range"
                 min={fieldConfig.min || 0}
@@ -235,156 +371,133 @@ const SidebarEditor: React.FC = () => {
                 {value || 0}
                 {fieldConfig.unit}
               </span>
-            </div>
+            </EditorWrapper>
+          );
+        case "boxModel":
+          const boxModelValue = value || fieldConfig.defaultValue;
+          return (
+            <EditorWrapper key={key}>
+              <Label htmlFor={`${selectedElement.id}-${key}`}>
+                {fieldConfig.label}
+              </Label>
+              <BoxModelEditor
+                value={boxModelValue}
+                onChange={(newValue) => {
+                  const processedValue =
+                    newValue === undefined || newValue === null
+                      ? fieldConfig.defaultValue
+                      : newValue;
+                  handleChange(key, processedValue);
+                }}
+              />
+            </EditorWrapper>
           );
         case "composite":
           if (!fieldConfig.compositeFields) {
             return <p key={key}>No composite fields available</p>;
           }
-          if (fieldConfig.renderCustomInput) {
-            const inputValue =
-              value !== undefined && value !== null
-                ? value
-                : fieldConfig.defaultValue;
-            return (
-              <div key={key}>
-                <label htmlFor={`${selectedElement.id}-${key}`}>
-                  {fieldConfig.label}
-                </label>
-                {fieldConfig.renderCustomInput({
-                  id: `${selectedElement.id}-${key}`,
-                  value: inputValue,
-                  onChange: (newValue) => {
-                    const processedValue =
-                      newValue === undefined || newValue === null
-                        ? fieldConfig.defaultValue
-                        : newValue;
-                    handleChange(`${key}`, processedValue);
-                  },
-                })}
-              </div>
-            );
-          }
           return (
-            <div key={key}>
-              <label>{fieldConfig.label}</label>
-              {Object.entries(fieldConfig.compositeFields).map(
-                ([subKey, subConfig]) => {
-                  const fullPath = `${key}.${subKey}`;
-                  let subValue = getNestedValue(currentValues.config, fullPath);
+            <EditorWrapper key={key}>
+              <Label>{fieldConfig.label}</Label>
+              <CompositeContainer>
+                {Object.entries(fieldConfig.compositeFields).map(
+                  ([subKey, subConfig]) => {
+                    const fullPath = `${key}.${subKey}`;
+                    let subValue = getNestedValue(
+                      currentValues.config,
+                      fullPath
+                    );
 
-                  // 如果 subValue 是 undefined，使用默認值
-                  if (subValue === undefined) {
-                    subValue =
-                      fieldConfig.defaultValue &&
-                      typeof fieldConfig.defaultValue === "object"
-                        ? fieldConfig.defaultValue[subKey]
-                        : subConfig.defaultValue;
+                    // 如果 subValue 是 undefined，使用默認值
+                    if (subValue === undefined) {
+                      subValue =
+                        fieldConfig.defaultValue &&
+                        typeof fieldConfig.defaultValue === "object"
+                          ? fieldConfig.defaultValue[subKey]
+                          : subConfig.defaultValue;
+                    }
+
+                    console.log(
+                      `Composite subfield: ${fullPath}, value:`,
+                      subValue
+                    );
+
+                    return (
+                      <EditorWrapper key={fullPath}>
+                        <Label htmlFor={`${selectedElement.id}-${fullPath}`}>
+                          {subConfig.label}
+                        </Label>
+                        <InputWrapper>
+                          <Input
+                            id={`${selectedElement.id}-${fullPath}`}
+                            type={subConfig.type}
+                            value={subValue ?? ""}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              let transformedValue: number | string = newValue;
+
+                              if (subConfig.type === "number") {
+                                transformedValue =
+                                  newValue === "" ? 0 : Number(newValue);
+                              }
+
+                              if (
+                                subConfig.transform &&
+                                transformedValue !== null
+                              ) {
+                                transformedValue =
+                                  subConfig.transform(transformedValue);
+                              }
+
+                              console.log(
+                                `Updating ${fullPath} to:`,
+                                transformedValue
+                              );
+                              handleChange(fullPath, transformedValue);
+                            }}
+                          />
+                          {subConfig.unit && (
+                            <SubConfig>{subConfig.unit}</SubConfig>
+                          )}
+                        </InputWrapper>
+                      </EditorWrapper>
+                    );
                   }
-
-                  console.log(
-                    `Composite subfield: ${fullPath}, value:`,
-                    subValue
-                  );
-
-                  return (
-                    <div key={fullPath}>
-                      <label htmlFor={`${selectedElement.id}-${fullPath}`}>
-                        {subConfig.label}
-                      </label>
-                      <input
-                        id={`${selectedElement.id}-${fullPath}`}
-                        type={subConfig.type}
-                        value={subValue ?? ""}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          let transformedValue: number | string = newValue;
-
-                          if (subConfig.type === "number") {
-                            transformedValue =
-                              newValue === "" ? 0 : Number(newValue);
-                          }
-
-                          if (
-                            subConfig.transform &&
-                            transformedValue !== null
-                          ) {
-                            transformedValue =
-                              subConfig.transform(transformedValue);
-                          }
-
-                          console.log(
-                            `Updating ${fullPath} to:`,
-                            transformedValue
-                          );
-                          handleChange(fullPath, transformedValue);
-                        }}
-                      />
-                      {subConfig.unit && <span>{subConfig.unit}</span>}
-                    </div>
-                  );
-                }
-              )}
-            </div>
+                )}
+              </CompositeContainer>
+            </EditorWrapper>
           );
-        case "object":
-          if (!fieldConfig.properties) {
-            return <p key={key}>No object properties available</p>;
-          }
+        case "mediaUpload":
           return (
-            <div key={key}>
-              <label>{fieldConfig.label}</label>
-              {Object.entries(fieldConfig.properties).map(
-                ([subKey, subConfig]) =>
-                  renderField(
-                    `${key}.${subKey}`,
-                    subConfig as PropertyConfigWithComposite
-                  )
-              )}
-            </div>
+            <EditorWrapper key={key}>
+              <Label>{fieldConfig.label}</Label>
+              <MediaUploader
+                value={value}
+                onChange={(newValue) => handleChange(`${key}`, newValue)}
+                accept={fieldConfig.accept as string}
+                maxSize={fieldConfig.maxSize as number}
+              />
+            </EditorWrapper>
           );
         case "buttonGroup":
           if (!fieldConfig.options || !Array.isArray(fieldConfig.options)) {
             return <p key={key}>No valid options available for button group</p>;
           }
-          const buttonOptions: ButtonOption[] = fieldConfig.options.map(
-            (option) =>
-              typeof option === "string"
-                ? { label: option, value: option }
-                : option
-          );
           return (
-            <div key={key}>
-              <label>{fieldConfig.label}</label>
-              <ButtonGroup
-                options={buttonOptions}
-                value={value}
-                onChange={(newValue) => handleChange(`config.${key}`, newValue)}
-              />
-            </div>
+            <ButtonGroup
+              key={key}
+              options={fieldConfig.options}
+              value={value}
+              onChange={(newValue) => handleButtonGroupChange(key, newValue)}
+              groupKey={key}
+              label={fieldConfig.label as string}
+            />
           );
-        case "custom":
-          if (fieldConfig.renderCustomInput) {
-            return (
-              <div key={key}>
-                <label htmlFor={`${selectedElement.id}-${key}`}>
-                  {fieldConfig.label}
-                </label>
-                {fieldConfig.renderCustomInput({
-                  id: `${selectedElement.id}-${key}`,
-                  value,
-                  onChange: (newValue) =>
-                    handleChange(`config.${key}`, newValue),
-                } as CustomInputProps)}
-              </div>
-            );
-          }
-          return null;
         default:
           return null;
       }
     },
-    [handleChange, currentValues, selectedElement]
+    [selectedElement, currentValues, handleChange, handleButtonGroupChange]
   );
 
   const renderedContent = useMemo(() => {
@@ -406,11 +519,9 @@ const SidebarEditor: React.FC = () => {
     return (
       <>
         <h2>Edit {elementType}</h2>
-        {/* 遍歷配置中的屬性並渲染相應的字段 */}
         {Object.entries(config.properties).map(([key, propertyConfig]) =>
           renderField(key, propertyConfig as PropertyConfigWithComposite)
         )}
-        {/* 如果存在子類型配置，渲染特定屬性 */}
         {subtypeConfig && (
           <>
             <h3>Specific Properties</h3>
@@ -424,7 +535,7 @@ const SidebarEditor: React.FC = () => {
     );
   }, [selectedElement, renderField]);
 
-  return renderedContent;
+  return <EditorContainer>{renderedContent}</EditorContainer>;
 };
 
 export default SidebarEditor;

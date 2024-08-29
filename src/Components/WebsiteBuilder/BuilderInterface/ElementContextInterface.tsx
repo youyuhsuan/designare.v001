@@ -1,6 +1,8 @@
 import { UniqueIdentifier } from "@dnd-kit/core/dist/types";
 import { LocalElementType, Position } from "./ElementInterface";
 
+type AlignmentType = { [key: string]: number } | null;
+
 export interface ElementContextType {
   // 當前所有元素
   elements: LocalElementType[];
@@ -40,8 +42,7 @@ export interface ElementContextType {
       position: Position;
     }
   ) => void;
-  // 調整指定 ID 元素的高度
-  resizeElement: (id: UniqueIdentifier, config: { height: number }) => void;
+  //
 }
 
 export type Action =
@@ -92,4 +93,5 @@ export type Action =
       payload: { id: UniqueIdentifier; config: { height: number } };
     }
   // 設定選擇元素
-  | { type: "SELECTED_ELEMENT"; payload: UniqueIdentifier | null };
+  | { type: "SELECTED_ELEMENT"; payload: UniqueIdentifier | null }
+  | { type: "SET_ELEMENTS"; payload: LocalElementType[] };
