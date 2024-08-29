@@ -14,6 +14,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "info";
   $size?: "small" | "medium" | "large";
   $isSelected?: boolean;
+  $fullWidth?: boolean; // 新增 $fullWidth 屬性
 }
 
 const buttonStyles = css<ButtonProps>`
@@ -28,6 +29,8 @@ const buttonStyles = css<ButtonProps>`
   gap: 8px;
   font-size: 1rem;
   font-weight: 500;
+  width: ${(props) =>
+    props.$fullWidth ? "100%" : "auto"}; // 根據 $fullWidth 設置寬度
 
   ${(props) => {
     const color = props.$color || "primary";
@@ -36,23 +39,26 @@ const buttonStyles = css<ButtonProps>`
 
     switch (size) {
       case "small":
-        css`
+        return css`
           padding: 0.4rem 0.8rem;
           font-size: 0.875rem;
         `;
-        break;
       case "large":
-        css`
+        return css`
           padding: 0.8rem 1.6rem;
           font-size: 1.125rem;
         `;
-        break;
       default:
-        css`
+        return css`
           padding: 0.625rem 1.25rem;
           font-size: 1rem;
         `;
     }
+  }}
+
+  ${(props) => {
+    const color = props.$color || "primary";
+    const variant = props.$variant || "filled";
 
     switch (variant) {
       case "outlined":
@@ -106,6 +112,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       $variant = "filled",
       $color = "primary",
       $size = "medium",
+      $fullWidth = false, // 設置 $fullWidth 的默認值
       ...rest
     },
     ref
@@ -115,6 +122,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         $variant={$variant}
         $color={$color}
         $size={$size}
+        $fullWidth={$fullWidth} // 傳遞 $fullWidth 屬性
         {...rest}
         ref={ref}
       >

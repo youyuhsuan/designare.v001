@@ -129,7 +129,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({
         )}
         {message && <SuccessMessage>{message}</SuccessMessage>}
         {errors?.global && <ErrorMessage>{errors.global}</ErrorMessage>}
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} $fullWidth>
           {isSubmitting ? "註冊中..." : "註冊"}
         </Button>
       </form>

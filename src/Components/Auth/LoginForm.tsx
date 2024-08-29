@@ -32,6 +32,7 @@ const Or = styled.span`
   color: ${(props) => props.theme.colors.text};
   font-size: 10px;
 `;
+
 interface LoginFormProps {
   onModeChange: (mode: AuthMode) => void;
   onSubmit: (formData: FormData) => Promise<void>;
@@ -152,7 +153,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </ForgotPasswordWrapper>
         {message && <SuccessMessage>{message}</SuccessMessage>}
         {errors?.global && <ErrorMessage>{errors.global}</ErrorMessage>}
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} $fullWidth>
           {isSubmitting ? "登入中..." : "登入"}
         </Button>
       </form>
@@ -163,6 +164,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <Button
           onClick={() => handleProviderLogin("google")}
           disabled={isGoogleSubmitting}
+          $fullWidth
         >
           <FaGoogle /> Google
           {isGoogleSubmitting ? "登入中..." : "登入"}

@@ -75,7 +75,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
         </Wrapper>
         {message && <SuccessMessage>{message}</SuccessMessage>}
         {errors?.global && <ErrorMessage>{errors.global}</ErrorMessage>}
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} $fullWidth>
           {isSubmitting ? "發送中..." : "發送重設密碼郵件"}
         </Button>
       </form>
