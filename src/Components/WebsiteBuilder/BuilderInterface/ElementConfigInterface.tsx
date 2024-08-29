@@ -11,7 +11,8 @@ type PropertyType =
   | "button"
   | "buttonGroup"
   | "boxModel"
-  | "composite";
+  | "composite"
+  | "border";
 
 interface BaseOption {
   label: string;

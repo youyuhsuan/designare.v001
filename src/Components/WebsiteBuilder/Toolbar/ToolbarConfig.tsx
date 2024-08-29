@@ -1,9 +1,11 @@
 import React from "react";
 import styled from "styled-components";
 import { FaFont, FaImage, FaColumns, FaShapes, FaList } from "react-icons/fa";
+import { RxButton } from "react-icons/rx";
 
 export interface ToolbarSubItem {
   label: string;
+  isLayout?: boolean;
   elementType: string;
   content?: string;
 }
@@ -94,37 +96,63 @@ export const toolbarItems: ToolbarItem[] = [
     ],
   },
   {
-    icon: FaFont,
-    label: "Button",
-    type: "button",
+    icon: RxButton,
+    label: "ButtonElement",
+    type: "buttonElement",
     items: [
       {
-        label: "Filled",
-        elementType: "FilledButton",
+        label: "FilledButton",
+        elementType: "filledButton",
         content: "Filled Button",
       },
       {
-        label: "Outlined",
-        elementType: "OutlinedButton",
+        label: "OutlinedButton",
+        elementType: "outlinedButton",
         content: "Outlined Button",
       },
       {
-        label: "Text",
-        elementType: "TextButton",
+        label: "TextButton",
+        elementType: "textButton",
         content: "Text Button",
       },
     ],
   },
   {
     icon: FaColumns,
-    label: "Column",
-    type: "columns",
-    isLayout: true,
+    label: "Layout",
+    type: "layout",
+    items: [
+      {
+        label: "layout",
+        isLayout: true,
+        elementType: "layout",
+      },
+      {
+        label: "columnized layout",
+        isLayout: true,
+        elementType: "columnizedLayout",
+      },
+      {
+        label: "Sidebar layout",
+        isLayout: true,
+        elementType: "sidebarLayout",
+      },
+      {
+        label: "Grid",
+        isLayout: true,
+        elementType: "grid",
+      },
+      {
+        label: "Freeform",
+        isLayout: true,
+        elementType: "freeform",
+      },
+    ],
   },
   {
     icon: FaShapes,
-    label: "Video",
-    type: "video",
+    label: "navbar",
+    type: "navbar",
     elementType: "Video",
     content: "https://www.youtube.com/embed/dQw4w9WgXcQ",
   },

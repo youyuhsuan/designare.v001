@@ -62,12 +62,14 @@ export const elementLibrarySlice = createSlice({
     ) => {
       const { type, content, isLayout, elementType } = action.payload;
       const id = uuidv4(); // 生成唯一的 ID
+
       const config = createElementConfig(
         type,
         isLayout,
         elementType,
         state.configs
       ); // 根據配置創建元素配置
+
       const newElement: LocalElementType = {
         id,
         type,

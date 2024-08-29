@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import styled from "styled-components";
 import { ContentProps } from "../BuilderInterface";
-import { commonStyles } from "./commonStyles";
+import { commonStyles } from "./Styles";
 
 interface EditInputProps {
   value: string;

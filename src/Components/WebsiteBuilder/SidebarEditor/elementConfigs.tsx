@@ -69,10 +69,166 @@ export const elementConfigs: ElementConfigs = {
         maxSize: 5000000,
       },
     },
+    subtypes: {
+      columnizedLayout: {
+        type: "columnizedLayout",
+        label: "側邊欄佈局",
+        properties: {
+          size: {
+            label: "整體大小",
+            type: "composite",
+            defaultValue: { width: 1200, height: 600 },
+            compositeFields: {
+              width: {
+                label: "寬度",
+                type: "number",
+                defaultValue: 1200,
+                unit: "px",
+              },
+              height: {
+                label: "高度",
+                type: "number",
+                defaultValue: 600,
+                unit: "px",
+              },
+            },
+          },
+          columnWidths: {
+            label: "欄寬比例",
+            type: "composite",
+            defaultValue: { left: 50, middle: 25, right: 25 },
+            compositeFields: {
+              left: {
+                label: "左欄寬度",
+                type: "number",
+                defaultValue: 50,
+                unit: "%",
+              },
+              middle: {
+                label: "中欄寬度",
+                type: "number",
+                defaultValue: 25,
+                unit: "%",
+              },
+              right: {
+                label: "右欄寬度",
+                type: "number",
+                defaultValue: 25,
+                unit: "%",
+              },
+            },
+          },
+          gap: {
+            label: "間隔",
+            type: "number",
+            defaultValue: 20,
+            unit: "px",
+          },
+          middleColumnSplit: {
+            label: "中欄分割",
+            type: "checkbox",
+            defaultValue: true,
+          },
+        },
+      },
+      gridLayout: {
+        type: "gridLayout",
+        label: "網格佈局",
+        properties: {
+          columns: {
+            label: "列數",
+            type: "number",
+            defaultValue: 3,
+            min: 1,
+            max: 12,
+          },
+          gap: {
+            label: "間隔",
+            type: "number",
+            defaultValue: 20,
+            unit: "px",
+          },
+          rowHeight: {
+            label: "行高",
+            type: "number",
+            defaultValue: 200,
+            unit: "px",
+          },
+        },
+      },
+      navbar: {
+        type: "navbar",
+        label: "導航欄",
+        properties: {
+          size: {
+            label: "大小",
+            type: "composite",
+            defaultValue: { width: 1200, height: 60 },
+            compositeFields: {
+              width: {
+                label: "寬度",
+                type: "number",
+                defaultValue: 1200,
+                unit: "px",
+              },
+              height: {
+                label: "高度",
+                type: "number",
+                defaultValue: 60,
+                unit: "px",
+              },
+            },
+          },
+          backgroundColor: {
+            label: "背景顏色",
+            type: "color",
+            defaultColor: "#ffffff",
+            defaultOpacity: 100,
+          },
+          position: {
+            label: "位置",
+            type: "select",
+            options: ["static", "fixed", "sticky"],
+            defaultValue: "static",
+          },
+        },
+      },
+      footer: {
+        type: "footer",
+        label: "頁尾",
+        properties: {
+          size: {
+            label: "大小",
+            type: "composite",
+            defaultValue: { width: 1200, height: 200 },
+            compositeFields: {
+              width: {
+                label: "寬度",
+                type: "number",
+                defaultValue: 1200,
+                unit: "px",
+              },
+              height: {
+                label: "高度",
+                type: "number",
+                defaultValue: 200,
+                unit: "px",
+              },
+            },
+          },
+          backgroundColor: {
+            label: "背景顏色",
+            type: "color",
+            defaultColor: "#f8f9fa",
+            defaultOpacity: 100,
+          },
+        },
+      },
+    },
   },
   freeDraggable: {
     type: "freeDraggable",
-    label: "可自由拖動元素",
+    label: "自由拖動元素",
     properties: {
       horizontalAlignment: {
         label: "水平對齊",
@@ -221,6 +377,12 @@ export const elementConfigs: ElementConfigs = {
             min: 1,
             max: 3,
           },
+          textAlign: {
+            label: "文字對齊",
+            type: "select",
+            options: ["start", "end", "left", "right", "center"],
+            defaultValue: "start",
+          },
           fontFamily: {
             label: "字體系列",
             type: "select",
@@ -239,36 +401,18 @@ export const elementConfigs: ElementConfigs = {
             ],
             defaultValue: "Arial",
           },
-          // fontWeight: {
-          //   label: "字體粗細",
-          //   type: "button",
-          //   options: [
-          //     normal: { label: "正常", type: "button", transform: String },
-          //     bold: { label: "粗體", type: "button", transform: String },
-          //   ],
-          // },
-          // fontStyle: {
-          //   label: "字體樣式",
-          //   type: "button",
-          //   options: {
-          //     normal: { label: "正常", type: "button", transform: String },
-          //     italic: { label: "斜體", type: "button", transform: String },
-          //   },
-          //   defaultValue: "normal",
-          // },
-          // textDecoration: {
-          //   label: "文字裝飾",
-          //   type: "button",
-          //   options: {
-          //     none: { label: "無", type: "button", transform: String },
-          //     underline: { label: "下劃線", type: "button", transform: String },
-          //     lineThrough: {
-          //       label: "刪除線",
-          //       type: "button",
-          //       transform: String,
-          //     },
-          //   },
-          // },
+          fontWeight: {
+            label: "字體粗細",
+            type: "select",
+            options: ["normal", "bold", "bolder"],
+            defaultValue: "normal",
+          },
+          textDecoration: {
+            label: "文字裝飾",
+            type: "select",
+            options: ["none", "underline", "dotted", "overline"],
+            defaultValue: "none",
+          },
         },
       },
       buttonElement: {
@@ -278,6 +422,7 @@ export const elementConfigs: ElementConfigs = {
           size: {
             label: "大小",
             type: "composite",
+            defaultValue: { width: 142, height: 42 },
             compositeFields: {
               width: {
                 label: "寬度",
@@ -290,41 +435,82 @@ export const elementConfigs: ElementConfigs = {
                 unit: "px",
               },
             },
-            defaultValue: {
-              width: 142,
-              height: 42,
+          },
+          boxModelEditor: {
+            label: "CSS 盒模型",
+            type: "boxModel",
+            defaultValue: { margin: [0, 0, 0, 0], padding: [0, 0, 0, 0] },
+            compositeFields: {
+              margin: {
+                type: "number",
+                defaultValue: [0, 0, 0, 0],
+                unit: "%",
+              },
+              padding: {
+                type: "number",
+                defaultValue: [0, 0, 0, 0],
+                unit: "%",
+              },
             },
           },
-          zIndex: {
-            label: "層級索引",
+          fontSize: {
+            label: "字體大小",
             type: "number",
-            defaultValue: 0,
-          },
-          backgroundColor: {
-            label: "背景顏色",
-            type: "color",
-            defaultValue: {
-              filled: "#007bff",
-              outlined: "transparent",
-              text: "transparent",
-            },
+            defaultValue: 16,
+            unit: "pt",
           },
           textColor: {
             label: "文字顏色",
             type: "color",
             defaultValue: {
-              filled: "#ffffff",
-              outlined: "#007bff",
-              text: "#007bff",
+              filledButton: "#ffffff",
+              outlinedButton: "#52525255",
+              textButton: "#52525255",
             },
+            defaultOpacity: 100,
+            step: 10,
+            min: 0,
+            max: 100,
           },
+          fontFamily: {
+            label: "字體系列",
+            type: "select",
+            options: [
+              "Arial",
+              "Verdana",
+              "Courier New",
+              "Georgia",
+              "Times New Roman",
+              "Tahoma",
+              "Trebuchet MS",
+              "Lucida Sans Unicode",
+              "Palatino Linotype",
+              "Arial Black",
+              "Comic Sans MS",
+            ],
+            defaultValue: "Arial",
+          },
+          backgroundColor: {
+            label: "背景顏色",
+            type: "color",
+            defaultValue: {
+              filledButton: "#252525",
+              outlinedButton: "transparent",
+              textButton: "transparent",
+            },
+            defaultOpacity: 100,
+            step: 10,
+            min: 0,
+            max: 100,
+          },
+          // TODO:還沒有處理
           border: {
             label: "邊框",
-            type: "custom",
+            type: "border",
             defaultValue: {
-              filled: { width: 0, style: "none", color: "transparent" },
-              outlined: { width: 1, style: "solid", color: "#007bff" },
-              text: { width: 0, style: "none", color: "transparent" },
+              filledButton: { width: 0, style: "none", color: "transparent" },
+              outlinedButton: { width: 1, style: "solid", color: "#007bff" },
+              textButton: { width: 0, style: "none", color: "transparent" },
             },
             compositeFields: {
               width: {
@@ -358,50 +544,24 @@ export const elementConfigs: ElementConfigs = {
             type: "number",
             defaultValue: 4,
             unit: "px",
-          },
-          padding: {
-            label: "內邊距",
-            type: "custom",
-            defaultValue: { top: 10, right: 20, bottom: 10, left: 20 },
-            compositeFields: {
-              top: {
-                label: "上",
-                type: "number",
-                unit: "px",
-              },
-              right: {
-                label: "右",
-                type: "number",
-                unit: "px",
-              },
-              bottom: {
-                label: "下",
-                type: "number",
-                unit: "px",
-              },
-              left: {
-                label: "左",
-                type: "number",
-                unit: "px",
-              },
-            },
+            min: 0,
           },
           hoverBackgroundColor: {
             label: "懸停背景顏色",
             type: "color",
             defaultValue: {
-              filled: "#0056b3",
-              outlined: "#e6f2ff",
-              text: "#e6f2ff",
+              filledButton: "#0056b3",
+              outlinedButton: "#e6f2ff",
+              textButton: "#e6f2ff",
             },
           },
           activeBackgroundColor: {
             label: "按下背景顏色",
             type: "color",
             defaultValue: {
-              filled: "#004085",
-              outlined: "#cce5ff",
-              text: "#cce5ff",
+              filledButton: "#004085",
+              outlinedButton: "#cce5ff",
+              textButton: "#cce5ff",
             },
           },
         },
@@ -489,6 +649,30 @@ export const elementConfigs: ElementConfigs = {
             type: "select",
             options: ["cover", "contain", "fill", "scale-down", "none"],
             defaultValue: "cover",
+          },
+        },
+      },
+      icon: {
+        type: "icon",
+        label: "圖標",
+        properties: {
+          size: {
+            label: "大小",
+            type: "number",
+            defaultValue: 24,
+            unit: "px",
+          },
+          color: {
+            label: "顏色",
+            type: "color",
+            defaultColor: "#000000",
+            defaultOpacity: 100,
+          },
+          name: {
+            label: "圖標名稱",
+            type: "select",
+            options: ["user", "home", "settings", "mail", "heart"], // 這裡可以根據您的圖標庫擴展
+            defaultValue: "user",
           },
         },
       },

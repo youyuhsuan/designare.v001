@@ -3,12 +3,17 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import styled from "styled-components";
-import Image from "next/image";
 import { ContentProps, FreeDraggableElementProps } from "../BuilderInterface";
 import { useElementContext } from "../Slider/ElementContext";
 import ResizeHandles from "./handleResize";
 import EditInput from "./EditInput";
-import { commonStyles } from "./commonStyles";
+import {
+  ButtonElement,
+  PElement,
+  ImageWrapperElement,
+  ImageElement,
+} from "./Styles";
+import { arrayToCssValue } from "@/src/utilities/arrayToCssValue";
 
 const ElementWrapper = styled.div<ContentProps>`
   position: absolute;
@@ -20,23 +25,6 @@ const ElementWrapper = styled.div<ContentProps>`
     ${(props) => (props.$isSelected ? props.theme.colors.accent : "none")};
   width: ${(props) => props.$config?.size?.width}px;
   height: ${(props) => props.$config?.size?.height}px;
-`;
-
-const ElementImageWrapper = styled.div<ContentProps>`
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: ${(props) => `${props.$config?.borderRadius}%`};
-`;
-
-const ElementImage = styled(Image)<ContentProps>`
-  object-fit: ${(props) => props.$config?.objectFit};
-`;
-
-const P = styled.p<ContentProps>`
-  ${commonStyles}
-  cursor: text;
 `;
 
 const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
@@ -96,11 +84,20 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       ...config.style,
     };
 
-    // 只有在元素類型為 "image" 時才添加 borderRadius
     if (type === "image" && config.media?.type === "image") {
       return {
         ...baseStyle,
         borderRadius: `${config?.borderRadius ?? 0}%`,
+      };
+    }
+
+    if (type === "buttonElement") {
+      const marginValue = arrayToCssValue(config.boxModelEditor.margin, "%");
+      const paddingValue = arrayToCssValue(config.boxModelEditor.padding, "%");
+      return {
+        ...baseStyle,
+        margin: marginValue,
+        padding: paddingValue,
       };
     }
 
@@ -352,7 +349,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     switch (type) {
       case "text":
         return (
-          <P
+          <PElement
             {...commonProps}
             ref={elementRef as React.RefObject<HTMLParagraphElement>}
             onDoubleClick={handleDoubleClick}
@@ -360,18 +357,21 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
             $config={config}
           >
             {content}
-          </P>
+          </PElement>
         );
-      case "button":
+      case "buttonElement":
         return (
-          <button
+          <ButtonElement
             {...commonProps}
             ref={elementRef as React.RefObject<HTMLButtonElement>}
-            onDoubleClick={handleDoubleClick}
             data-testid={`non-editable-content-${id}`}
+            $config={config}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
           >
             {content}
-          </button>
+          </ButtonElement>
         );
       case "image":
         let imageSrc = content as string;
@@ -379,13 +379,13 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
           imageSrc = `${process.env.NEXT_PUBLIC_BASE_URL || ""}${imageSrc}`;
         }
         return (
-          <ElementImageWrapper
+          <ImageWrapperElement
             {...commonProps}
             ref={elementRef as React.RefObject<HTMLDivElement>}
             $config={config}
             data-testid={id}
           >
-            <ElementImage
+            <ImageElement
               src={
                 config.media?.type === "image" && config.media.url
                   ? config.media.url
@@ -396,7 +396,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
               sizes="100vw"
               $config={config}
             />
-          </ElementImageWrapper>
+          </ImageWrapperElement>
         );
       case "list":
       default:
@@ -434,8 +434,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
         if (!isEditing) {
           setIsElementSelected(false);
         }
-
-        console.log(`Focus lost on element ${id}`);
       }}
       data-testid={`element-wrapper-${id}`}
       {...(isLayout || isEditing ? {} : { ...attributes, ...listeners })}
@@ -447,5 +445,4 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     </ElementWrapper>
   );
 };
-
 export default FreeDraggableElement;

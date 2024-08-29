@@ -20,6 +20,43 @@ const createLayoutConfig = (properties: any): ElementConfig => ({
   media: properties.media.defaultValue,
 });
 
+const createButtonElementConfig = (
+  properties: any,
+  elementType: string
+): ElementConfig => ({
+  size: {
+    width: properties.size.defaultValue.width,
+    height: properties.size.defaultValue.height,
+  },
+  boxModelEditor: {
+    padding: properties.boxModelEditor.defaultValue.padding,
+    margin: properties.boxModelEditor.defaultValue.margin,
+  },
+  fontSize: properties.fontSize.defaultValue,
+  textColor:
+    properties.textColor.defaultValue[
+      elementType as keyof typeof properties.textColor.defaultValue
+    ],
+  fontFamily: properties.fontFamily.defaultValue,
+  backgroundColor:
+    properties.backgroundColor.defaultValue[
+      elementType as keyof typeof properties.backgroundColor.defaultValue
+    ],
+  border:
+    properties.border.defaultValue[
+      elementType as keyof typeof properties.border.defaultValue
+    ],
+  borderRadius: properties.borderRadius.defaultValue,
+  hoverBackgroundColor:
+    properties.hoverBackgroundColor.defaultValue[
+      elementType as keyof typeof properties.hoverBackgroundColor.defaultValue
+    ],
+  activeBackgroundColor:
+    properties.activeBackgroundColor.defaultValue[
+      elementType as keyof typeof properties.activeBackgroundColor.defaultValue
+    ],
+});
+
 const createImageConfig = (
   properties: any,
   elementType: string
@@ -54,8 +91,9 @@ const createTextConfig = (
     properties.lineHeight.defaultValue[
       elementType as keyof typeof properties.lineHeight.defaultValue
     ],
-
   fontFamily: properties.fontFamily.defaultValue,
+  fontWeight: properties.fontWeight.defaultValue,
+  textDecoration: properties.textDecoration.defaultValue,
 });
 
 const createFreeDraggableConfig = (properties: any): ElementConfig => ({
@@ -68,6 +106,7 @@ const configCreators = {
   layout: createLayoutConfig,
   text: createTextConfig,
   image: createImageConfig,
+  buttonElement: createButtonElementConfig,
   freeDraggable: createFreeDraggableConfig,
 };
 
@@ -79,26 +118,37 @@ export function createElementConfig(
 ): ElementConfig {
   if (isLayout) {
     return configCreators.layout(configs.layout.properties);
-  }
+  } else {
+    if (type === "buttonElement") {
+      return {
+        ...configCreators.freeDraggable(configs.freeDraggable.properties),
+        ...configCreators.buttonElement(
+          configs.freeDraggable.subtypes.buttonElement.properties,
+          elementType
+        ),
+      };
+    }
 
-  if (type === "text") {
-    return {
-      ...configCreators.freeDraggable(configs.freeDraggable.properties),
-      ...configCreators.text(
-        configs.freeDraggable.subtypes.text.properties,
-        elementType
-      ),
-    };
-  }
+    if (type === "image") {
+      return {
+        ...configCreators.freeDraggable(configs.freeDraggable.properties),
+        ...configCreators.image(
+          configs.freeDraggable.subtypes.image.properties,
+          elementType
+        ),
+      };
+    }
 
-  if (type === "image") {
-    return {
-      ...configCreators.freeDraggable(configs.freeDraggable.properties),
-      ...configCreators.image(
-        configs.freeDraggable.subtypes.image.properties,
-        elementType
-      ),
-    };
+    if (type === "text") {
+      return {
+        ...configCreators.freeDraggable(configs.freeDraggable.properties),
+        ...configCreators.text(
+          configs.freeDraggable.subtypes.text.properties,
+          elementType
+        ),
+      };
+    }
+
+    return configCreators.freeDraggable(configs.freeDraggable.properties);
   }
-  return configCreators.freeDraggable(configs.freeDraggable.properties);
 }
