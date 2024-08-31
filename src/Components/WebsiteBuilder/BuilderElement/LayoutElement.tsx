@@ -16,6 +16,7 @@ import {
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
 import { arrayToCssValue } from "@/src/utilities/arrayToCssValue";
+import { renderContent } from "./LayoutRenderContent";
 
 const SectionWrapper = styled.div<ContentProps>`
   border: 1px solid ${(props) => props.theme.colors.border};
@@ -23,29 +24,6 @@ const SectionWrapper = styled.div<ContentProps>`
   transition: transform 0.2s ease;
   transform: ${(props) => (props.$isDragging ? "scale(1.02)" : "scale(1)")};
   position: relative;
-`;
-
-const Section = styled.div<ContentProps>`
-  height: 100%;
-  background-color: ${(props) =>
-    props.$config.backgroundColor || "transparent"};
-  opacity: ${(props) => {
-    const opacity = props.$config.backgroundOpacity;
-    if (opacity === undefined) return 1;
-    return opacity / 100; // 將 0-100 的範圍轉換為 0-1
-  }};
-`;
-
-const SectionContent = styled.div<ContentProps>`
-  padding: ${(props) => props.$config.boxModelEditor || "20px"};
-  height: 100%;
-  ${(props) =>
-    props.$config.media?.type === "image" &&
-    `
-    background-image: url(${props.$config.media.url});
-    background-size: cover;
-    background-position: center;
-  `}
 `;
 
 const DragHandle = styled.div`
@@ -64,6 +42,29 @@ const DragHandle = styled.div`
     content: "⋮⋮";
     color: ${(props) => props.theme.colors.primary};
   }
+`;
+
+const Section = styled.div<ContentProps>`
+  height: 100%;
+  background-color: ${(props) =>
+    props.$config?.backgroundColor || "transparent"};
+  opacity: ${(props) => {
+    const opacity = props.$config?.backgroundOpacity;
+    if (opacity === undefined) return 1;
+    return opacity / 100;
+  }};
+`;
+
+const SectionContent = styled.div<ContentProps>`
+  padding: ${(props) => props.$config.boxModelEditor || "20px"};
+  height: 100%;
+  ${(props) =>
+    props.$config.media?.type === "image" &&
+    `
+    background-image: url(${props.$config.media.url});
+    background-size: cover;
+    background-position: center;
+  `}
 `;
 
 const ResizeHandle = styled.div`
@@ -102,12 +103,9 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
         event.preventDefault();
         event.stopPropagation();
         onDelete();
-        console.log(`Element ${id} - Deleted`);
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
@@ -129,34 +127,39 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
 
   // 使用 useMemo 儲存計算結果，僅在依賴項變更時重新計算
   const style = useMemo(() => {
-    const marginValue = arrayToCssValue(config.boxModelEditor.margin, "%");
-    const paddingValue = arrayToCssValue(config.boxModelEditor.padding, "%");
+    const marginValue = arrayToCssValue(
+      config?.boxModelEditor?.margin || [0, 0, 0, 0],
+      "%"
+    );
+    const paddingValue = arrayToCssValue(
+      config?.boxModelEditor?.padding || [0, 0, 0, 0],
+      "%"
+    );
 
     const baseStyle: React.CSSProperties = {
-      width: config.useMaxWidth ? "100%" : `${config.size.width}%`,
+      width: config?.useMaxWidth ? "100%" : `${config?.size?.width || 100}%`,
       height: `${elementHeight}px`,
       padding: paddingValue,
       margin: marginValue,
       transform: CSS.Transform.toString(transform),
-      // 設置過渡效果
       transition,
       touchAction: "none",
     };
 
-    if (config.responsiveBehavior === "fitWidth") {
+    if (config?.responsiveBehavior === "fitWidth") {
       baseStyle.width = "100%";
     }
 
-    if (config.color) {
+    if (config?.color) {
       baseStyle.backgroundColor = config.backgroundColor;
       baseStyle.opacity = config.backgroundOpacity;
     }
 
     return {
       ...baseStyle,
-      ...(config || {}), // 將 config 對象展開合併到 baseStyle 中，允許覆蓋和擴展基礎樣式
-      transform: CSS.Transform.toString(transform), // 確保 transform 屬性被正確設置
-      transition, // 確保 transition 屬性被正確設置
+      ...(config || {}),
+      transform: CSS.Transform.toString(transform),
+      transition,
     };
   }, [config, elementHeight, transform, transition]);
 
@@ -237,7 +240,12 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
             tabIndex={0}
           />
         )}
-        <SectionContent $config={config}>{content}</SectionContent>
+        <SectionContent $config={config}>
+          {renderContent({
+            config: config,
+            onUpdate: (newConfig) => onUpdate({ ...config, ...newConfig }),
+          })}
+        </SectionContent>
         {isSelected && (
           <ResizeHandle
             role="slider"

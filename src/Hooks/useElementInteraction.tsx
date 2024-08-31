@@ -161,9 +161,10 @@ export const useElementInteraction = ({
     ] // 依賴 interactionMode, handleMouseMove, parentOnMouseUp, parentHandleResize, id, config.size.width 和 config.size.height
   );
 
-  // 處理鼠標按下事件，根據目標元素設置互動模式
+  // 處理滑鼠按下事件
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      setIsMouseDown(true); // 設置滑鼠按下狀態為 true
       if (isEditing) return; // 如果處於編輯狀態，則不處理
 
       const target = e.target as HTMLElement; // 取得事件目標
@@ -194,6 +195,39 @@ export const useElementInteraction = ({
       handleMouseMove,
       handleMouseUp,
     ] // 依賴 isEditing, config.size.width, config.size.height, handleMouseMove 和 handleMouseUp
+  );
+
+  // 處理滑鼠鬆開事件
+  const handleMouseUp = useCallback(
+    (e: MouseEvent) => {
+      setIsMouseDown(false); // 設置滑鼠按下狀態為 false
+      if (interactionMode === "resizing") {
+        // 如果是調整大小模式
+        parentHandleResize(
+          id,
+          {
+            width: config.size.width, // 傳遞當前寬度
+            height: config.size.height, // 傳遞當前高度
+          },
+          resizeDirectionRef.current || "" // 傳遞調整方向
+        );
+        isDraggingRef.current = false; // 標記為不再拖動
+      }
+
+      setInteractionMode("none"); // 結束當前互動模式
+      document.removeEventListener("mousemove", handleMouseMove); // 移除鼠標移動事件監聽器
+      document.removeEventListener("mouseup", handleMouseUp); // 移除鼠標鬆開事件監聽器
+      parentOnMouseUp(e); // 調用父元素的 onMouseUp
+    },
+    [
+      interactionMode,
+      handleMouseMove,
+      parentOnMouseUp,
+      parentHandleResize,
+      id,
+      config.size.width,
+      config.size.height,
+    ] // 依賴 interactionMode, handleMouseMove, parentOnMouseUp, parentHandleResize, id, config.size.width 和 config.size.height
   );
 
   // 開始編輯狀態的函數
@@ -281,5 +315,6 @@ export const useElementInteraction = ({
     handleOutsideClick,
     startEditing,
     stopEditing,
+    isMouseDown,
   };
 };

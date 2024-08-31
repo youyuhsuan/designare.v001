@@ -505,7 +505,9 @@ const SidebarEditor: React.FC = () => {
       return <div>No element selected or data not loaded</div>;
     }
 
-    const elementType = selectedElement.isLayout ? "layout" : "freeDraggable";
+    const elementType = selectedElement.isLayout
+      ? "layoutElement"
+      : "freeDraggableElement";
     const config = elementConfigs[elementType];
 
     if (!config) {

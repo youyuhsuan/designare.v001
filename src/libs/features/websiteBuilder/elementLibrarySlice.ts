@@ -69,7 +69,6 @@ export const elementLibrarySlice = createSlice({
         elementType,
         state.configs
       ); // 根據配置創建元素配置
-
       const newElement: LocalElementType = {
         id,
         type,

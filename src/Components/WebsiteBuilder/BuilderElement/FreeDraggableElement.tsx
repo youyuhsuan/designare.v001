@@ -291,6 +291,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     };
   }, [handleResize, handleResizeEnd]);
   // 鍵盤事件處理函式
+
   useEffect(() => {
     const handleKeyDown: EventListener = (event: Event) => {
       const keyboardEvent = event as KeyboardEvent;

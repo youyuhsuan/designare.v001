@@ -27,7 +27,7 @@ export interface ElementLibrary {
 }
 
 export interface LayoutElementData extends BaseElementData {
-  children?: UniqueIdentifier[];
+  children?: LocalElementType[];
   config: any;
   isLayout: true;
 }

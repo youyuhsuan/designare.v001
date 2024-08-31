@@ -1,8 +1,8 @@
 import { ElementConfigs } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
 
 export const elementConfigs: ElementConfigs = {
-  layout: {
-    type: "layout",
+  layoutElement: {
+    type: "layoutElement",
     label: "佈局",
     properties: {
       size: {
@@ -70,89 +70,118 @@ export const elementConfigs: ElementConfigs = {
       },
     },
     subtypes: {
-      columnizedLayout: {
-        type: "columnizedLayout",
-        label: "側邊欄佈局",
+      layout: {
+        type: "layout",
+        label: "佈局",
         properties: {
-          size: {
-            label: "整體大小",
-            type: "composite",
-            defaultValue: { width: 1200, height: 600 },
-            compositeFields: {
-              width: {
-                label: "寬度",
-                type: "number",
-                defaultValue: 1200,
-                unit: "px",
-              },
-              height: {
-                label: "高度",
-                type: "number",
-                defaultValue: 600,
-                unit: "px",
-              },
+          gap: {
+            label: "間隔",
+            type: "number",
+            defaultValue: {
+              layout: 0,
+              sidebarLayout: 20,
+              columnizedLayout: 30,
+              gridLayout: 20,
+              freeformLayout: 0,
             },
+            unit: "px",
           },
           columnWidths: {
             label: "欄寬比例",
             type: "composite",
-            defaultValue: { left: 50, middle: 25, right: 25 },
+            defaultValue: {
+              layout: { left: 0, middle: 0, right: 0 },
+              sidebarLayout: { left: 30, middle: 0, right: 70 },
+              columnizedLayout: { left: 50, middle: 25, right: 25 },
+              gridLayout: null,
+              freeformLayout: null,
+            },
             compositeFields: {
               left: {
                 label: "左欄寬度",
                 type: "number",
-                defaultValue: 50,
                 unit: "%",
               },
               middle: {
-                label: "中欄寬度",
+                label: "中間寬度",
                 type: "number",
-                defaultValue: 25,
                 unit: "%",
               },
               right: {
                 label: "右欄寬度",
                 type: "number",
-                defaultValue: 25,
                 unit: "%",
               },
             },
           },
-          gap: {
-            label: "間隔",
+          columns: {
+            label: "列數",
             type: "number",
-            defaultValue: 20,
-            unit: "px",
+            defaultValue: {
+              layout: null,
+              sidebarLayout: null,
+              columnizedLayout: null,
+              gridLayout: 3,
+              freeformLayout: null,
+            },
+            min: 1,
+            max: 12,
           },
           middleColumnSplit: {
             label: "中欄分割",
             type: "checkbox",
-            defaultValue: true,
-          },
-        },
-      },
-      gridLayout: {
-        type: "gridLayout",
-        label: "網格佈局",
-        properties: {
-          columns: {
-            label: "列數",
-            type: "number",
-            defaultValue: 3,
-            min: 1,
-            max: 12,
-          },
-          gap: {
-            label: "間隔",
-            type: "number",
-            defaultValue: 20,
-            unit: "px",
+            defaultValue: {
+              layout: false,
+              sidebarLayout: false,
+              columnizedLayout: true,
+              gridLayout: null,
+              freeformLayout: null,
+            },
           },
           rowHeight: {
             label: "行高",
             type: "number",
-            defaultValue: 200,
+            defaultValue: {
+              layout: null,
+              sidebarLayout: null,
+              columnizedLayout: 200,
+              gridLayout: null,
+              freeformLayout: null,
+            },
             unit: "px",
+          },
+          boxModelEditor: {
+            label: "CSS 盒模型",
+            type: "boxModel",
+            defaultValue: { margin: [0, 0, 0, 0], padding: [0, 0, 0, 0] },
+            compositeFields: {
+              margin: {
+                type: "number",
+                defaultValue: [0, 0, 0, 0],
+                unit: "%",
+              },
+              padding: {
+                type: "number",
+                defaultValue: [0, 0, 0, 0],
+                unit: "%",
+              },
+            },
+          },
+          backgroundColor: {
+            label: "顏色",
+            type: "color",
+            defaultColor: "rgba(0,0,0,0)",
+            defaultOpacity: 100,
+            step: 10,
+            min: 0,
+            max: 100,
+          },
+          media: {
+            label: "媒體",
+            type: "mediaUpload",
+            defaultValue: { type: "image", url: "" },
+            accept: "image/*,video/*",
+            maxSize: 5000000,
           },
         },
       },
@@ -226,8 +255,8 @@ export const elementConfigs: ElementConfigs = {
       },
     },
   },
-  freeDraggable: {
-    type: "freeDraggable",
+  freeDraggableElement: {
+    type: "freeDraggableElement",
     label: "自由拖動元素",
     properties: {
       horizontalAlignment: {
@@ -642,6 +671,7 @@ export const elementConfigs: ElementConfigs = {
               fourThree: 0,
               fullWidth: 0,
             },
+            min: 0,
             unit: "%",
           },
           objectFit: {

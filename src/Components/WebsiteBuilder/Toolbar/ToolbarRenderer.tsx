@@ -18,7 +18,7 @@ interface HandleAddElementParams {
 }
 
 const Button = styled.button<{
-  $elementType: string; // Prop to determine the button style
+  $elementType: string;
 }>`
   display: block;
   width: 100%;
@@ -184,10 +184,10 @@ const renderStrategies: RenderStrategy[] = [
     condition: (item, elementType) =>
       [
         "layout",
-        "columnizedLayout",
         "sidebarLayout",
-        "grid",
-        "freeform",
+        "columnizedLayout",
+        "gridLayout",
+        "freeformLayout",
       ].includes(elementType),
     render: (item, elementType) => (
       <LayoutPreview type={elementType}>{item.label}</LayoutPreview>
