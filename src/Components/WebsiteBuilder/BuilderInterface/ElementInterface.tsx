@@ -41,6 +41,7 @@ export interface ElementCallbacks {
   onUpdate: (updates: Partial<LocalElementType>) => void;
   onDelete: () => void;
   isSelected: boolean;
+  path?: string[];
 }
 
 export interface FreeDraggableElementCallbacks {

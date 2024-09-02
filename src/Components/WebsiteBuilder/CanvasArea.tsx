@@ -92,53 +92,56 @@ export type AlignmentConfig = {
 export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
   // 設置拖拽感應器
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor), // 用於滑鼠拖拽的感應器
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      // 用於鍵盤拖拽的感應器
+      coordinateGetter: sortableKeyboardCoordinates, // 獲取鍵盤拖拽的座標
     })
   );
 
-  const dispatch = useAppDispatch();
-  const currentDevice = useSelector(selectCurrentDevice);
-  const currentLayoutSettings = useSelector(selectCurrentLayoutSettings);
-  const canvasOffset = useAppSelector(selectCanvasOffset);
+  // 獲取 Redux store 中的當前狀態
+  const dispatch = useAppDispatch(); // 用於發送 Redux action
+  const currentDevice = useSelector(selectCurrentDevice); // 當前設備（桌面、平板、手機）
+  const currentLayoutSettings = useSelector(selectCurrentLayoutSettings); // 當前佈局設置
+  const canvasOffset = useAppSelector(selectCanvasOffset); // 畫布的偏移量
   const handleResizeRef =
-    useRef<(elementId: string, newSize: Size, direction: string) => void>();
-
+    useRef<(elementId: string, newSize: Size, direction: string) => void>(); // 用於存儲 resize 處理函數的引用
   // 自定義比較函數，用於比較元素數組的變化
   const customCompare = (prev: any[], next: any[]) => {
-    const isEqualResult = isEqual(prev, next);
+    const isEqualResult = isEqual(prev, next); // 使用 lodash 的 isEqual 函數比較數組是否相等
     return isEqualResult;
   };
-  const elementArray = useSelector(selectElementsArray, customCompare);
+  const elementArray = useSelector(selectElementsArray, customCompare); // 獲取元素數組，並使用自定義比較函數來避免不必要的重渲染
 
   // 當元素數組變化時，打印變化的元素數組
   // useEffect(() => {
   //   console.log("Element array changed:", elementArray);
   // }, [elementArray]);
 
+  // 獲取元素上下文中的函數
   const {
     elements,
-    updateElementPosition,
-    updateElement,
-    deleteElement,
-    reorderElement: reorderElements,
-    setSelectedElement,
+    updateElementPosition, // 更新元素位置的函數
+    updateElement, // 更新元素的函數
+    deleteElement, // 刪除元素的函數
+    reorderElement: reorderElements, // 重新排序元素的函數
+    setSelectedElement, // 設置選中元素的函數
+    handleElementSelect, // 設置選中元素及其路徑的函數
   } = useElementContext();
 
-  const [activeId, setActiveId] = useState<string | number | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [isDragResizeEnabled, setIsDragResizeEnabled] = useState(true);
-  const [isAlignmentEnabled, setIsAlignmentEnabled] = useState(false);
+  // 定義狀態鉤子
+  const [activeId, setActiveId] = useState<string | number | null>(null); // 當前活動元素的 ID
+  const [selectedId, setSelectedId] = useState<string | null>(null); // 當前選中元素的 ID
+  const [isDragResizeEnabled, setIsDragResizeEnabled] = useState(true); // 是否啟用拖拽調整大小功能
+  const [isAlignmentEnabled, setIsAlignmentEnabled] = useState(false); // 是否啟用對齊功能
   const [alignmentConfig, setAlignmentConfig] = useState({
-    horizontalAlignment: null,
-    verticalAlignment: null,
+    horizontalAlignment: null, // 水平對齊配置
+    verticalAlignment: null, // 垂直對齊配置
   });
 
   // 處理元素更新
   const handleElementUpdate = useCallback(
     (id: string, updates: Partial<LocalElementType>) => {
-      console.log("handleElementUpdate 被調用", id, updates);
       updateElement(id, updates);
       dispatch(
         updateElementInstance({
@@ -342,22 +345,22 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
   // useElementsDebug(); // 啟用元素調試（如果有的話）
 
   // 處理元素點擊事件，設定選中的元素
-  const handleElementMouseUp = (id: string) => {
-    // console.log("Element clicked:", id);
-    setSelectedId(id);
-    const selectedElement = elements.find((el) => el.id === id) || null;
-    // console.log("Selected element:", selectedElement);
-    setSelectedElement(selectedElement);
-  };
+  // const handleElementMouseUp = (id: string) => {
+  //   // console.log("Element clicked:", id);
+  //   setSelectedId(id);
+  //   const selectedElement = elements.find((el) => el.id === id) || null;
+  //   // console.log("Selected element:", selectedElement);
+  //   setSelectedElement(selectedElement);
+  // };
 
-  // 處理畫布點擊事件，取消選中狀態
-  const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      // console.log("Canvas clicked");
-      setSelectedId(null);
-      setSelectedElement(null);
-    }
-  };
+  const handleCanvasClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target === event.currentTarget) {
+        handleElementSelect({ id: null });
+      }
+    },
+    [handleElementSelect]
+  );
 
   // 處理拖拽開始事件
   const handleDragStart = (event: DragStartEvent) => {
@@ -370,9 +373,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       if (!isDragResizeEnabled) return;
-
       const { active, over, delta } = event;
-
       if (!active) {
         console.error("無效的 'active' 數據:", active);
         setActiveId(null);
@@ -405,7 +406,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
           let newPosition;
           if (isAlignmentEnabled) {
             newPosition = calculateElementPosition(activeElement);
-            console.log("handleDragEnd isAlignmentEnabled", newPosition);
           } else {
             if (Math.abs(delta.x) > 5 || Math.abs(delta.y) > 5) {
               newPosition = {
@@ -474,7 +474,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
                 onUpdate={(updates) => handleElementUpdate(element.id, updates)}
                 onDelete={() => deleteElement(element.id)}
                 isSelected={element.id === selectedId}
-                onMouseUp={() => handleElementMouseUp(element.id)}
+                onSelect={() => handleElementSelect({ id: element.id })}
                 onResize={handleResize}
               />
             ))}
@@ -487,7 +487,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
               onUpdate={(updates) => handleElementUpdate(element.id, updates)}
               onDelete={() => deleteElement(element.id)}
               isSelected={element.id === selectedId}
-              onMouseUp={() => handleElementMouseUp(element.id)}
+              onMouseUp={() => handleElementSelect(element)}
               calculatePosition={() => calculateElementPosition(element)}
               alignmentConfig={alignmentConfig}
               handleResize={handleResize}

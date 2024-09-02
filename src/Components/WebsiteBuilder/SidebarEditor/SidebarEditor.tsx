@@ -117,14 +117,14 @@ const SidebarEditor: React.FC = () => {
         const updatedElement = { ...prev };
         updatedElement.config = { ...updatedElement.config };
 
-        // 将 propertyPath 分割成各个层级
+        // 將 propertyPath 分割成各個層級
         const pathParts = propertyPath.split(".");
         let current: any = updatedElement.config;
 
         console.log("Initial current (config):", current);
         console.log("Path parts:", pathParts);
 
-        // 遍历 pathParts，更新对象中的嵌套属性
+        // 遍歷 pathParts，更新對象中的嵌套屬性
         for (let i = 0; i < pathParts.length - 1; i++) {
           const part = pathParts[i];
           console.log(`Processing part: ${part}`);
@@ -186,21 +186,20 @@ const SidebarEditor: React.FC = () => {
           updatedElement[pathParts[0]] = value;
         }
 
-        // 调用 updateSelectedElement
-        updateSelectedElement(prev.id, `config.${propertyPath}`, value);
-
-        console.log("Updated updatedElement:", updatedElement);
-        console.log("Property path:", propertyPath, "Value:", value);
-
-        const updates = createNestedObject(["config", ...pathParts], value);
-
-        // 构造并发送 Redux action
-        dispatch(
-          updateElementInstance({
-            id: prev.id,
-            updates: updates,
-          })
-        );
+        setTimeout(() => {
+          updateSelectedElement(
+            updatedElement.id,
+            `config.${propertyPath}`,
+            value
+          );
+          const updates = createNestedObject(["config", ...pathParts], value);
+          dispatch(
+            updateElementInstance({
+              id: updatedElement.id,
+              updates: updates,
+            })
+          );
+        }, 0);
 
         return updatedElement;
       });

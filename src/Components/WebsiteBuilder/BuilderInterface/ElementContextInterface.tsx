@@ -10,8 +10,6 @@ export interface ElementContextType {
   selectedElement: LocalElementType | null;
   // 設置當前選中的元素
   setSelectedElement: (element: LocalElementType | null) => void;
-  //  ID 設置當前選中的元素
-  setSelectedElementId: (id: UniqueIdentifier | null) => void;
   // 添加新元素，元素不包含 ID
   addElement: (element: Omit<LocalElementType, "id">) => void;
   // 更新指定 ID 的元素
@@ -42,7 +40,7 @@ export interface ElementContextType {
       position: Position;
     }
   ) => void;
-  //
+  handleElementSelect: (params: { id: string | null; path?: string[] }) => void;
 }
 
 export type Action =

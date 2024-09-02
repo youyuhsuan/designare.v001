@@ -13,7 +13,6 @@ import {
   ImageWrapperElement,
   ImageElement,
 } from "./Styles";
-import { arrayToCssValue } from "@/src/utilities/arrayToCssValue";
 
 const ElementWrapper = styled.div<ContentProps>`
   position: absolute;
@@ -92,12 +91,8 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     }
 
     if (type === "buttonElement") {
-      const marginValue = arrayToCssValue(config.boxModelEditor.margin, "%");
-      const paddingValue = arrayToCssValue(config.boxModelEditor.padding, "%");
       return {
         ...baseStyle,
-        margin: marginValue,
-        padding: paddingValue,
       };
     }
 

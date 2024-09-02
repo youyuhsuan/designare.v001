@@ -15,8 +15,7 @@ import {
   ContentProps,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
-import { arrayToCssValue } from "@/src/utilities/arrayToCssValue";
-import { renderContent } from "./LayoutRenderContent";
+import RenderContent from "../../../Hooks/RenderContent";
 
 const SectionWrapper = styled.div<ContentProps>`
   border: 1px solid ${(props) => props.theme.colors.border};
@@ -46,20 +45,24 @@ const DragHandle = styled.div`
 
 const Section = styled.div<ContentProps>`
   height: 100%;
+  padding: ${(props) =>
+    props.$config.boxModelEditor?.padding.join("px ") + "px"};
+  margin: ${(props) => props.$config.boxModelEditor?.margin.join("px ") + "px"};
   background-color: ${(props) =>
-    props.$config?.backgroundColor || "transparent"};
-  opacity: ${(props) => {
-    const opacity = props.$config?.backgroundOpacity;
-    if (opacity === undefined) return 1;
-    return opacity / 100;
-  }};
+    props.$config.backgroundColor?.defaultColor || "transparent"};
+  opacity: ${(props) =>
+    props.$config.backgroundColor?.defaultOpacity !== undefined
+      ? props.$config.backgroundColor.defaultOpacity / 100
+      : 1};
 `;
 
 const SectionContent = styled.div<ContentProps>`
-  padding: ${(props) => props.$config.boxModelEditor || "20px"};
+  padding: ${(props) =>
+    props.$config.boxModelEditor?.padding.join("px ") + "px"};
+  margin: ${(props) => props.$config.boxModelEditor?.margin.join("px ") + "px"};
   height: 100%;
   ${(props) =>
-    props.$config.media?.type === "image" &&
+    props.$config?.media?.type === "image" &&
     `
     background-image: url(${props.$config.media.url});
     background-size: cover;
@@ -81,14 +84,33 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
   content,
   config,
   type,
+  elementType,
   onUpdate,
   onDelete,
   isSelected,
-  onMouseUp,
+  path = [],
 }) => {
-  const { updateSelectedElement } = useElementContext();
+  const { updateSelectedElement, handleElementSelect } = useElementContext();
   const elementRef = useRef<HTMLDivElement>(null);
   const [elementHeight, setElementHeight] = useState(config.size.height);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+
+  useEffect(() => {
+    console.log("LayoutElement selectedChildId updated:", selectedChildId);
+  }, [selectedChildId]);
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation(); // 停止事件冒泡，防止事件被傳播到父級元素
+      console.log("點擊事件被處理，停止冒泡"); // 記錄事件處理訊息
+
+      // 調用 handleElementSelect 函數，選擇指定的元素
+      handleElementSelect({ id, path: [...path, id] });
+
+      console.log("處理選擇元素的操作，元素 ID:", id, "路徑:", [...path, id]); // 記錄元素選擇操作及其路徑
+    },
+    [id, path, handleElementSelect]
+  );
 
   useEffect(() => {
     setElementHeight(config.size.height);
@@ -127,20 +149,9 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
 
   // 使用 useMemo 儲存計算結果，僅在依賴項變更時重新計算
   const style = useMemo(() => {
-    const marginValue = arrayToCssValue(
-      config?.boxModelEditor?.margin || [0, 0, 0, 0],
-      "%"
-    );
-    const paddingValue = arrayToCssValue(
-      config?.boxModelEditor?.padding || [0, 0, 0, 0],
-      "%"
-    );
-
     const baseStyle: React.CSSProperties = {
       width: config?.useMaxWidth ? "100%" : `${config?.size?.width || 100}%`,
       height: `${elementHeight}px`,
-      padding: paddingValue,
-      margin: marginValue,
       transform: CSS.Transform.toString(transform),
       transition,
       touchAction: "none",
@@ -148,11 +159,6 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
 
     if (config?.responsiveBehavior === "fitWidth") {
       baseStyle.width = "100%";
-    }
-
-    if (config?.color) {
-      baseStyle.backgroundColor = config.backgroundColor;
-      baseStyle.opacity = config.backgroundOpacity;
     }
 
     return {
@@ -190,7 +196,6 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
         const newHeight = Math.max(100, startHeight + deltaY);
         updateElementHeight(newHeight);
         updateSelectedElement(id, "config.size.height", newHeight);
-        // console.log(`Element ${id} - Resizing, new height: ${newHeight}px`);
       };
 
       const handleMouseUp = () => {
@@ -219,6 +224,11 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
     [id, elementHeight, updateElementHeight]
   );
 
+  if (!config || typeof config !== "object") {
+    console.error("Invalid config:", config);
+    return null;
+  }
+
   return (
     <SectionWrapper
       ref={setNodeRef}
@@ -228,7 +238,7 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
       aria-label={`${type} content`}
       $isDragging={isDragging}
       $isSelected={isSelected}
-      onMouseUp={onMouseUp}
+      onClick={handleClick}
     >
       <Section $config={config} ref={elementRef} tabIndex={0}>
         {isSelected && (
@@ -241,9 +251,13 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
           />
         )}
         <SectionContent $config={config}>
-          {renderContent({
-            config: config,
-            onUpdate: (newConfig) => onUpdate({ ...config, ...newConfig }),
+          {RenderContent({
+            type,
+            config,
+            elementType,
+            selectedId: isSelected ? id : null,
+            onUpdate,
+            path: [...path, id],
           })}
         </SectionContent>
         {isSelected && (

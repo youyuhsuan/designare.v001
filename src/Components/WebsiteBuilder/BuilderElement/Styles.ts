@@ -55,6 +55,8 @@ export const ButtonElement = styled.button<ContentProps>`
   opacity: ${(props) => props.$config.opacity};
   font-family: ${(props) => props.$config.fontFamily};
   background-color: ${(props) => props.$config.backgroundColor};
+  padding: ${(props) => props.$config.boxModelEditor?.padding.join("% ") + "%"};
+  margin: ${(props) => props.$config.boxModelEditor?.margin.join("% ") + "%"};
   // border: ${(props) => props.$config.border};
   border-radius: ${(props) => props.$config.borderRadius}px;
   &:hover {

@@ -61,24 +61,30 @@ export const elementLibrarySlice = createSlice({
       action: PayloadAction<CreateElementPayload>
     ) => {
       const { type, content, isLayout, elementType } = action.payload;
-      const id = uuidv4(); // 生成唯一的 ID
+      const id = uuidv4();
 
       const config = createElementConfig(
         type,
         isLayout,
         elementType,
-        state.configs
+        state.configs,
+        false
       ); // 根據配置創建元素配置
+
       const newElement: LocalElementType = {
         id,
         type,
         content,
         isLayout,
+        elementType,
         config: config, // 設置元素的初始配置
       };
       state.byId[id] = newElement; // 添加新元素到 byId
       state.allIds.push(id); // 將元素 ID 添加到 allIds
       state.selectedId = id; // 可選：自動選擇新創建的元素
+
+      console.log("New element added to state:", state.byId[id]);
+      console.log("Updated allIds:", state.allIds);
     },
     // 刪除元素實例
     deleteElementInstance: (state, action: PayloadAction<UniqueIdentifier>) => {

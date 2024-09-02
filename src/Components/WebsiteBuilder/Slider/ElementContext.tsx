@@ -130,6 +130,7 @@ export const ElementProvider: React.FC<{
   const [elements, localDispatch] = useReducer(elementReducer, []);
   const [selectedElement, setSelectedElement] =
     useState<LocalElementType | null>(null);
+  const [selectedPath, setSelectedPath] = useState<UniqueIdentifier[]>([]);
   const reduxElements = useAppSelector(selectElementInstances);
   const reduxDispatch = useAppDispatch();
 
@@ -143,7 +144,6 @@ export const ElementProvider: React.FC<{
 
   useEffect(() => {
     console.log("Syncing local state to Redux:", elements);
-    // ... 现有的代码 ...
   }, [elements, reduxElements, reduxDispatch, websiteId]);
 
   // 同步 Redux 元素到本地狀態
@@ -181,16 +181,103 @@ export const ElementProvider: React.FC<{
     }
   }, [elements]);
 
-  const setSelectedElementId = useCallback(
-    (id: UniqueIdentifier | null) => {
+  // 定義一個用於查找指定 ID 元素及其路徑的回調函數
+  const findElementWithPath = useCallback(
+    (
+      targetId: string, // 目標元素的 ID
+      currentPath: string[] = [] // 當前路徑，默認為空數組
+    ): [LocalElementType | null, string[]] => {
+      // 定義一個內部函數，用於在給定的元素數組中查找目標元素
+      const findInElements = (
+        els: LocalElementType[] // 要查找的元素數組
+      ): [LocalElementType | null, string[]] => {
+        // 遍歷所有元素
+        for (const element of els) {
+          if (element.id === targetId) {
+            console.log("找到匹配的 ID，返回該元素及其路徑:", {
+              element,
+              path: [...currentPath, element.id],
+            });
+            // 如果找到匹配的 ID，返回該元素及其路徑
+            return [element, [...currentPath, element.id]];
+          }
+          // 如果元素有子元素，遞迴查找子元素
+          if (element.config && Array.isArray(element.config.children)) {
+            console.log("元素具有子元素，遞迴查找子元素");
+            const [foundElement, foundPath] = findInElements(
+              element.config.children // 查找子元素
+            );
+            if (foundElement) {
+              // 如果在子元素中找到匹配的元素，返回該元素及其完整路徑
+              console.log("在子元素中找到匹配的元素，返回該元素及其完整路徑:", {
+                foundElement,
+                path: [...currentPath, element.id, ...foundPath],
+              });
+              return [foundElement, [...currentPath, element.id, ...foundPath]];
+            }
+          }
+        }
+        // 如果沒有找到，返回 null 和空路徑
+        console.log("未找到匹配的元素，返回 null 和空路徑");
+        return [null, []];
+      };
+
+      // 使用 findInElements 函數在根元素數組中查找目標元素
+      return findInElements(elements);
+    },
+    [elements] // 依賴項，當 elements 改變時，函數會重新創建
+  );
+
+  // 定義一個處理元素選擇的回調函數
+  const handleElementSelect = useCallback(
+    ({ id, path }: { id: string | null; path?: string[] }) => {
+      console.log("handleElementSelect 被調用，元素 ID:", id);
+
       if (id === null) {
-        setSelectedElement(null);
+        // 處理取消選擇的情況
+        setSelectedElement(null); // 重置選中的元素為 null
+        setSelectedPath([]); // 清空選中的路徑
+        console.log("取消選擇元素");
+        return; // 返回，結束函數執行
+      }
+
+      let selectedEl: LocalElementType | null;
+      let selectedPth: string[];
+
+      if (path) {
+        // 如果提供了路徑，直接使用該路徑
+        selectedPth = path; // 設置選中的路徑
+        // 查找指定 ID 的元素，使用 path 來定位元素
+        [selectedEl] = findElementWithPath(id);
+        console.log("使用提供的路徑查找元素:", {
+          selectedEl,
+          path: selectedPth,
+        });
       } else {
-        const element = elements.find((el) => el.id === id);
-        setSelectedElement(element || null);
+        // 如果沒有提供路徑，使用 findElementWithPath 查找元素
+        [selectedEl, selectedPth] = findElementWithPath(id);
+        console.log("使用 findElementWithPath 查找元素:", {
+          selectedEl,
+          path: selectedPth,
+        });
+      }
+
+      if (selectedEl) {
+        // 如果找到元素，更新選中的元素和路徑
+        setSelectedElement(selectedEl); // 設置選中的元素
+        setSelectedPath(selectedPth); // 設置選中的路徑
+        console.log("找到元素，更新選中的元素和路徑:", {
+          selectedEl,
+          path: selectedPth,
+        });
+      } else {
+        // 如果未找到元素，重置選中的元素和路徑
+        console.warn(`ID 為 ${id} 的元素在元素樹中未找到`);
+        setSelectedElement(null); // 重置選中的元素為 null
+        setSelectedPath([]); // 清空選中的路徑
       }
     },
-    [elements]
+    [findElementWithPath] // 當 findElementWithPath 函數變化時，更新該回調函數
   );
 
   const addElement = useCallback((element: Omit<LocalElementType, "id">) => {
@@ -259,11 +346,11 @@ export const ElementProvider: React.FC<{
     elements,
     selectedElement,
     setSelectedElement,
-    setSelectedElementId,
     addElement,
     updateElement,
     updateElementProperty,
     updateSelectedElement,
+    handleElementSelect,
     deleteElement,
     reorderElement,
     updateElementPosition,

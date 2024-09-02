@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 interface ElementConfig {
   [key: string]: any;
 }
@@ -150,20 +152,26 @@ export function createElementConfig(
   isLayout: boolean,
   elementType: string = "",
   configs: any,
-  children?: ElementConfig[]
+  generateId: boolean = true
 ): Partial<ElementConfig> {
-  let baseConfig: Partial<ElementConfig>;
+  const id = generateId ? uuidv4() : undefined;
 
-  console.log("Creating element config with type:", type);
-  console.log("Is layout:", isLayout);
-  console.log("Element type:", elementType);
-  console.log("Configs:", configs);
-  console.log("Children:", children);
+  let baseConfig: Partial<ElementConfig>;
+  // TODO:生成很多次id
+  const existingId = configs.id || id;
+
+  const commonConfig = {
+    ...(existingId && { id: existingId }),
+    type,
+    isLayout,
+    elementType,
+  };
 
   if (isLayout) {
-    switch (type) {
+    switch (elementType) {
       case "layout":
         baseConfig = {
+          ...commonConfig,
           ...configCreators.layoutElement(configs.layoutElement.properties),
           ...configCreators.layout(
             configs.layoutElement.subtypes.layout.properties,
@@ -172,63 +180,92 @@ export function createElementConfig(
         };
         break;
       case "sidebarLayout":
-        baseConfig = configCreators.layoutElement(
-          configs.layoutElement.properties
-        );
+        baseConfig = {
+          ...commonConfig,
+          ...configCreators.layoutElement(configs.layoutElement.properties),
+          ...configCreators.layout(
+            configs.layoutElement.subtypes.layout.properties,
+            elementType
+          ),
+        };
         baseConfig.children = [
           createElementConfig("layout", true, "layout", configs),
           createElementConfig("layout", true, "layout", configs),
         ];
-        console.log("baseConfig.children", baseConfig.children);
         break;
       case "columnizedLayout":
-        baseConfig = configCreators.layoutElement(
-          configs.layoutElement.properties
-        );
-        if (!children || children.length === 0) {
-          baseConfig.children = [
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-          ];
-        }
+        baseConfig = {
+          ...commonConfig,
+          ...configCreators.layoutElement(configs.layoutElement.properties),
+          ...configCreators.layout(
+            configs.layoutElement.subtypes.layout.properties,
+            elementType
+          ),
+        };
+        baseConfig.children = [
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+        ];
         break;
       case "gridLayout":
-        baseConfig = configCreators.layoutElement(
-          configs.layoutElement.properties
-        );
-        if (!children || children.length === 0) {
-          baseConfig.children = [
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-          ];
-        }
+        baseConfig = {
+          ...commonConfig,
+          ...configCreators.layoutElement(configs.layoutElement.properties),
+          ...configCreators.layout(
+            configs.layoutElement.subtypes.layout.properties,
+            elementType
+          ),
+        };
+        baseConfig.children = [
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+        ];
+
         break;
       case "freeformLayout":
-        baseConfig = configCreators.layoutElement(
-          configs.layoutElement.properties
-        );
-        if (!children || children.length === 0) {
-          baseConfig.children = [
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-            createElementConfig("layout", true, "layout", configs),
-          ];
-        }
+        baseConfig = {
+          ...configCreators.layoutElement(configs.layoutElement.properties),
+          ...configCreators.layout(
+            configs.layoutElement.subtypes.layout.properties,
+            elementType
+          ),
+        };
+        baseConfig.children = [
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+          createElementConfig("layout", true, "layout", configs),
+        ];
         break;
       default:
-        baseConfig = configCreators.layoutElement(
-          configs.layoutElement.properties
-        );
+        baseConfig = {
+          ...commonConfig,
+          ...configCreators.layoutElement(configs.layoutElement.properties),
+        };
         break;
+    }
+
+    switch (type) {
+    }
+
+    if (baseConfig.children) {
+      baseConfig.children = baseConfig.children.map((childConfig: any) =>
+        createElementConfig(
+          childConfig.type,
+          childConfig.isLayout,
+          childConfig.elementType,
+          configs,
+          true
+        )
+      );
     }
   } else {
     switch (type) {
@@ -272,15 +309,10 @@ export function createElementConfig(
         break;
     }
   }
-
-  console.log("properties", baseConfig.properties);
-  console.log("children", baseConfig.children);
-  console.log("baseConfig", baseConfig);
-
-  // 只返回 properties、children（如果存在）和 baseConfig 中的其他属性
   return {
     ...(baseConfig.properties || {}),
     ...(baseConfig.children && { children: baseConfig.children }),
     ...baseConfig,
+    ...commonConfig,
   };
 }

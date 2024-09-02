@@ -8,13 +8,13 @@ export const elementConfigs: ElementConfigs = {
       size: {
         label: "大小",
         type: "composite",
-        defaultValue: { width: 1200, height: 100 },
+        defaultValue: { width: 100, height: 100 },
         compositeFields: {
           width: {
             label: "寬度",
             type: "number",
-            defaultValue: 1200,
-            unit: "px",
+            defaultValue: 100,
+            unit: "%",
           },
           height: {
             label: "高度",
@@ -38,7 +38,7 @@ export const elementConfigs: ElementConfigs = {
       boxModelEditor: {
         label: "CSS 盒模型",
         type: "boxModel",
-        defaultValue: { margin: [0, 0, 0, 0], padding: [0, 0, 0, 0] },
+        defaultValue: { margin: [0, 0, 0, 0], padding: [20, 20, 20, 20] },
         compositeFields: {
           margin: {
             type: "number",
@@ -47,7 +47,7 @@ export const elementConfigs: ElementConfigs = {
           },
           padding: {
             type: "number",
-            defaultValue: [0, 0, 0, 0],
+            defaultValue: [20, 20, 20, 20],
             unit: "%",
           },
         },
@@ -96,6 +96,7 @@ export const elementConfigs: ElementConfigs = {
               gridLayout: null,
               freeformLayout: null,
             },
+            unit: "%",
             compositeFields: {
               left: {
                 label: "左欄寬度",
