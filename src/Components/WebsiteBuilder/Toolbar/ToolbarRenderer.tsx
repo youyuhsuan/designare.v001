@@ -182,13 +182,9 @@ const renderStrategies: RenderStrategy[] = [
   },
   {
     condition: (item, elementType) =>
-      [
-        "layout",
-        "sidebarLayout",
-        "columnizedLayout",
-        "gridLayout",
-        "freeformLayout",
-      ].includes(elementType),
+      ["layout", "sidebarLayout", "columnizedLayout", "gridLayout"].includes(
+        elementType
+      ),
     render: (item, elementType) => (
       <LayoutPreview type={elementType}>{item.label}</LayoutPreview>
     ),

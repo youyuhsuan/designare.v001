@@ -31,11 +31,9 @@ export async function createToken(user: any) {
   let displayName = user.displayName;
   if (!displayName && user.providerData && user.providerData.length > 0) {
     displayName = user.providerData[0].displayName || null;
-    console.log("Display name from provider data:", displayName);
   }
   if (!displayName && user.email) {
     displayName = user.email.split("@")[0];
-    console.log("Display name derived from email:", displayName);
   }
 
   try {
@@ -86,7 +84,6 @@ export async function createThirdPartyToken(userRecord: any) {
 
   if (!displayName && userRecord.email) {
     displayName = userRecord.email.split("@")[0];
-    console.log("Display name derived from email:", displayName);
   }
 
   try {
@@ -106,8 +103,6 @@ export async function createThirdPartyToken(userRecord: any) {
         lastUsedAt: Timestamp.now(),
       },
     };
-
-    console.log("TokenData", TokenData);
 
     // 加密會話數據
     const encryptedTokenData = await evervault.encrypt(TokenData);
@@ -138,7 +133,6 @@ export async function deleteServerToken(userId: string): Promise<void> {
   try {
     await tokenDB.deleteToken(userId);
     cookies().delete("token");
-    console.log("Token deleted successfully");
   } catch (error) {
     console.error("Failed to delete token:", error);
     throw new Error("Failed to delete token");

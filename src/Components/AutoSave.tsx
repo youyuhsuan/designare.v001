@@ -77,8 +77,6 @@ const AutoSave: React.FC<{ id: string }> = ({ id: websiteId }) => {
 
       // 如果有更新或刪除的元素，則調用 debouncedSaveElementLibrary 進行保存
       if (Object.keys(updates).length > 0 || deletedIds.length > 0) {
-        console.log("Saving updates:", updates);
-        console.log("Deleted IDs:", deletedIds);
         debouncedSaveElementLibrary(updates, deletedIds);
       }
 

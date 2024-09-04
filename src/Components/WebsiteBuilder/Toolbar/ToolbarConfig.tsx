@@ -163,16 +163,6 @@ export const toolbarItems: ToolbarItem[] = [
           { label: "Column 9", isLayout: true, elementType: "layout" },
         ],
       },
-      {
-        label: "Freeform layout",
-        isLayout: true,
-        elementType: "freeformLayout",
-        children: [
-          { label: "Column 1", isLayout: true, elementType: "layout" },
-          { label: "Column 2", isLayout: true, elementType: "layout" },
-          { label: "Column 3", isLayout: true, elementType: "layout" },
-        ],
-      },
     ],
   },
   {

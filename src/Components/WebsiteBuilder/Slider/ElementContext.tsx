@@ -25,25 +25,12 @@ import { updateElementLibrary } from "@/src/libs/features/websiteBuilder/website
 import { updateNestedProperty } from "@/src/utilities/updateNestedProperty";
 import { deleteElementInstance } from "@/src/libs/features/websiteBuilder/elementLibrarySlice";
 
-// elementReducer
-// 處理各種狀態更新操作
-
-// ElementContext ElementProvider
-// 提供和管理元素狀態，並向子組件提供上下文
-
-// useElementContext
-// 提供上下文的 hook
-
-// Action Creators
-// 創建不同的 Redux 動作
-
-// 處理狀態更新操作的 reducer，實際執行更新邏輯
 const elementReducer = (
   state: LocalElementType[],
   action: Action
 ): LocalElementType[] => {
-  console.log("Current State:", state);
-  console.log("Action Dispatched:", action);
+  // console.log("Current State:", state);
+  // console.log("Action Dispatched:", action);
 
   switch (action.type) {
     case "ADD_ELEMENT":
@@ -135,19 +122,7 @@ export const ElementProvider: React.FC<{
   const reduxDispatch = useAppDispatch();
 
   useEffect(() => {
-    console.log("Syncing Redux elements to local state:", reduxElements);
-    localDispatch({
-      type: "SET_ELEMENTS",
-      payload: Object.values(reduxElements),
-    });
-  }, [reduxElements]);
-
-  useEffect(() => {
-    console.log("Syncing local state to Redux:", elements);
-  }, [elements, reduxElements, reduxDispatch, websiteId]);
-
-  // 同步 Redux 元素到本地狀態
-  useEffect(() => {
+    // console.log("Syncing Redux elements to local state:", reduxElements);
     localDispatch({
       type: "SET_ELEMENTS",
       payload: Object.values(reduxElements),
@@ -174,14 +149,6 @@ export const ElementProvider: React.FC<{
     }
   }, [elements, reduxElements, reduxDispatch, websiteId]);
 
-  // Debug 日誌
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("Elements updated:", elements);
-    }
-  }, [elements]);
-
-  // 定義一個用於查找指定 ID 元素及其路徑的回調函數
   const findElementWithPath = useCallback(
     (
       targetId: string, // 目標元素的 ID
@@ -204,9 +171,8 @@ export const ElementProvider: React.FC<{
           // 如果元素有子元素，遞迴查找子元素
           if (element.config && Array.isArray(element.config.children)) {
             console.log("元素具有子元素，遞迴查找子元素");
-            const [foundElement, foundPath] = findInElements(
-              element.config.children // 查找子元素
-            );
+            const [foundElement, foundPath] = element.config.children; // 查找子元素
+            console.log("foundElement,foundPath", foundElement, foundPath);
             if (foundElement) {
               // 如果在子元素中找到匹配的元素，返回該元素及其完整路徑
               console.log("在子元素中找到匹配的元素，返回該元素及其完整路徑:", {
@@ -228,56 +194,69 @@ export const ElementProvider: React.FC<{
     [elements] // 依賴項，當 elements 改變時，函數會重新創建
   );
 
-  // 定義一個處理元素選擇的回調函數
   const handleElementSelect = useCallback(
-    ({ id, path }: { id: string | null; path?: string[] }) => {
-      console.log("handleElementSelect 被調用，元素 ID:", id);
+    ({ id, path }: { id?: string | null; path?: string[] }) => {
+      console.log("handleElementSelect 被调用，接收到的 id:", id);
+      console.log("接收到的 path:", path);
 
-      if (id === null) {
-        // 處理取消選擇的情況
-        setSelectedElement(null); // 重置選中的元素為 null
-        setSelectedPath([]); // 清空選中的路徑
-        console.log("取消選擇元素");
-        return; // 返回，結束函數執行
+      if (id == null) {
+        setSelectedPath([]);
+        setSelectedElement(null);
+        console.log("取消选择元素或传入了无效的 ID");
+        return;
       }
 
-      let selectedEl: LocalElementType | null;
-      let selectedPth: string[];
+      if (!id || !path) {
+        console.warn("handleElementSelect 接收到无效的 id 或 path");
+        return;
+      }
 
-      if (path) {
-        // 如果提供了路徑，直接使用該路徑
-        selectedPth = path; // 設置選中的路徑
-        // 查找指定 ID 的元素，使用 path 來定位元素
-        [selectedEl] = findElementWithPath(id);
-        console.log("使用提供的路徑查找元素:", {
-          selectedEl,
-          path: selectedPth,
-        });
+      let newPath: string[];
+
+      if (path && path.length > 0) {
+        // 如果提供了有效的完整路径，直接使用
+        newPath = path;
       } else {
-        // 如果沒有提供路徑，使用 findElementWithPath 查找元素
-        [selectedEl, selectedPth] = findElementWithPath(id);
-        console.log("使用 findElementWithPath 查找元素:", {
-          selectedEl,
-          path: selectedPth,
-        });
+        // 查找元素的完整路径
+        const [, foundPath] = findElementWithPath(id);
+        newPath = foundPath;
       }
 
+      if (newPath.length === 0) {
+        console.warn(`ID 为 ${id} 的元素在元素树中未找到`);
+        setSelectedPath([]);
+        setSelectedElement(null);
+        return;
+      }
+
+      // 检查新路径与当前选中路径的关系
+      const currentPath = selectedPath;
+      if (
+        newPath.length > currentPath.length &&
+        newPath.every((id, index) => currentPath[index] === id)
+      ) {
+        // 新选中的是当前选中元素的子元素
+        console.log("选中子元素，扩展选择路径");
+        setSelectedPath(newPath);
+      } else if (currentPath.includes(id)) {
+        // 选中的是当前路径中的某个祖先元素
+        console.log("选中祖先元素，缩短选择路径");
+        setSelectedPath(currentPath.slice(0, currentPath.indexOf(id) + 1));
+      } else {
+        // 选中了完全不同的元素，重新开始选择
+        console.log("选中新元素，重置选择路径");
+        setSelectedPath(newPath);
+      }
+
+      // 更新选中的元素
+      const [selectedEl] = findElementWithPath(id);
       if (selectedEl) {
-        // 如果找到元素，更新選中的元素和路徑
-        setSelectedElement(selectedEl); // 設置選中的元素
-        setSelectedPath(selectedPth); // 設置選中的路徑
-        console.log("找到元素，更新選中的元素和路徑:", {
-          selectedEl,
-          path: selectedPth,
-        });
+        setSelectedElement(selectedEl);
       } else {
-        // 如果未找到元素，重置選中的元素和路徑
-        console.warn(`ID 為 ${id} 的元素在元素樹中未找到`);
-        setSelectedElement(null); // 重置選中的元素為 null
-        setSelectedPath([]); // 清空選中的路徑
+        setSelectedElement(null);
       }
     },
-    [findElementWithPath] // 當 findElementWithPath 函數變化時，更新該回調函數
+    [findElementWithPath, selectedPath, setSelectedPath, setSelectedElement]
   );
 
   const addElement = useCallback((element: Omit<LocalElementType, "id">) => {
@@ -323,7 +302,7 @@ export const ElementProvider: React.FC<{
     (id: UniqueIdentifier) => {
       localDispatch({ type: "DELETE_ELEMENT", payload: { id } });
       reduxDispatch(deleteElementInstance(id));
-      console.log(`Element ${id} has been deleted`);
+      // console.log(`Element ${id} has been deleted`);
     },
     [reduxDispatch]
   );
@@ -374,7 +353,7 @@ export const useElementContext = () => {
 // Debug
 export const useElementsDebug = () => {
   const { elements } = useElementContext();
-  console.log("Current elements:", elements);
+  // console.log("Current elements:", elements);
   return elements;
 };
 

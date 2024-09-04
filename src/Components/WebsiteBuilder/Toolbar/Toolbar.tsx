@@ -50,7 +50,6 @@ const Toolbar: React.FC = () => {
   // 從 Redux store 中選擇當前狀態
   const presentState = useAppSelector(selectPresent);
 
-  console.log("presentState", presentState);
   // 處理添加元素的函數
   const handleAddElement = ({
     type,
@@ -58,8 +57,6 @@ const Toolbar: React.FC = () => {
     isLayout = false,
     elementType,
   }: HandleAddElementParams) => {
-    console.log("lay", type, content, isLayout, elementType);
-
     const isLayoutType = [
       "layout",
       "standardLayout",

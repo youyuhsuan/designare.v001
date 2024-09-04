@@ -32,7 +32,6 @@ export const fetchWebsiteMetadata = createAsyncThunk(
       if (!response.ok) {
         throw new Error("Failed to fetch website metadata");
       }
-      console.log("fetchWebsiteMetadata");
       return await response.json();
     } catch (error) {
       if (error instanceof Error) {
@@ -99,46 +98,6 @@ export const saveElementLibrary = createAsyncThunk(
       return rejectWithValue(
         "Unknown error occurred while saving element library"
       );
-    }
-  }
-);
-
-export const createNewWebsite = createAsyncThunk(
-  "website/create",
-  async (websiteData: Partial<WebsiteMetadata>, { rejectWithValue }) => {
-    try {
-      const newWebsite = {
-        name: websiteData.name || "New Website",
-        description: websiteData.description || "",
-        templateId: websiteData.templateId,
-        publish: websiteData.status === "published",
-        settings: websiteData.settings || {},
-      };
-
-      const response = await fetch("/api/website", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newWebsite),
-        credentials: "include", // 這確保包含cookies在請求中
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create new website");
-      }
-
-      const createdWebsite: WebsiteMetadata = await response.json();
-      return createdWebsite;
-    } catch (error) {
-      if (error instanceof Error) {
-        return rejectWithValue(error.message);
-      } else {
-        return rejectWithValue(
-          "Unknown error occurred while saving createdWebsite"
-        );
-      }
     }
   }
 );
@@ -220,7 +179,6 @@ export const fetchElementLibrary = createAsyncThunk(
   async (websiteId: string, { rejectWithValue }) => {
     try {
       const response = await fetch(`/api/website/${websiteId}/elementLibrary`);
-
       if (!response.ok) {
         const errorData = await response.json();
         return rejectWithValue(
@@ -231,7 +189,6 @@ export const fetchElementLibrary = createAsyncThunk(
       const data = await response.json();
       return data;
     } catch (error) {
-      // 处理网络错误或其他错误
       return rejectWithValue("An unknown error occurred");
     }
   }

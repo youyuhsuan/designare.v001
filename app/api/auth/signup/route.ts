@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, username, password } = signupSchema.parse(body);
-    console.log("Received signup request for:", email); // 新增日誌
 
     try {
       // Create user with email and password
@@ -23,11 +22,9 @@ export async function POST(request: NextRequest) {
         password
       );
       const user = userCredential.user;
-      // console.log("User created successfully:", user.uid);
 
       // Update user profile with username
       await updateProfile(user, { displayName: username });
-      // console.log("User profile updated with username:", username);
 
       const response = NextResponse.json({
         user: {
@@ -37,8 +34,6 @@ export async function POST(request: NextRequest) {
         },
         message: "註冊成功",
       });
-
-      // console.log("Sending response:", response);
       return response;
     } catch (error) {
       if (error instanceof FirebaseError) {

@@ -28,3 +28,15 @@ export const selectSaveError = createSelector(
   selectWebsiteMetadataState,
   (websiteState) => websiteState.saveError
 );
+
+// // 選擇網站創建狀態
+// export const selectCreationStatus = createSelector(
+//   selectWebsiteMetadataState,
+//   (websiteState) => websiteState.status
+// );
+
+// // 選擇網站創建錯誤
+// export const selectCreationError = createSelector(
+//   selectWebsiteMetadataState,
+//   (websiteState) => websiteState.status
+// );

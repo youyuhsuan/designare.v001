@@ -8,9 +8,7 @@ interface Action extends AnyAction {
 
 export const analyticsMiddleware: Middleware =
   (store) => (next) => (action: unknown) => {
-    // 使用类型断言来处理 action
     const typedAction = action as Action;
-
     if (
       typeof typedAction.type === "string" &&
       typedAction.type.startsWith("elementLibrary/")

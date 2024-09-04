@@ -75,10 +75,8 @@ const EditInput = forwardRef<HTMLInputElement, EditInputProps>((props, ref) => {
 
   useEffect(() => {
     if (inputRef.current && props.shouldSelectAll) {
-      console.log("Attempting to select all text");
       inputRef.current.focus();
       inputRef.current.setSelectionRange(0, inputRef.current.value.length);
-      console.log("Text selected:", inputRef.current.value);
       props.onSelectComplete();
     }
   }, [props.shouldSelectAll, props.onSelectComplete, props]);
@@ -93,7 +91,6 @@ const EditInput = forwardRef<HTMLInputElement, EditInputProps>((props, ref) => {
         {...props}
         style={{ width: inputWidth }}
         onKeyDown={(e) => {
-          console.log("Key pressed in EditInput:", e.key);
           if (e.key === "Enter") {
             e.preventDefault();
             props.onBlur();

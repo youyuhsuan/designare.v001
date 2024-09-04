@@ -144,7 +144,6 @@ const BoxModelEditor: React.FC<BoxModelEditorProps> = ({ value, onChange }) => {
   });
 
   useEffect(() => {
-    console.log("Value changed:", value);
     if (value) {
       setLocalValue(value);
     }
@@ -160,7 +159,6 @@ const BoxModelEditor: React.FC<BoxModelEditorProps> = ({ value, onChange }) => {
             i === index ? numValue : v
           ) as [number, number, number, number],
         };
-        console.log("Updated local value:", updatedValues);
         setLocalValue(updatedValues);
         onChange(updatedValues);
       }

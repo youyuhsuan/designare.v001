@@ -107,32 +107,6 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
             ))}
           </GridLayout>
         );
-      case "freeformLayout":
-        return (
-          <FreeformLayout>
-            <PlaceholderBox
-              $width="40%"
-              $height="40%"
-              $position="absolute"
-              $top="10%"
-              $left="10%"
-            />
-            <PlaceholderBox
-              $width="30%"
-              $height="30%"
-              $position="absolute"
-              $top="30%"
-              $left="60%"
-            />
-            <PlaceholderBox
-              $width="20%"
-              $height="20%"
-              $position="absolute"
-              $top="60%"
-              $left="40%"
-            />
-          </FreeformLayout>
-        );
       default:
         return <PlaceholderBox>{children}</PlaceholderBox>;
     }

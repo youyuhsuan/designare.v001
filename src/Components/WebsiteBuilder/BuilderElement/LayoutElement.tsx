@@ -15,14 +15,63 @@ import {
   ContentProps,
 } from "@/src/Components/WebsiteBuilder/BuilderInterface/";
 import { useElementContext } from "@/src/Components/WebsiteBuilder/Slider/ElementContext";
-import RenderContent from "../../../Hooks/RenderContent";
 
 const SectionWrapper = styled.div<ContentProps>`
   border: 1px solid ${(props) => props.theme.colors.border};
   border-radius: ${(props) => props.theme.borderRadius.sm};
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, width 0.3s ease, height 0.3s ease;
   transform: ${(props) => (props.$isDragging ? "scale(1.02)" : "scale(1)")};
   position: relative;
+  width: ${(props) => {
+    if (
+      props.$config?.useMaxWidth ||
+      props.$config?.responsiveBehavior === "fitWidth"
+    ) {
+      return "100%";
+    }
+    return props.$config?.elementType === "sidebarLayout" ||
+      props.$config?.elementType === "columnizedLayout"
+      ? "100%"
+      : `${props.$config?.size?.width || 100}%`;
+  }};
+  height: ${(props) => `${props.$config?.size?.height || 100}px`};
+  display: flex;
+  flex-direction: ${(props) =>
+    props.$config?.elementType === "sidebarLayout" ||
+    props.$config?.elementType === "columnizedLayout"
+      ? "row"
+      : "column"};
+  gap: ${(props) => `${props.$config?.gap || 0}px`};
+`;
+
+const SectionContent = styled.div<ContentProps>`
+  flex: ${(props) => {
+    if (
+      props.$config?.elementType === "sidebarLayout" ||
+      props.$config?.elementType === "columnizedLayout"
+    ) {
+      return props.$width ? `0 0 ${props.$width}` : "1";
+    }
+    return "1";
+  }};
+  padding: ${(props) =>
+    props.$config?.boxModelEditor?.padding.join("px ") + "px"};
+  margin: ${(props) =>
+    props.$config?.boxModelEditor?.margin.join("px ") + "px"};
+  background-color: ${(props) =>
+    props.$config?.backgroundColor?.defaultColor || "transparent"};
+  opacity: ${(props) =>
+    props.$config?.backgroundColor?.defaultOpacity !== undefined
+      ? props.$config?.backgroundColor.defaultOpacity / 100
+      : 1};
+  height: 100%;
+  ${(props) =>
+    props.$config?.media?.type === "image" &&
+    `
+    background-image: url(${props.$config.media.url});
+    background-size: cover;
+    background-position: center;
+  `}
 `;
 
 const DragHandle = styled.div`
@@ -44,6 +93,9 @@ const DragHandle = styled.div`
 `;
 
 const Section = styled.div<ContentProps>`
+  display: flex;
+  flex-direction: ${(props) => props.$flexDirection || "row"};
+  width: 100%;
   height: 100%;
   padding: ${(props) =>
     props.$config.boxModelEditor?.padding.join("px ") + "px"};
@@ -56,20 +108,6 @@ const Section = styled.div<ContentProps>`
       : 1};
 `;
 
-const SectionContent = styled.div<ContentProps>`
-  padding: ${(props) =>
-    props.$config.boxModelEditor?.padding.join("px ") + "px"};
-  margin: ${(props) => props.$config.boxModelEditor?.margin.join("px ") + "px"};
-  height: 100%;
-  ${(props) =>
-    props.$config?.media?.type === "image" &&
-    `
-    background-image: url(${props.$config.media.url});
-    background-size: cover;
-    background-position: center;
-  `}
-`;
-
 const ResizeHandle = styled.div`
   position: absolute;
   bottom: 0;
@@ -77,6 +115,18 @@ const ResizeHandle = styled.div`
   height: 10px;
   background-color: ${(props) => props.theme.colors.background};
   cursor: row-resize;
+`;
+
+const GridContainer = styled.div<{
+  $config: any;
+  $columns: number;
+  $gap: number;
+}>`
+  display: grid;
+  grid-template-columns: repeat(${(props) => props.$columns}, 1fr);
+  gap: ${(props) => props.$gap}px;
+  width: 100%;
+  height: 100%;
 `;
 
 const LayoutElement: React.FC<LayoutElementProps> = ({
@@ -87,34 +137,67 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
   elementType,
   onUpdate,
   onDelete,
+  onSelect,
   isSelected,
-  path = [],
 }) => {
-  const { updateSelectedElement, handleElementSelect } = useElementContext();
-  const elementRef = useRef<HTMLDivElement>(null);
-  const [elementHeight, setElementHeight] = useState(config.size.height);
-  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const { updateSelectedElement } = useElementContext();
 
-  useEffect(() => {
-    console.log("LayoutElement selectedChildId updated:", selectedChildId);
-  }, [selectedChildId]);
+  const elementRef = useRef<HTMLDivElement>(null);
+  const [elementHeight, setElementHeight] = useState(
+    config?.size?.height ?? 100
+  );
+
+  const [lastClickedId, setLastClickedId] = useState<string | null>(null);
+  const [clickCount, setClickCount] = useState(0);
+
+  const handleElementSelect = useCallback(
+    (selectedId: string, childPath: string[] = []) => {
+      const fullPath = [id, ...childPath];
+      if (selectedId === id) {
+        if (lastClickedId === id) {
+          console.log("第二次點擊同一元素");
+          setClickCount(2);
+
+          if (config.children && config.children.length > 0) {
+            const firstChildId = config.children[0].id;
+            console.log("選擇第一個子元素", firstChildId);
+            onSelect?.({ id: firstChildId, path: [...fullPath, firstChildId] });
+          } else {
+            console.log("沒有子元素，保持當前選擇");
+            onSelect?.({ id: selectedId, path: fullPath });
+          }
+        } else {
+          setClickCount(1);
+          onSelect?.({ id: selectedId, path: fullPath });
+        }
+      } else {
+        console.log("第一次點擊，選擇當前元素");
+        setClickCount(1);
+        onSelect?.({ id: selectedId, path: fullPath });
+      }
+      setTimeout(() => {
+        setClickCount(0);
+        setLastClickedId(null);
+      }, 300); // 300毫秒後重置，可以根據需要調整
+    },
+    [id, onSelect, config.children, lastClickedId]
+  );
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
-      e.stopPropagation(); // 停止事件冒泡，防止事件被傳播到父級元素
-      console.log("點擊事件被處理，停止冒泡"); // 記錄事件處理訊息
-
-      // 調用 handleElementSelect 函數，選擇指定的元素
-      handleElementSelect({ id, path: [...path, id] });
-
-      console.log("處理選擇元素的操作，元素 ID:", id, "路徑:", [...path, id]); // 記錄元素選擇操作及其路徑
+      e.stopPropagation();
+      console.log("LayoutElement 處理點擊事件");
+      handleElementSelect(id);
     },
-    [id, path, handleElementSelect]
+    [id, handleElementSelect]
   );
 
   useEffect(() => {
-    setElementHeight(config.size.height);
-  }, [config.size.height]);
+    if (config?.size?.height !== undefined) {
+      console.log("LayoutElement 高度已更新:", config.size.height);
+      setElementHeight(config?.size?.height);
+    }
+  }, [config?.size?.height]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -147,10 +230,8 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
     },
   });
 
-  // 使用 useMemo 儲存計算結果，僅在依賴項變更時重新計算
   const style = useMemo(() => {
     const baseStyle: React.CSSProperties = {
-      width: config?.useMaxWidth ? "100%" : `${config?.size?.width || 100}%`,
       height: `${elementHeight}px`,
       transform: CSS.Transform.toString(transform),
       transition,
@@ -171,6 +252,7 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
 
   const updateElementHeight = useCallback(
     (newHeight: number) => {
+      console.log("更新元素高度為:", newHeight);
       setElementHeight(newHeight);
       const newConfig = {
         ...config,
@@ -188,17 +270,20 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
     (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      console.log("Resize handle mouse down");
       const startY = e.clientY;
       const startHeight = elementHeight;
 
       const handleMouseMove = (e: MouseEvent) => {
         const deltaY = e.clientY - startY;
         const newHeight = Math.max(100, startHeight + deltaY);
+        console.log("Resizing: new height", newHeight);
         updateElementHeight(newHeight);
         updateSelectedElement(id, "config.size.height", newHeight);
       };
 
       const handleMouseUp = () => {
+        console.log("Resize handle mouse up");
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
       };
@@ -215,30 +300,163 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
         e.preventDefault();
         const delta = e.key === "ArrowUp" ? -10 : 10;
         const newHeight = Math.max(100, elementHeight + delta);
-        updateElementHeight(newHeight);
         console.log(
           `Element ${id} - Arrow key resize, new height: ${newHeight}px`
         );
+        updateElementHeight(newHeight);
       }
     },
     [id, elementHeight, updateElementHeight]
   );
 
-  if (!config || typeof config !== "object") {
-    console.error("Invalid config:", config);
-    return null;
-  }
+  const renderChild = useCallback(
+    (childConfig: any, index: number) => {
+      if (!childConfig) {
+        console.warn(`第 ${index} 個子元素的配置是 undefined`);
+        return null;
+      }
+
+      return (
+        <LayoutElement
+          key={childConfig.id || index}
+          {...childConfig}
+          onUpdate={(newChildConfig) => {
+            const newChildren = [...(config.children || [])];
+            newChildren[index] = { ...childConfig, ...newChildConfig };
+            onUpdate({ ...config, children: newChildren });
+          }}
+          onSelect={({ id: childId, path }) => {
+            handleElementSelect(childId, [childConfig.id, ...path]);
+          }}
+          isSelected={
+            isSelected && config.children?.[index]?.id === childConfig.id
+          }
+          o
+        />
+      );
+    },
+    [config, onUpdate, handleElementSelect, isSelected]
+  );
+
+  const renderContent = useMemo(() => {
+    console.log("渲染元素內容，元素類型:", elementType, "配置:", config);
+
+    if (!config) {
+      console.error("配置是 undefined");
+      return null;
+    }
+
+    const renderChildren = (
+      children: any[] | undefined,
+      startIndex: number,
+      endIndex?: number
+    ) => {
+      if (!Array.isArray(children)) {
+        console.warn("子元素不是陣列:", children);
+        return null;
+      }
+      return children
+        .slice(startIndex, endIndex)
+        .map((child, index) => renderChild(child, startIndex + index));
+    };
+
+    const children = config.children || [];
+    console.log("子元素:", children);
+
+    const handleSectionContentClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      handleElementSelect(id);
+    };
+
+    switch (elementType) {
+      case "sidebarLayout":
+      case "columnizedLayout":
+        return (
+          <>
+            <SectionContent
+              $config={config}
+              $width={`${config.columnWidths?.left || 50}%`}
+              onClick={handleSectionContentClick}
+            >
+              {renderChildren(children, 0, 1)}
+            </SectionContent>
+            <SectionContent
+              $config={config}
+              $width={`${
+                config.columnWidths?.middle ||
+                (elementType === "sidebarLayout" ? 50 : 25)
+              }%`}
+              onClick={handleSectionContentClick}
+            >
+              {elementType === "columnizedLayout" &&
+              config.middleColumnSplit ? (
+                <>
+                  <div style={{ height: "50%" }}>
+                    {renderChildren(children, 1, 2)}
+                  </div>
+                  <div style={{ height: "50%" }}>
+                    {renderChildren(children, 2, 3)}
+                  </div>
+                </>
+              ) : (
+                renderChildren(children, 1, 2)
+              )}
+            </SectionContent>
+            {(elementType === "columnizedLayout" ||
+              config.columnWidths?.right) && (
+              <SectionContent
+                $config={config}
+                $width={`${config.columnWidths?.right || 25}%`}
+                onClick={handleSectionContentClick}
+              >
+                {renderChildren(
+                  children,
+                  elementType === "columnizedLayout" && config.middleColumnSplit
+                    ? 3
+                    : 2
+                )}
+              </SectionContent>
+            )}
+          </>
+        );
+
+      case "gridLayout":
+        return (
+          <GridContainer
+            $config={config}
+            $columns={config.columns || 3}
+            $gap={config.gap || 5}
+            onClick={handleSectionContentClick}
+          >
+            {renderChildren(children, 0)}
+          </GridContainer>
+        );
+
+      default:
+        return (
+          <SectionContent $config={config} onClick={handleSectionContentClick}>
+            {renderChildren(children, 0)}
+          </SectionContent>
+        );
+    }
+  }, [elementType, config, renderChild, handleElementSelect, id]);
 
   return (
     <SectionWrapper
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...style,
+        border: isSelected ? "2px solid blue" : "1px solid gray",
+      }}
       role="region"
       $config={config}
       aria-label={`${type} content`}
       $isDragging={isDragging}
+      onClick={(e) => {
+        console.log(`SectionWrapper clicked: id=${id}`);
+        handleElementSelect(id, []);
+      }}
       $isSelected={isSelected}
-      onClick={handleClick}
     >
       <Section $config={config} ref={elementRef} tabIndex={0}>
         {isSelected && (
@@ -250,16 +468,7 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
             tabIndex={0}
           />
         )}
-        <SectionContent $config={config}>
-          {RenderContent({
-            type,
-            config,
-            elementType,
-            selectedId: isSelected ? id : null,
-            onUpdate,
-            path: [...path, id],
-          })}
-        </SectionContent>
+        {renderContent}
         {isSelected && (
           <ResizeHandle
             role="slider"

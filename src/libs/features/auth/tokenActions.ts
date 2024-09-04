@@ -2,7 +2,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 
 export const fetchToken = createAsyncThunk("token/fetchToken", async () => {
   const response = await fetch("/api/auth/token");
-  console.log("response", response);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }

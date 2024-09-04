@@ -394,7 +394,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
             />
           </ImageWrapperElement>
         );
-      case "list":
       default:
         return (
           <div

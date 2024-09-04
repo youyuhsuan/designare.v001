@@ -40,8 +40,8 @@ export interface FreeDraggableElementData extends BaseElementData {
 export interface ElementCallbacks {
   onUpdate: (updates: Partial<LocalElementType>) => void;
   onDelete: () => void;
+  onSelect?: (params: { id: string; path: string[] }) => void;
   isSelected: boolean;
-  path?: string[];
 }
 
 export interface FreeDraggableElementCallbacks {
@@ -77,6 +77,8 @@ export interface ContentProps {
   $isDragging?: boolean;
   $isSelected?: boolean;
   $config?: any;
+  $flexDirection?: string;
+  $width?: string;
   borderRadius?: number;
 }
 

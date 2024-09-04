@@ -12,8 +12,8 @@ const createLayoutElementConfig = (properties: any): ElementConfig => ({
   responsiveBehavior: properties.responsiveBehavior.defaultValue,
   useMaxWidth: properties.useMaxWidth.defaultValue,
   boxModelEditor: {
-    padding: properties.boxModelEditor.defaultValue.padding,
-    margin: properties.boxModelEditor.defaultValue.margin,
+    padding: properties.boxModelEditor.defaultValue.padding || 20,
+    margin: properties.boxModelEditor.defaultValue.margin || 0,
   },
   backgroundColor: {
     defaultColor: properties.backgroundColor.defaultColor,
@@ -151,121 +151,33 @@ export function createElementConfig(
   type: string,
   isLayout: boolean,
   elementType: string = "",
-  configs: any,
-  generateId: boolean = true
+  configs: any
 ): Partial<ElementConfig> {
-  const id = generateId ? uuidv4() : undefined;
-
   let baseConfig: Partial<ElementConfig>;
-  // TODO:生成很多次id
-  const existingId = configs.id || id;
-
-  const commonConfig = {
-    ...(existingId && { id: existingId }),
-    type,
-    isLayout,
-    elementType,
-  };
-
   if (isLayout) {
     switch (elementType) {
       case "layout":
-        baseConfig = {
-          ...commonConfig,
-          ...configCreators.layoutElement(configs.layoutElement.properties),
-          ...configCreators.layout(
-            configs.layoutElement.subtypes.layout.properties,
-            elementType
-          ),
-        };
-        break;
       case "sidebarLayout":
-        baseConfig = {
-          ...commonConfig,
-          ...configCreators.layoutElement(configs.layoutElement.properties),
-          ...configCreators.layout(
-            configs.layoutElement.subtypes.layout.properties,
-            elementType
-          ),
-        };
-        baseConfig.children = [
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-        ];
-        break;
       case "columnizedLayout":
-        baseConfig = {
-          ...commonConfig,
-          ...configCreators.layoutElement(configs.layoutElement.properties),
-          ...configCreators.layout(
-            configs.layoutElement.subtypes.layout.properties,
-            elementType
-          ),
-        };
-        baseConfig.children = [
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-        ];
-        break;
       case "gridLayout":
         baseConfig = {
-          ...commonConfig,
           ...configCreators.layoutElement(configs.layoutElement.properties),
           ...configCreators.layout(
             configs.layoutElement.subtypes.layout.properties,
             elementType
           ),
         };
-        baseConfig.children = [
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-        ];
-
         break;
-      case "freeformLayout":
+      case "child":
         baseConfig = {
           ...configCreators.layoutElement(configs.layoutElement.properties),
-          ...configCreators.layout(
-            configs.layoutElement.subtypes.layout.properties,
-            elementType
-          ),
         };
-        baseConfig.children = [
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-          createElementConfig("layout", true, "layout", configs),
-        ];
         break;
       default:
         baseConfig = {
-          ...commonConfig,
           ...configCreators.layoutElement(configs.layoutElement.properties),
         };
         break;
-    }
-
-    switch (type) {
-    }
-
-    if (baseConfig.children) {
-      baseConfig.children = baseConfig.children.map((childConfig: any) =>
-        createElementConfig(
-          childConfig.type,
-          childConfig.isLayout,
-          childConfig.elementType,
-          configs,
-          true
-        )
-      );
     }
   } else {
     switch (type) {
@@ -313,6 +225,5 @@ export function createElementConfig(
     ...(baseConfig.properties || {}),
     ...(baseConfig.children && { children: baseConfig.children }),
     ...baseConfig,
-    ...commonConfig,
   };
 }

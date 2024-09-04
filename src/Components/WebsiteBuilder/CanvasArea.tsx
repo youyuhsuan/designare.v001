@@ -20,7 +20,7 @@ import { throttle } from "lodash";
 import { useSelector } from "react-redux";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useElementContext, useElementsDebug } from "./Slider/ElementContext";
+import { useElementContext } from "./Slider/ElementContext";
 
 import { SiteContainer } from "@/src/Components/WebsiteBuilder/SiteContainer";
 import LayoutElement from "./BuilderElement/LayoutElement";
@@ -48,7 +48,6 @@ import {
   selectCurrentLayoutSettings,
 } from "@/src/libs/features/websiteBuilder/globalSelect";
 
-// Styled-component 定義了畫布區域的容器樣式
 const CanvasAreaContainer = styled.div`
   width: 100%;
 `;
@@ -99,9 +98,8 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
     })
   );
 
-  // 獲取 Redux store 中的當前狀態
-  const dispatch = useAppDispatch(); // 用於發送 Redux action
-  const currentDevice = useSelector(selectCurrentDevice); // 當前設備（桌面、平板、手機）
+  const dispatch = useAppDispatch();
+  const currentDevice = useSelector(selectCurrentDevice);
   const currentLayoutSettings = useSelector(selectCurrentLayoutSettings); // 當前佈局設置
   const canvasOffset = useAppSelector(selectCanvasOffset); // 畫布的偏移量
   const handleResizeRef =
@@ -353,14 +351,15 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
   //   setSelectedElement(selectedElement);
   // };
 
-  const handleCanvasClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (event.target === event.currentTarget) {
-        handleElementSelect({ id: null });
-      }
-    },
-    [handleElementSelect]
-  );
+  // const handleCanvasClick = useCallback(
+  //   (event: React.MouseEvent<HTMLDivElement>) => {
+  //     if (event.target === event.currentTarget) {
+  //       console.log("Canvas 空白区域被点击，准备取消选择");
+  //       handleElementSelect({ id: null });
+  //     }
+  //   },
+  //   [handleElementSelect]
+  // );
 
   // 處理拖拽開始事件
   const handleDragStart = (event: DragStartEvent) => {
@@ -394,7 +393,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
           const layoutElementIds = layoutElements.map((el) => el.id);
           const oldIndex = layoutElementIds.findIndex((id) => id === active.id);
           const newIndex = layoutElementIds.findIndex((id) => id === over.id);
-
           if (oldIndex !== -1 && newIndex !== -1) {
             const newOrder = arrayMove(layoutElementIds, oldIndex, newIndex);
             reorderElements(newOrder); // 更新布局元素的順序
@@ -461,25 +459,33 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({ id }) => {
         <SiteContainer
           width={currentLayoutSettings.siteWidth}
           height={currentLayoutSettings.canvasHeight}
-          onClick={handleCanvasClick}
+          onClick={() => handleElementSelect({ id: null })}
         >
           <SortableContext
             items={layoutElements.map((el) => el.id)}
             strategy={verticalListSortingStrategy}
           >
-            {layoutElements.map((element) => (
-              <LayoutElement
-                key={element.id}
-                {...element}
-                onUpdate={(updates) => handleElementUpdate(element.id, updates)}
-                onDelete={() => deleteElement(element.id)}
-                isSelected={element.id === selectedId}
-                onSelect={() => handleElementSelect({ id: element.id })}
-                onResize={handleResize}
-              />
-            ))}
+            {layoutElements.map((element) => {
+              const path = element.path
+                ? [...element.path, element.id]
+                : [element.id];
+              return (
+                <LayoutElement
+                  key={element.id}
+                  {...element}
+                  onUpdate={(updates) =>
+                    handleElementUpdate(element.id, updates)
+                  }
+                  onDelete={() => deleteElement(element.id)}
+                  isSelected={element.id === selectedId}
+                  onSelect={() => {
+                    handleElementSelect({ id: element.id, path: path });
+                  }}
+                  onResize={handleResize}
+                />
+              );
+            })}
           </SortableContext>
-
           {freeDraggableElements.map((element) => (
             <FreeDraggableElement
               key={element.id}

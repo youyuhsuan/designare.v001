@@ -9,11 +9,13 @@ import SidebarEditor from "@/src/Components/WebsiteBuilder/SidebarEditor/Sidebar
 import { useAppDispatch, useAppSelector } from "@/src/libs/hook";
 import { undo, redo } from "@/src/libs/features/websiteBuilder/historySlice";
 import {
-  createNewWebsite,
-  fetchWebsiteMetadata,
-} from "@/src/libs/features/websiteBuilder/websiteMetadataThunk";
+  convertTimestamp,
+  formatTimestamp,
+} from "@/src/utilities/convertTimestamp";
 import { selectWebsiteMetadata } from "@/src/libs/features/websiteBuilder/websiteMetadataSelector";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { WebsiteMetadata } from "@/src/type/website";
+import { Timestamp } from "firebase/firestore";
 
 const BuilderContainer = styled.div`
   display: flex;
@@ -60,7 +62,8 @@ export default function WebsiteBuilderLayout({
 }) {
   const websiteMetadata = useAppSelector(selectWebsiteMetadata);
   const dispatch = useAppDispatch();
-  const params = useParams(); // 路由參數
+
+  const params = useParams();
   const id = params.id as string;
 
   // const handlePreview = useCallback(() => {
@@ -75,21 +78,42 @@ export default function WebsiteBuilderLayout({
     dispatch(redo());
   }, [dispatch]);
 
-  const handleCreate = useCallback(() => {
-    if (websiteMetadata) {
-      dispatch(createNewWebsite(websiteMetadata));
-    } else {
-      console.error("Website metadata is null");
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const handlePublishWebsite = async () => {
+    try {
+      const response = await fetch(`/api/website/${id}/metadata`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "return-updated-data": "true",
+        },
+        body: JSON.stringify({
+          url: `${baseUrl}/publish/${id}`,
+          status: "published",
+          publishedAt: convertTimestamp(Timestamp.now()),
+          lastModified: convertTimestamp(Timestamp.now()),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.metadata.url;
+    } catch (err) {
+      console.error("Error updating website:", err);
+      throw err;
     }
-  }, [dispatch, websiteMetadata]);
+  };
 
   return (
     <ElementProvider websiteId={id}>
       <BuilderContainer>
         <WebsiteBuilderNavbar
+          id={id}
           onUndo={handleUndo}
           onRedo={handleRedo}
-          onCreate={handleCreate}
+          onPublish={handlePublishWebsite}
         />
         <ContentContainer>
           <ToolbarWrapper>

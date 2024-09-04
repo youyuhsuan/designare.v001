@@ -121,9 +121,6 @@ const SidebarEditor: React.FC = () => {
         const pathParts = propertyPath.split(".");
         let current: any = updatedElement.config;
 
-        console.log("Initial current (config):", current);
-        console.log("Path parts:", pathParts);
-
         // 遍歷 pathParts，更新對象中的嵌套屬性
         for (let i = 0; i < pathParts.length - 1; i++) {
           const part = pathParts[i];

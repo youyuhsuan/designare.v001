@@ -104,7 +104,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         throw new Error("Failed to authenticate");
       }
       const data = await response.json();
-      console.log("handleProviderLogin", data);
     } catch (error) {
       console.error("Third-party login error", error);
     } finally {

@@ -44,7 +44,6 @@ const PreviewHeader = styled.h1`
 `;
 
 const SitePreviewer: React.FC = () => {
-  // 确保 graySquares 是一个字符串 URL
   const backgroundImageUrl =
     typeof graySquares === "object" && "src" in graySquares
       ? graySquares.src
