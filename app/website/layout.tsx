@@ -78,7 +78,7 @@ export default function WebsiteBuilderLayout({
     dispatch(redo());
   }, [dispatch]);
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = "https://designare-psi.vercel.app/" || "http://localhost:3000";
   const handlePublishWebsite = async () => {
     try {
       const response = await fetch(`/api/website/${id}/metadata`, {
