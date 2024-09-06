@@ -143,6 +143,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
               type: file.type.startsWith("image/") ? "image" : "video",
               url: downloadURL,
             });
+            console.log("downloadURL", downloadURL);
           });
         }
       );
@@ -209,12 +210,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           <p>檔案預覽</p>
           <Preview>
             {value.type === "image" ? (
-              <Image
-                src={value.url}
-                alt="預覽"
-                layout="fill"
-                objectFit="contain"
-              />
+              <Image src={value.url} alt="預覽" layout="fill" />
             ) : (
               <video
                 src={value.url}

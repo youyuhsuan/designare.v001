@@ -48,11 +48,11 @@ export default function PublishedWebsitePage() {
   const { updates } = websiteData?.elementLibrary;
 
   return (
-    <div>
+    <>
       {Object.keys(updates.byId).map((elementId) => {
         const element = updates.byId[elementId];
         return renderElement(element);
       })}
-    </div>
+    </>
   );
 }

@@ -13,6 +13,7 @@ const AutoSave: React.FC<{ id: string }> = ({ id: websiteId }) => {
   const elementLibrary = useAppSelector(selectElementLibrary); // 獲取元素庫的狀態
   const prevElementLibraryRef = useRef<ElementLibrary | null>(null); // 儲存前一個元素庫狀態的參考
 
+  console.log("elementLibrary", elementLibrary);
   // 使用 debounce 函數創建一個防抖動的保存函數
   const debouncedSaveElementLibrary = useMemo(
     () =>

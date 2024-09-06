@@ -13,10 +13,7 @@ const createLayoutElementConfig = (properties: any): ElementConfig => ({
     padding: properties.boxModelEditor.defaultValue.padding || 20,
     margin: properties.boxModelEditor.defaultValue.margin || 0,
   },
-  backgroundColor: {
-    defaultColor: properties.backgroundColor.defaultColor,
-    defaultOpacity: properties.backgroundColor.defaultOpacity,
-  },
+  backgroundColor: properties.backgroundColor.defaultValue,
   media: properties.media.defaultValue,
 });
 
@@ -47,10 +44,7 @@ const createLayoutConfig = (
     padding: properties.boxModelEditor.defaultValue.padding,
     margin: properties.boxModelEditor.defaultValue.margin,
   },
-  backgroundColor: {
-    defaultColor: properties.backgroundColor.defaultColor,
-    defaultOpacity: properties.backgroundColor.defaultOpacity,
-  },
+  backgroundColor: properties.backgroundColor.defaultValue,
   media: properties.media.defaultValue,
 });
 

@@ -59,10 +59,10 @@ const SectionContent = styled.div<ContentProps>`
   margin: ${(props) =>
     props.$config?.boxModelEditor?.margin.join("px ") + "px"};
   background-color: ${(props) =>
-    props.$config?.backgroundColor?.defaultColor || "transparent"};
+    props.$config.backgroundColor || "transparent"};
   opacity: ${(props) =>
-    props.$config?.backgroundColor?.defaultOpacity !== undefined
-      ? props.$config?.backgroundColor.defaultOpacity / 100
+    props.$config?.backgroundColor !== undefined
+      ? props.$config?.backgroundColor / 100
       : 1};
   height: 100%;
   ${(props) =>
@@ -139,6 +139,7 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
   onDelete,
   onSelect,
   isSelected,
+  onMouseUp,
 }) => {
   const { updateSelectedElement } = useElementContext();
 
@@ -456,6 +457,7 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
         console.log(`SectionWrapper clicked: id=${id}`);
         handleElementSelect(id, []);
       }}
+      onMouseUp={onMouseUp}
       $isSelected={isSelected}
     >
       <Section $config={config} ref={elementRef} tabIndex={0}>
