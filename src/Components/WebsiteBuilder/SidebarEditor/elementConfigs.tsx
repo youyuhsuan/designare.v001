@@ -1,4 +1,6 @@
 import { ElementConfigs } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
+import { Content } from "next/font/google";
+import { RxBorderWidth } from "react-icons/rx";
 
 export const elementConfigs: ElementConfigs = {
   layoutElement: {
@@ -438,6 +440,11 @@ export const elementConfigs: ElementConfigs = {
         type: "buttonElement",
         label: "按鈕元素",
         properties: {
+          content: {
+            label: "文字",
+            type: "text",
+            defaultValue: "",
+          },
           size: {
             label: "大小",
             type: "composite",
@@ -522,40 +529,37 @@ export const elementConfigs: ElementConfigs = {
             min: 0,
             max: 100,
           },
-          // TODO:還沒有處理
-          border: {
-            label: "邊框",
-            type: "border",
+          borderWidth: {
+            label: "邊框寬度",
+            type: "number",
             defaultValue: {
-              filledButton: { width: 0, style: "none", color: "transparent" },
-              outlinedButton: { width: 1, style: "solid", color: "#007bff" },
-              textButton: { width: 0, style: "none", color: "transparent" },
+              filledButton: 0,
+              outlinedButton: 2,
+              textButton: 0,
             },
-            compositeFields: {
-              width: {
-                label: "邊框寬度",
-                type: "number",
-                unit: "px",
-              },
-              style: {
-                label: "邊框樣式",
-                type: "select",
-                options: [
-                  { value: "solid", label: "實線" },
-                  { value: "dashed", label: "虛線" },
-                  { value: "dotted", label: "點線" },
-                  { value: "none", label: "無" },
-                ],
-              },
-              color: {
-                label: "邊框顏色",
-                type: "color",
-                defaultColor: "#000000",
-                defaultOpacity: 0,
-                step: 10,
-                min: 0,
-                max: 100,
-              },
+          },
+          borderStyle: {
+            label: "邊框樣式",
+            type: "select",
+            options: ["solid", "dashed", "dotted", "none"],
+            defaultValue: {
+              filledButton: "none",
+              outlinedButton: "solid",
+              textButton: "none",
+            },
+          },
+          borderColor: {
+            label: "邊框顏色",
+            type: "color",
+            defaultColor: "#000000",
+            defaultOpacity: 0,
+            step: 10,
+            min: 0,
+            max: 100,
+            defaultValue: {
+              filledButton: "transparent",
+              outlinedButton: "#007bff",
+              textButton: "transparent",
             },
           },
           borderRadius: {

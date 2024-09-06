@@ -58,6 +58,7 @@ const createButtonElementConfig = (
   properties: any,
   elementType: string
 ): ElementConfig => ({
+  content: properties.content.defaultValue,
   size: {
     width: properties.size.defaultValue.width,
     height: properties.size.defaultValue.height,
@@ -76,9 +77,17 @@ const createButtonElementConfig = (
     properties.backgroundColor.defaultValue[
       elementType as keyof typeof properties.backgroundColor.defaultValue
     ],
-  border:
-    properties.border.defaultValue[
-      elementType as keyof typeof properties.border.defaultValue
+  borderWidth:
+    properties.borderWidth.defaultValue[
+      elementType as keyof typeof properties.borderWidth.defaultValue
+    ],
+  borderStyle:
+    properties.borderWidth.defaultValue[
+      elementType as keyof typeof properties.borderStyle.defaultValue
+    ],
+  borderColor:
+    properties.borderWidth.defaultValue[
+      elementType as keyof typeof properties.borderColor.defaultValue
     ],
   borderRadius: properties.borderRadius.defaultValue,
   hoverBackgroundColor:

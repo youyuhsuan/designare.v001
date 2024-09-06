@@ -50,6 +50,7 @@ export const ButtonElement = styled.button<ContentProps>`
   left: 0;
   width: 100%;
   height: 100%;
+  border-width: 0;
   font-size: ${(props) => props.$config.fontSize}px;
   color: ${(props) => props.$config.textColor};
   opacity: ${(props) => props.$config.opacity};
@@ -57,8 +58,9 @@ export const ButtonElement = styled.button<ContentProps>`
   background-color: ${(props) => props.$config.backgroundColor};
   padding: ${(props) => props.$config.boxModelEditor?.padding.join("% ") + "%"};
   margin: ${(props) => props.$config.boxModelEditor?.margin.join("% ") + "%"};
-  // border: ${(props) => props.$config.border};
-  border-radius: ${(props) => props.$config.borderRadius}px;
+  border-width: ${(props) => props.$config.borderWidth}px;
+  border-style: ${(props) => props.$config.borderStyle};
+  border-color: ${(props) => props.$config.borderColor};
   &:hover {
     background-color: ${(props) => props.$config.hoverBackgroundColor};
   }

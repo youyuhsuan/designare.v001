@@ -236,7 +236,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       setIsResizing(false);
 
       if (resizeDirectionRef.current) {
-        // 使用最終的尺寸調用父組件的 handleResize 函數
         parentHandleResize(
           id,
           {
@@ -319,6 +318,9 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   }, [id, isEditing, isSelected, onDelete]);
 
   const renderContent = () => {
+    const padding = config?.boxModelEditor?.padding;
+    const margin = config?.boxModelEditor?.margin;
+
     if (isEditing) {
       return (
         <EditInput
@@ -335,8 +337,9 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     }
     const commonProps = {
       style: {
-        margin: 0,
-        padding: 0,
+        padding: padding ? `${padding.join("px ")}px` : "0",
+        margin: margin ? `${margin.join("px ")}px` : "0",
+        boreder: 0,
       },
       tabIndex: 0,
       onDoubleClick: handleDoubleClick,
@@ -366,7 +369,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
               e.stopPropagation();
             }}
           >
-            {content}
+            {config.content}
           </ButtonElement>
         );
       case "image":
