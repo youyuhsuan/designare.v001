@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import nullAvatarImg from "@/public/images/nullAvatar.png";
-
+import Link from "next/link";
 export interface UserMenuProps {
   name?: string | null;
   email?: string | null;
@@ -68,7 +68,7 @@ const UserEmail = styled.p<UserMenuProps>`
   color: #666;
 `;
 
-const MenuItem = styled.div`
+const MenuItem = styled(Link)`
   padding: 8px 0;
   cursor: pointer;
   color: ${(props) => props.theme.colors.text};
@@ -84,6 +84,21 @@ const MenuItem = styled.div`
   }
 `;
 
+const MenuItemDiv = styled.div`
+  padding: 8px 0;
+  cursor: pointer;
+  color: ${(props) => props.theme.colors.text};
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: ${(props) => props.theme.colors.accent};
+  }
+
+  svg {
+    margin-right: 8px;
+  }
+`;
 const UserMenu: React.FC<UserMenuProps> = ({
   name,
   email,
@@ -126,7 +141,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
             <Username>{name}</Username>
             <UserEmail>{email}</UserEmail>
           </UserInfo>
-          <MenuItem>
+          <MenuItem href="/dashboard">
             <svg
               width="20"
               height="20"
@@ -141,7 +156,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
             </svg>
             Dashboard
           </MenuItem>
-          <MenuItem onClick={onLogout}>
+          <MenuItemDiv onClick={onLogout}>
             <svg
               width="20"
               height="20"
@@ -155,7 +170,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
               />
             </svg>
             Sign out
-          </MenuItem>
+          </MenuItemDiv>
         </DropdownMenu>
       )}
     </UserMenuContainer>

@@ -128,14 +128,19 @@ export const toolbarItems: ToolbarItem[] = [
         elementType: "layout",
       },
       // {
-      //   label: "Sidebar layout",
+      //   label: "nav",
       //   isLayout: true,
-      //   elementType: "sidebarLayout",
-      //   children: [
-      //     { label: "Column 1", isLayout: true, elementType: "layout" },
-      //     { label: "Column 2", isLayout: true, elementType: "layout" },
-      //   ],
+      //   elementType: "Nav",
       // },
+      {
+        label: "Sidebar layout",
+        isLayout: true,
+        elementType: "sidebarLayout",
+        children: [
+          { label: "Column 1", isLayout: true, elementType: "layout" },
+          { label: "Column 2", isLayout: true, elementType: "layout" },
+        ],
+      },
       // {
       //   label: "columnized layout",
       //   isLayout: true,
@@ -165,11 +170,4 @@ export const toolbarItems: ToolbarItem[] = [
       // },
     ],
   },
-  // {
-  //   icon: FaShapes,
-  //   label: "navbar",
-  //   type: "navbar",
-  //   elementType: "Video",
-  //   content: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-  // },
 ];

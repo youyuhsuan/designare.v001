@@ -226,8 +226,6 @@ const SidebarEditor: React.FC = () => {
         ? getNestedValue(currentValues.config, key)
         : currentValues.config[key];
 
-      // console.log("renderField value :", value);
-
       switch (fieldConfig.type) {
         case "text":
         case "number":

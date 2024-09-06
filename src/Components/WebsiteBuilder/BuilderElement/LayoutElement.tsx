@@ -45,6 +45,8 @@ const SectionWrapper = styled.div<ContentProps>`
 `;
 
 const SectionContent = styled.div<ContentProps>`
+  display: flex;
+  flex-direction: row;
   flex: ${(props) => {
     if (
       props.$config?.elementType === "sidebarLayout" ||
@@ -362,7 +364,6 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
     };
 
     const children = config.children || [];
-    console.log("子元素:", children);
 
     const handleSectionContentClick = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -371,7 +372,6 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
 
     switch (elementType) {
       case "sidebarLayout":
-      case "columnizedLayout":
         return (
           <>
             <SectionContent
@@ -379,9 +379,19 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
               $width={`${config.columnWidths?.left || 50}%`}
               onClick={handleSectionContentClick}
             >
-              {renderChildren(children, 0, 1)}
+              <SectionContent
+                $config={config}
+                $width={`${config.columnWidths?.left || 50}%`}
+                onClick={handleSectionContentClick}
+              ></SectionContent>
+              <SectionContent
+                $config={config}
+                $width={`${config.columnWidths?.left || 50}%`}
+                onClick={handleSectionContentClick}
+              ></SectionContent>
+              {/* {renderChildren(children, 0, 1)} */}
             </SectionContent>
-            <SectionContent
+            {/* <SectionContent
               $config={config}
               $width={`${
                 config.columnWidths?.middle ||
@@ -402,7 +412,8 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
               ) : (
                 renderChildren(children, 1, 2)
               )}
-            </SectionContent>
+            </SectionContent> */}
+            case "columnizedLayout":
             {(elementType === "columnizedLayout" ||
               config.columnWidths?.right) && (
               <SectionContent
@@ -421,17 +432,17 @@ const LayoutElement: React.FC<LayoutElementProps> = ({
           </>
         );
 
-      case "gridLayout":
-        return (
-          <GridContainer
-            $config={config}
-            $columns={config.columns || 3}
-            $gap={config.gap || 5}
-            onClick={handleSectionContentClick}
-          >
-            {renderChildren(children, 0)}
-          </GridContainer>
-        );
+      // case "gridLayout":
+      //   return (
+      //     <GridContainer
+      //       $config={config}
+      //       $columns={config.columns || 3}
+      //       $gap={config.gap || 5}
+      //       onClick={handleSectionContentClick}
+      //     >
+      //       {renderChildren(children, 0)}
+      //     </GridContainer>
+      //   );
 
       default:
         return (

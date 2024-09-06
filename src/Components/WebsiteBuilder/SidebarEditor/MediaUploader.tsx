@@ -130,7 +130,6 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log("progress", progress);
           setUploadProgress(progress);
         },
         (error) => {
@@ -143,7 +142,6 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
               type: file.type.startsWith("image/") ? "image" : "video",
               url: downloadURL,
             });
-            console.log("downloadURL", downloadURL);
           });
         }
       );
