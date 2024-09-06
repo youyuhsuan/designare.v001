@@ -1,5 +1,4 @@
 import React from "react";
-import styled from "styled-components";
 import { FaFont, FaImage, FaColumns, FaShapes, FaList } from "react-icons/fa";
 import { RxButton } from "react-icons/rx";
 
@@ -8,6 +7,7 @@ export interface ToolbarSubItem {
   isLayout?: boolean;
   elementType: string;
   content?: string;
+  children?: ToolbarSubItem[];
 }
 
 export interface ToolbarItem {
@@ -120,40 +120,56 @@ export const toolbarItems: ToolbarItem[] = [
   {
     icon: FaColumns,
     label: "Layout",
-    type: "layout",
+    type: "layoutElement",
     items: [
       {
         label: "layout",
         isLayout: true,
         elementType: "layout",
       },
-      {
-        label: "columnized layout",
-        isLayout: true,
-        elementType: "columnizedLayout",
-      },
-      {
-        label: "Sidebar layout",
-        isLayout: true,
-        elementType: "sidebarLayout",
-      },
-      {
-        label: "Grid",
-        isLayout: true,
-        elementType: "grid",
-      },
-      {
-        label: "Freeform",
-        isLayout: true,
-        elementType: "freeform",
-      },
+      // {
+      //   label: "Sidebar layout",
+      //   isLayout: true,
+      //   elementType: "sidebarLayout",
+      //   children: [
+      //     { label: "Column 1", isLayout: true, elementType: "layout" },
+      //     { label: "Column 2", isLayout: true, elementType: "layout" },
+      //   ],
+      // },
+      // {
+      //   label: "columnized layout",
+      //   isLayout: true,
+      //   elementType: "columnizedLayout",
+      //   children: [
+      //     { label: "Column 1", isLayout: true, elementType: "layout" },
+      //     { label: "Column 2", isLayout: true, elementType: "layout" },
+      //     { label: "Column 3", isLayout: true, elementType: "layout" },
+      //     { label: "Column 4", isLayout: true, elementType: "layout" },
+      //   ],
+      // },
+      // {
+      //   label: "Grid layout",
+      //   isLayout: true,
+      //   elementType: "gridLayout",
+      //   children: [
+      //     { label: "Column 1", isLayout: true, elementType: "layout" },
+      //     { label: "Column 2", isLayout: true, elementType: "layout" },
+      //     { label: "Column 3", isLayout: true, elementType: "layout" },
+      //     { label: "Column 4", isLayout: true, elementType: "layout" },
+      //     { label: "Column 5", isLayout: true, elementType: "layout" },
+      //     { label: "Column 6", isLayout: true, elementType: "layout" },
+      //     { label: "Column 7", isLayout: true, elementType: "layout" },
+      //     { label: "Column 8", isLayout: true, elementType: "layout" },
+      //     { label: "Column 9", isLayout: true, elementType: "layout" },
+      //   ],
+      // },
     ],
   },
-  {
-    icon: FaShapes,
-    label: "navbar",
-    type: "navbar",
-    elementType: "Video",
-    content: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-  },
+  // {
+  //   icon: FaShapes,
+  //   label: "navbar",
+  //   type: "navbar",
+  //   elementType: "Video",
+  //   content: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+  // },
 ];

@@ -1,4 +1,4 @@
-type ElementType = "layout" | "freeDraggable";
+type ElementType = "layoutElement" | "freeDraggableElement";
 type PropertyType =
   | "text"
   | "number"

@@ -13,7 +13,6 @@ import {
   ImageWrapperElement,
   ImageElement,
 } from "./Styles";
-import { arrayToCssValue } from "@/src/utilities/arrayToCssValue";
 
 const ElementWrapper = styled.div<ContentProps>`
   position: absolute;
@@ -92,12 +91,8 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     }
 
     if (type === "buttonElement") {
-      const marginValue = arrayToCssValue(config.boxModelEditor.margin, "%");
-      const paddingValue = arrayToCssValue(config.boxModelEditor.padding, "%");
       return {
         ...baseStyle,
-        margin: marginValue,
-        padding: paddingValue,
       };
     }
 
@@ -241,7 +236,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
       setIsResizing(false);
 
       if (resizeDirectionRef.current) {
-        // 使用最終的尺寸調用父組件的 handleResize 函數
         parentHandleResize(
           id,
           {
@@ -291,6 +285,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     };
   }, [handleResize, handleResizeEnd]);
   // 鍵盤事件處理函式
+
   useEffect(() => {
     const handleKeyDown: EventListener = (event: Event) => {
       const keyboardEvent = event as KeyboardEvent;
@@ -323,6 +318,9 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
   }, [id, isEditing, isSelected, onDelete]);
 
   const renderContent = () => {
+    const padding = config?.boxModelEditor?.padding;
+    const margin = config?.boxModelEditor?.margin;
+
     if (isEditing) {
       return (
         <EditInput
@@ -339,8 +337,9 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
     }
     const commonProps = {
       style: {
-        margin: 0,
-        padding: 0,
+        padding: padding ? `${padding.join("px ")}px` : "0",
+        margin: margin ? `${margin.join("px ")}px` : "0",
+        boreder: 0,
       },
       tabIndex: 0,
       onDoubleClick: handleDoubleClick,
@@ -370,7 +369,7 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
               e.stopPropagation();
             }}
           >
-            {content}
+            {config.content}
           </ButtonElement>
         );
       case "image":
@@ -398,7 +397,6 @@ const FreeDraggableElement: React.FC<FreeDraggableElementProps> = ({
             />
           </ImageWrapperElement>
         );
-      case "list":
       default:
         return (
           <div

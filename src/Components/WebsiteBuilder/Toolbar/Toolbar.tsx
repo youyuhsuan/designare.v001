@@ -44,13 +44,11 @@ const ExpandedPanel = styled.div`
 const Toolbar: React.FC = () => {
   const [expandedItem, setExpandedItem] = useState<number | null>(null);
 
-  // Redux 的 dispatch 函數，用於派發動作
   const dispatch = useAppDispatch();
 
   // 從 Redux store 中選擇當前狀態
   const presentState = useAppSelector(selectPresent);
 
-  console.log("presentState", presentState);
   // 處理添加元素的函數
   const handleAddElement = ({
     type,
@@ -58,8 +56,6 @@ const Toolbar: React.FC = () => {
     isLayout = false,
     elementType,
   }: HandleAddElementParams) => {
-    console.log("lay", type, content, isLayout, elementType);
-
     const isLayoutType = [
       "layout",
       "standardLayout",
@@ -77,7 +73,31 @@ const Toolbar: React.FC = () => {
     let elementContent = content;
 
     if (isImageType) {
-      elementContent = `/images/${elementType}.jpg`;
+      switch (elementType) {
+        case "circle":
+          elementContent =
+            "https://firebasestorage.googleapis.com/v0/b/designare-d73bc.appspot.com/o/uploads%2Fmike-hindle-PcrSpE96cYE-unsplash.jpg?alt=media&token=d4528bf8-1f03-4966-9423-92ed2ba961c5";
+          break;
+        case "square":
+          elementContent =
+            "https://firebasestorage.googleapis.com/v0/b/designare-d73bc.appspot.com/o/uploads%2Fivan-diaz-RHAvWlraCTg-unsplash.jpg?alt=media&token=46602f0e-55c6-44bc-95b7-b5460b160e72";
+          break;
+        case "fourTwo":
+          elementContent =
+            "https://firebasestorage.googleapis.com/v0/b/designare-d73bc.appspot.com/o/uploads%2F1725588290705_uran-wang-QEZIB_NAJks-unsplash.jpg?alt=media&token=96ea992d-7ec2-43c3-b0a4-f998218b9025";
+          break;
+        case "fourThree":
+          elementContent =
+            "https://firebasestorage.googleapis.com/v0/b/designare-d73bc.appspot.com/o/uploads%2F1725588582899_tom-gainor-QP9f-kTfTRk-unsplash.jpg?alt=media&token=97102efc-3f9b-41d6-856c-1330414e31e1";
+          break;
+        case "fullWidth":
+          elementContent =
+            "https://firebasestorage.googleapis.com/v0/b/designare-d73bc.appspot.com/o/uploads%2Fdarko-trajkovic-6eTplEYjapg-unsplash.jpg?alt=media&token=dbb1c791-dcd4-4199-bedb-1daac64ee5d8";
+          break;
+        default:
+          elementContent =
+            "https://firebasestorage.googleapis.com/v0/b/designare-d73bc.appspot.com/o/uploads%2F1725588290705_uran-wang-QEZIB_NAJks-unsplash.jpg?alt=media&token=96ea992d-7ec2-43c3-b0a4-f998218b9025";
+      }
     }
 
     // 派發創建元素實例的動作

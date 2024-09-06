@@ -1,20 +1,22 @@
 import { ElementConfigs } from "@/src/Components/WebsiteBuilder/BuilderInterface/index";
+import { Content } from "next/font/google";
+import { RxBorderWidth } from "react-icons/rx";
 
 export const elementConfigs: ElementConfigs = {
-  layout: {
-    type: "layout",
+  layoutElement: {
+    type: "layoutElement",
     label: "佈局",
     properties: {
       size: {
         label: "大小",
         type: "composite",
-        defaultValue: { width: 1200, height: 100 },
+        defaultValue: { width: 100, height: 100 },
         compositeFields: {
           width: {
             label: "寬度",
             type: "number",
-            defaultValue: 1200,
-            unit: "px",
+            defaultValue: 100,
+            unit: "%",
           },
           height: {
             label: "高度",
@@ -38,7 +40,7 @@ export const elementConfigs: ElementConfigs = {
       boxModelEditor: {
         label: "CSS 盒模型",
         type: "boxModel",
-        defaultValue: { margin: [0, 0, 0, 0], padding: [0, 0, 0, 0] },
+        defaultValue: { margin: [0, 0, 0, 0], padding: [20, 20, 20, 20] },
         compositeFields: {
           margin: {
             type: "number",
@@ -47,7 +49,7 @@ export const elementConfigs: ElementConfigs = {
           },
           padding: {
             type: "number",
-            defaultValue: [0, 0, 0, 0],
+            defaultValue: [20, 20, 20, 20],
             unit: "%",
           },
         },
@@ -70,89 +72,114 @@ export const elementConfigs: ElementConfigs = {
       },
     },
     subtypes: {
-      columnizedLayout: {
-        type: "columnizedLayout",
-        label: "側邊欄佈局",
+      layout: {
+        type: "layout",
+        label: "佈局",
         properties: {
-          size: {
-            label: "整體大小",
-            type: "composite",
-            defaultValue: { width: 1200, height: 600 },
-            compositeFields: {
-              width: {
-                label: "寬度",
-                type: "number",
-                defaultValue: 1200,
-                unit: "px",
-              },
-              height: {
-                label: "高度",
-                type: "number",
-                defaultValue: 600,
-                unit: "px",
-              },
+          gap: {
+            label: "間隔",
+            type: "number",
+            defaultValue: {
+              layout: 0,
+              sidebarLayout: 20,
+              columnizedLayout: 30,
+              gridLayout: 20,
             },
+            unit: "px",
           },
           columnWidths: {
             label: "欄寬比例",
             type: "composite",
-            defaultValue: { left: 50, middle: 25, right: 25 },
+            defaultValue: {
+              layout: { left: 0, middle: 0, right: 0 },
+              sidebarLayout: { left: 30, middle: 0, right: 70 },
+              columnizedLayout: { left: 50, middle: 25, right: 25 },
+              gridLayout: null,
+            },
+            unit: "%",
             compositeFields: {
               left: {
                 label: "左欄寬度",
                 type: "number",
-                defaultValue: 50,
                 unit: "%",
               },
               middle: {
-                label: "中欄寬度",
+                label: "中間寬度",
                 type: "number",
-                defaultValue: 25,
                 unit: "%",
               },
               right: {
                 label: "右欄寬度",
                 type: "number",
-                defaultValue: 25,
                 unit: "%",
               },
             },
           },
-          gap: {
-            label: "間隔",
+          columns: {
+            label: "列數",
             type: "number",
-            defaultValue: 20,
-            unit: "px",
+            defaultValue: {
+              layout: null,
+              sidebarLayout: null,
+              columnizedLayout: null,
+              gridLayout: 3,
+            },
+            min: 1,
+            max: 12,
           },
           middleColumnSplit: {
             label: "中欄分割",
             type: "checkbox",
-            defaultValue: true,
-          },
-        },
-      },
-      gridLayout: {
-        type: "gridLayout",
-        label: "網格佈局",
-        properties: {
-          columns: {
-            label: "列數",
-            type: "number",
-            defaultValue: 3,
-            min: 1,
-            max: 12,
-          },
-          gap: {
-            label: "間隔",
-            type: "number",
-            defaultValue: 20,
-            unit: "px",
+            defaultValue: {
+              layout: false,
+              sidebarLayout: false,
+              columnizedLayout: true,
+              gridLayout: null,
+            },
           },
           rowHeight: {
             label: "行高",
             type: "number",
-            defaultValue: 200,
+            defaultValue: {
+              layout: null,
+              sidebarLayout: null,
+              columnizedLayout: 200,
+              gridLayout: null,
+            },
             unit: "px",
+          },
+          boxModelEditor: {
+            label: "CSS 盒模型",
+            type: "boxModel",
+            defaultValue: { margin: [0, 0, 0, 0], padding: [0, 0, 0, 0] },
+            compositeFields: {
+              margin: {
+                type: "number",
+                defaultValue: [0, 0, 0, 0],
+                unit: "%",
+              },
+              padding: {
+                type: "number",
+                defaultValue: [0, 0, 0, 0],
+                unit: "%",
+              },
+            },
+          },
+          backgroundColor: {
+            label: "顏色",
+            type: "color",
+            defaultColor: "rgba(0,0,0,0)",
+            defaultOpacity: 100,
+            step: 10,
+            min: 0,
+            max: 100,
+          },
+          media: {
+            label: "媒體",
+            type: "mediaUpload",
+            defaultValue: { type: "image", url: "" },
+            accept: "image/*,video/*",
+            maxSize: 5000000,
           },
         },
       },
@@ -226,8 +253,8 @@ export const elementConfigs: ElementConfigs = {
       },
     },
   },
-  freeDraggable: {
-    type: "freeDraggable",
+  freeDraggableElement: {
+    type: "freeDraggableElement",
     label: "自由拖動元素",
     properties: {
       horizontalAlignment: {
@@ -290,12 +317,6 @@ export const elementConfigs: ElementConfigs = {
             unit: "px",
           },
         },
-      },
-      // TODO:之後處理 拖拉
-      zIndex: {
-        label: "層級索引",
-        type: "number",
-        defaultValue: 0,
       },
     },
     subtypes: {
@@ -419,6 +440,11 @@ export const elementConfigs: ElementConfigs = {
         type: "buttonElement",
         label: "按鈕元素",
         properties: {
+          content: {
+            label: "文字",
+            type: "text",
+            defaultValue: "",
+          },
           size: {
             label: "大小",
             type: "composite",
@@ -503,40 +529,37 @@ export const elementConfigs: ElementConfigs = {
             min: 0,
             max: 100,
           },
-          // TODO:還沒有處理
-          border: {
-            label: "邊框",
-            type: "border",
+          borderWidth: {
+            label: "邊框寬度",
+            type: "number",
             defaultValue: {
-              filledButton: { width: 0, style: "none", color: "transparent" },
-              outlinedButton: { width: 1, style: "solid", color: "#007bff" },
-              textButton: { width: 0, style: "none", color: "transparent" },
+              filledButton: 0,
+              outlinedButton: 2,
+              textButton: 0,
             },
-            compositeFields: {
-              width: {
-                label: "邊框寬度",
-                type: "number",
-                unit: "px",
-              },
-              style: {
-                label: "邊框樣式",
-                type: "select",
-                options: [
-                  { value: "solid", label: "實線" },
-                  { value: "dashed", label: "虛線" },
-                  { value: "dotted", label: "點線" },
-                  { value: "none", label: "無" },
-                ],
-              },
-              color: {
-                label: "邊框顏色",
-                type: "color",
-                defaultColor: "#000000",
-                defaultOpacity: 0,
-                step: 10,
-                min: 0,
-                max: 100,
-              },
+          },
+          borderStyle: {
+            label: "邊框樣式",
+            type: "select",
+            options: ["solid", "dashed", "dotted", "none"],
+            defaultValue: {
+              filledButton: "none",
+              outlinedButton: "solid",
+              textButton: "none",
+            },
+          },
+          borderColor: {
+            label: "邊框顏色",
+            type: "color",
+            defaultColor: "#000000",
+            defaultOpacity: 0,
+            step: 10,
+            min: 0,
+            max: 100,
+            defaultValue: {
+              filledButton: "transparent",
+              outlinedButton: "#007bff",
+              textButton: "transparent",
             },
           },
           borderRadius: {
@@ -642,6 +665,7 @@ export const elementConfigs: ElementConfigs = {
               fourThree: 0,
               fullWidth: 0,
             },
+            min: 0,
             unit: "%",
           },
           objectFit: {

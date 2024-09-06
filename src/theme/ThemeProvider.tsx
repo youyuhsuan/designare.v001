@@ -76,11 +76,9 @@ export const ThemeWrapper: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const initialMode = getInitialMode();
     setMode(initialMode);
-    console.log("Initial mode:", initialMode);
   }, []);
 
   useEffect(() => {
-    console.log("Current mode:", mode);
     localStorage.setItem("themeMode", mode);
     applyTheme(mode);
   }, [mode]);

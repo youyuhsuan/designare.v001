@@ -2,7 +2,7 @@ interface ElementConfig {
   [key: string]: any;
 }
 
-const createLayoutConfig = (properties: any): ElementConfig => ({
+const createLayoutElementConfig = (properties: any): ElementConfig => ({
   size: {
     width: properties.size.defaultValue.width,
     height: properties.size.defaultValue.height,
@@ -10,13 +10,41 @@ const createLayoutConfig = (properties: any): ElementConfig => ({
   responsiveBehavior: properties.responsiveBehavior.defaultValue,
   useMaxWidth: properties.useMaxWidth.defaultValue,
   boxModelEditor: {
+    padding: properties.boxModelEditor.defaultValue.padding || 20,
+    margin: properties.boxModelEditor.defaultValue.margin || 0,
+  },
+  backgroundColor: properties.backgroundColor.defaultValue,
+  media: properties.media.defaultValue,
+});
+
+const createLayoutConfig = (
+  properties: any,
+  elementType: string
+): ElementConfig => ({
+  gap: properties.gap.defaultValue[
+    elementType as keyof typeof properties.gap.defaultValue
+  ],
+  columnWidths:
+    properties.columnWidths.defaultValue[
+      elementType as keyof typeof properties.columnWidths.defaultValue
+    ],
+  columns:
+    properties.columns.defaultValue[
+      elementType as keyof typeof properties.columns.defaultValue
+    ],
+  middleColumnSplit:
+    properties.middleColumnSplit.defaultValue[
+      elementType as keyof typeof properties.middleColumnSplit.defaultValue
+    ],
+  rowHeight:
+    properties.rowHeight.defaultValue[
+      elementType as keyof typeof properties.rowHeight.defaultValue
+    ],
+  boxModelEditor: {
     padding: properties.boxModelEditor.defaultValue.padding,
     margin: properties.boxModelEditor.defaultValue.margin,
   },
-  backgroundColor: {
-    defaultColor: properties.backgroundColor.defaultColor,
-    defaultOpacity: properties.backgroundColor.defaultOpacity,
-  },
+  backgroundColor: properties.backgroundColor.defaultValue,
   media: properties.media.defaultValue,
 });
 
@@ -24,6 +52,7 @@ const createButtonElementConfig = (
   properties: any,
   elementType: string
 ): ElementConfig => ({
+  content: properties.content.defaultValue,
   size: {
     width: properties.size.defaultValue.width,
     height: properties.size.defaultValue.height,
@@ -42,9 +71,17 @@ const createButtonElementConfig = (
     properties.backgroundColor.defaultValue[
       elementType as keyof typeof properties.backgroundColor.defaultValue
     ],
-  border:
-    properties.border.defaultValue[
-      elementType as keyof typeof properties.border.defaultValue
+  borderWidth:
+    properties.borderWidth.defaultValue[
+      elementType as keyof typeof properties.borderWidth.defaultValue
+    ],
+  borderStyle:
+    properties.borderWidth.defaultValue[
+      elementType as keyof typeof properties.borderStyle.defaultValue
+    ],
+  borderColor:
+    properties.borderWidth.defaultValue[
+      elementType as keyof typeof properties.borderColor.defaultValue
     ],
   borderRadius: properties.borderRadius.defaultValue,
   hoverBackgroundColor:
@@ -96,18 +133,19 @@ const createTextConfig = (
   textDecoration: properties.textDecoration.defaultValue,
 });
 
-const createFreeDraggableConfig = (properties: any): ElementConfig => ({
+const createFreeDraggableElementConfig = (properties: any): ElementConfig => ({
   horizontalAlignment: properties.horizontalAlignment.defaultValue,
   verticalAlignment: properties.verticalAlignment.defaultValue,
   position: properties.position.defaultValue,
 });
 
 const configCreators = {
+  layoutElement: createLayoutElementConfig,
   layout: createLayoutConfig,
   text: createTextConfig,
   image: createImageConfig,
   buttonElement: createButtonElementConfig,
-  freeDraggable: createFreeDraggableConfig,
+  freeDraggableElement: createFreeDraggableElementConfig,
 };
 
 export function createElementConfig(
@@ -115,40 +153,78 @@ export function createElementConfig(
   isLayout: boolean,
   elementType: string = "",
   configs: any
-): ElementConfig {
+): Partial<ElementConfig> {
+  let baseConfig: Partial<ElementConfig>;
   if (isLayout) {
-    return configCreators.layout(configs.layout.properties);
+    switch (elementType) {
+      case "layout":
+      case "sidebarLayout":
+      case "columnizedLayout":
+      case "gridLayout":
+        baseConfig = {
+          ...configCreators.layoutElement(configs.layoutElement.properties),
+          ...configCreators.layout(
+            configs.layoutElement.subtypes.layout.properties,
+            elementType
+          ),
+        };
+        break;
+      case "child":
+        baseConfig = {
+          ...configCreators.layoutElement(configs.layoutElement.properties),
+        };
+        break;
+      default:
+        baseConfig = {
+          ...configCreators.layoutElement(configs.layoutElement.properties),
+        };
+        break;
+    }
   } else {
-    if (type === "buttonElement") {
-      return {
-        ...configCreators.freeDraggable(configs.freeDraggable.properties),
-        ...configCreators.buttonElement(
-          configs.freeDraggable.subtypes.buttonElement.properties,
-          elementType
-        ),
-      };
+    switch (type) {
+      case "buttonElement":
+        baseConfig = {
+          ...configCreators.freeDraggableElement(
+            configs.freeDraggableElement.properties
+          ),
+          ...configCreators.buttonElement(
+            configs.freeDraggableElement.subtypes.buttonElement.properties,
+            elementType
+          ),
+        };
+        break;
+      case "image":
+        baseConfig = {
+          ...configCreators.freeDraggableElement(
+            configs.freeDraggableElement.properties
+          ),
+          ...configCreators.image(
+            configs.freeDraggableElement.subtypes.image.properties,
+            elementType
+          ),
+        };
+        break;
+      case "text":
+        baseConfig = {
+          ...configCreators.freeDraggableElement(
+            configs.freeDraggableElement.properties
+          ),
+          ...configCreators.text(
+            configs.freeDraggableElement.subtypes.text.properties,
+            elementType
+          ),
+        };
+        break;
+      default:
+        baseConfig = configCreators.freeDraggableElement(
+          configs.freeDraggableElement.properties
+        );
+        break;
     }
-
-    if (type === "image") {
-      return {
-        ...configCreators.freeDraggable(configs.freeDraggable.properties),
-        ...configCreators.image(
-          configs.freeDraggable.subtypes.image.properties,
-          elementType
-        ),
-      };
-    }
-
-    if (type === "text") {
-      return {
-        ...configCreators.freeDraggable(configs.freeDraggable.properties),
-        ...configCreators.text(
-          configs.freeDraggable.subtypes.text.properties,
-          elementType
-        ),
-      };
-    }
-
-    return configCreators.freeDraggable(configs.freeDraggable.properties);
   }
+  return {
+    ...(baseConfig.properties || {}),
+    ...(baseConfig.children && { children: baseConfig.children }),
+    ...baseConfig,
+  };
 }

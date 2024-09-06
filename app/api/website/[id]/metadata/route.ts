@@ -19,42 +19,39 @@ export async function PATCH(
   }
 
   try {
-    // Decrypt user token
     const dataToDecrypt = JSON.parse(encryptedTokenData);
     const decryptedData: UserTokenData = await evervault.decrypt(dataToDecrypt);
-
-    // Get website data
     const website = await websiteDB.getWebsite(
       decryptedData.token.id,
       params.id
     );
-
     if (!website) {
       return NextResponse.json({ error: "Website not found" }, { status: 404 });
     }
-
-    // Parse request body
     const data = await request.json();
-
-    // Validate request body
     if (!data || typeof data !== "object") {
       return NextResponse.json(
         { error: "Invalid request body" },
         { status: 400 }
       );
     }
-
-    // Update website data
     await websiteDB.updateWebsiteData(decryptedData.token.id, params.id, data);
-
-    // Return success response
-    return NextResponse.json(
-      { message: "Website metadata updated successfully" },
-      { status: 200 }
-    );
+    const returnUpdatedData =
+      request.headers.get("return-updated-data") === "true";
+    if (returnUpdatedData) {
+      const updatedWebsite = await websiteDB.getWebsite(
+        decryptedData.token.id,
+        params.id
+      );
+      return NextResponse.json(updatedWebsite, { status: 200 });
+    } else {
+      return NextResponse.json(
+        { message: "Website metadata updated successfully" },
+        { status: 200 }
+      );
+    }
   } catch (error) {
     console.error("Error updating website metadata:", error);
-
     if (error instanceof Error) {
       if (error.message === "Unauthorized to update this website") {
         return NextResponse.json(

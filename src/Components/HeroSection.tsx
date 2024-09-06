@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import FrostedLiquidButton from "./FrostedLiquidButton";
 import dynamic from "next/dynamic";
+
 const BackgroundLines = dynamic(() => import("./BackgroundLines"), {
   ssr: false,
   loading: () => <div style={{ height: "100%", width: "100%" }}></div>,

@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
       if (displayName && !user.displayName) {
         try {
           await updateProfile(user, { displayName: displayName });
-          console.log("Display name updated:", displayName);
         } catch (updateError) {
           console.error("Error updating display name:", updateError);
         }

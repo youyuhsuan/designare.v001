@@ -33,7 +33,6 @@ const websiteDB = {
           ...cleanWebsiteMetadata,
         }
       );
-      console.log(`User website created successfully with ID: ${docRef.id}`);
       return docRef.id;
     } catch (e) {
       console.error("Error creating user website:", e);

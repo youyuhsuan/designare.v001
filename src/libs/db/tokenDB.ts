@@ -28,7 +28,6 @@ const tokenDB = {
         collection(firebase_db, TOKENS_COLLECTION),
         cleanTokenData
       );
-      console.log(`Token inserted successfully with ID: ${docRef.id}`);
       return docRef.id;
     } catch (e) {
       console.error("Error inserting token:", e);
@@ -44,7 +43,6 @@ const tokenDB = {
       );
       const querySnapshot = await getDocs(q);
       if (querySnapshot.empty) {
-        console.log("No matching token found");
         return null;
       }
       const data = querySnapshot.docs[0].data();
@@ -62,11 +60,9 @@ const tokenDB = {
       );
       const querySnapshot = await getDocs(q);
       if (querySnapshot.empty) {
-        console.log("No token found to delete");
         return false;
       }
       await deleteDoc(querySnapshot.docs[0].ref);
-      console.log(`Token with ID ${tokenId} deleted successfully`);
       return true;
     } catch (e) {
       console.error("Error deleting token:", e);
@@ -81,12 +77,10 @@ const tokenDB = {
       );
       const querySnapshot = await getDocs(q);
       if (querySnapshot.empty) {
-        console.log(`No token found with ID ${tokenId}`);
         return false;
       }
       const tokenDoc = querySnapshot.docs[0];
       await updateDoc(tokenDoc.ref, { "token.lastUsedAt": Timestamp.now() });
-      console.log(`Token with ID ${tokenId} updated successfully`);
       return true;
     } catch (e) {
       console.error(`Error updating last used time for token ${tokenId}:`, e);

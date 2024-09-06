@@ -21,7 +21,6 @@ const initialState: WebsiteState = {
   saveError: null,
 };
 
-// 創建 Redux slice
 export const websiteMetadataSlice = createSlice({
   name: "websiteMetadata",
   initialState: initialState,
@@ -62,12 +61,10 @@ export const websiteMetadataSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // 當 fetchWebsiteMetadata 正在執行時
     builder
       .addCase(fetchWebsiteMetadata.pending, (state) => {
         state.loadStatus = "loading";
       })
-      // 當 fetchWebsiteMetadata 完成時
       .addCase(
         fetchWebsiteMetadata.fulfilled,
         (state, action: PayloadAction<WebsiteState>) => {
@@ -77,16 +74,13 @@ export const websiteMetadataSlice = createSlice({
           state.saveError = null;
         }
       )
-      // 當 fetchWebsiteMetadata 失敗時
       .addCase(fetchWebsiteMetadata.rejected, (state, action) => {
         state.loadStatus = "failed";
         state.saveError = action.error.message || "無法獲取網站數據";
       })
-      // 當 saveWebsiteMetadata 正在執行時
       .addCase(saveWebsiteMetadata.pending, (state) => {
         state.saveStatus = "loading";
       })
-      // 當 saveWebsiteMetadata 完成時
       .addCase(
         saveWebsiteMetadata.fulfilled,
         (state, action: PayloadAction<Partial<WebsiteMetadata>>) => {
@@ -101,17 +95,13 @@ export const websiteMetadataSlice = createSlice({
           state.saveError = null;
         }
       )
-      // 當 saveWebsiteMetadata 失敗時
       .addCase(saveWebsiteMetadata.rejected, (state, action) => {
         state.saveStatus = "failed";
         state.saveError = action.error.message || "無法儲存網站元數據";
       })
-
-      // 當 saveElementLibrary 正在執行時
       .addCase(saveElementLibrary.pending, (state) => {
         state.saveStatus = "loading";
       })
-      // 當 saveElementLibrary 完成時
       .addCase(
         saveElementLibrary.fulfilled,
         (state, action: PayloadAction<ElementLibrary>) => {
@@ -128,7 +118,6 @@ export const websiteMetadataSlice = createSlice({
           state.saveError = null;
         }
       )
-      // 當 saveElementLibrary 失敗時
       .addCase(saveElementLibrary.rejected, (state, action) => {
         state.saveStatus = "failed";
         state.saveError = action.error.message || "無法儲存元素庫";

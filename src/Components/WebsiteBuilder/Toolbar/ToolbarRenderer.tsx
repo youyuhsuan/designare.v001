@@ -18,7 +18,7 @@ interface HandleAddElementParams {
 }
 
 const Button = styled.button<{
-  $elementType: string; // Prop to determine the button style
+  $elementType: string;
 }>`
   display: block;
   width: 100%;
@@ -130,7 +130,6 @@ const SubItemButton = styled.button<{
           height: 100px;
           width: 100%;
           overflow: hidden;
-     
         `;
       default:
         return ``;
@@ -182,13 +181,9 @@ const renderStrategies: RenderStrategy[] = [
   },
   {
     condition: (item, elementType) =>
-      [
-        "layout",
-        "columnizedLayout",
-        "sidebarLayout",
-        "grid",
-        "freeform",
-      ].includes(elementType),
+      ["layout", "sidebarLayout", "columnizedLayout", "gridLayout"].includes(
+        elementType
+      ),
     render: (item, elementType) => (
       <LayoutPreview type={elementType}>{item.label}</LayoutPreview>
     ),

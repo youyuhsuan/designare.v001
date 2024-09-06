@@ -19,9 +19,15 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
 }) => {
   const parseColor = useCallback(
     (inputColor: string): RgbaColor => {
-      if (inputColor === "transparent" || defaultColor === "transparent") {
+      if (
+        inputColor === "transparent" ||
+        defaultColor === "transparent" ||
+        inputColor === "undefined" ||
+        defaultColor === "undefined"
+      ) {
         return { r: 0, g: 0, b: 0, a: 0 }; // 透明色
       }
+      console.log("inputColor defaultColor", inputColor, defaultColor);
       const [r, g, b, a] = parseToRgba(inputColor || defaultColor);
       return { r, g, b, a: a !== undefined ? a : opacity / 100 };
     },

@@ -10,6 +10,25 @@ import { elementConfigs } from "@/src/Components/WebsiteBuilder/SidebarEditor/el
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { v4 as uuidv4 } from "uuid";
 import { UniqueIdentifier } from "@dnd-kit/core";
+import { config } from "node:process";
+
+const getChildrenCount = (elementType: string): number => {
+  switch (elementType) {
+    case "sidebarLayout":
+      return 2;
+    case "columnizedLayout":
+      return 4;
+    case "gridLayout":
+      return 9;
+    default:
+      return 0;
+  }
+};
+
+interface ElementConfig {
+  [key: string]: any;
+  children?: ElementConfig[];
+}
 
 export const elementLibrarySlice = createSlice({
   name: "elementLibrary",
@@ -70,16 +89,44 @@ export const elementLibrarySlice = createSlice({
         state.configs
       ); // 根據配置創建元素配置
 
+      let children: LocalElementType[] = [];
+
+      if (isLayout) {
+        const childrenCount = getChildrenCount(elementType as string);
+        for (let i = 0; i < childrenCount; i++) {
+          const childConfig = createElementConfig(
+            type,
+            true,
+            "layout",
+            state.configs
+          );
+
+          const childElement: LocalElementType = {
+            id: uuidv4(),
+            type,
+            content: "",
+            isLayout: true,
+            config: childConfig,
+          };
+          children.push(childElement);
+        }
+        config.children = children;
+      }
+
       const newElement: LocalElementType = {
         id,
         type,
         content,
         isLayout,
-        config: config, // 設置元素的初始配置
+        config: config,
       };
-      state.byId[id] = newElement; // 添加新元素到 byId
+
+      state.byId[id] = newElement;
       state.allIds.push(id); // 將元素 ID 添加到 allIds
       state.selectedId = id; // 可選：自動選擇新創建的元素
+
+      console.log("New element added to state:", state.byId[id]);
+      console.log("Updated allIds:", state.allIds);
     },
     // 刪除元素實例
     deleteElementInstance: (state, action: PayloadAction<UniqueIdentifier>) => {

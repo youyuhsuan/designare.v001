@@ -17,9 +17,7 @@ export async function GET(request: NextRequest) {
   try {
     const dataToDecrypt = JSON.parse(encryptedTokenData);
     const decryptedData: UserTokenData = await evervault.decrypt(dataToDecrypt);
-    console.log("decryptedData", decryptedData);
     const foundToken = await tokenDB.findToken(decryptedData.token.id);
-    console.log("foundToken", foundToken);
     await tokenDB.updateTokenLastUsed(decryptedData.token.id);
     if (!foundToken) {
       return NextResponse.json({ error: "Token not found" }, { status: 404 });

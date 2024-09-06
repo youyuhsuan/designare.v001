@@ -72,6 +72,7 @@ export async function PATCH(
       decryptedData.token.id,
       params.id
     );
+
     return NextResponse.json(updatedLibrary, { status: 200 });
   } catch (error) {
     console.error("Error updating website metadata:", error);

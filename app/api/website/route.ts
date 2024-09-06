@@ -13,6 +13,7 @@ const evervault = new Evervault(
   process.env.EVERVAULT_API_KEY as string
 );
 
+// 創建新網站
 export async function POST(request: NextRequest) {
   const encryptedTokenData = cookies().get("token")?.value;
 
@@ -24,11 +25,8 @@ export async function POST(request: NextRequest) {
   try {
     const dataToDecrypt = JSON.parse(encryptedTokenData);
     const decryptedData: UserTokenData = await evervault.decrypt(dataToDecrypt);
-    console.log("Decrypted token data:", decryptedData);
-
     const body = await request.json();
 
-    // 驗證請求體
     if (!body.name) {
       console.error("Missing required fields");
       return NextResponse.json(
@@ -36,12 +34,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
     let url = body.url;
     if (!url) {
-      const baseUrl = "http://localhost:3000/";
       const slug = body.name.toLowerCase().replace(/\s+/g, "-");
-      url = `${baseUrl}${slug}-${Date.now()}`;
+      url = `${slug}-${Date.now()}`;
     }
 
     const websiteData = createWebsiteMetadata(
@@ -51,12 +47,10 @@ export async function POST(request: NextRequest) {
       {
         templateId: body.templateId,
         description: body.description,
-        status: body.publish ? "published" : "draft",
+        status: "draft",
         settings: body.settings,
       }
     );
-    console.log("Website data created:", websiteData);
-
     const validationError = validateWebsiteMetadata(websiteData);
     if (validationError) {
       console.error("Validation error:", validationError);
@@ -64,8 +58,6 @@ export async function POST(request: NextRequest) {
     }
 
     const newWebsiteId = await websiteDB.createWebsite(websiteData);
-    console.log("New website created with ID:", newWebsiteId);
-
     return NextResponse.json(
       { id: newWebsiteId, ...websiteData },
       { status: 201 }
@@ -79,6 +71,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+//  獲取用戶的所有網站
 export async function GET(request: NextRequest) {
   const encryptedTokenData = cookies().get("token")?.value;
   if (!encryptedTokenData) {
@@ -88,9 +81,6 @@ export async function GET(request: NextRequest) {
     const dataToDecrypt = JSON.parse(encryptedTokenData);
     const decryptedData: UserTokenData = await evervault.decrypt(dataToDecrypt);
     const websites = await websiteDB.getAllWebsites(decryptedData.token.id);
-    console.log(
-      `Retrieved ${websites.length} websites for user ${decryptedData.token.id}`
-    );
     return NextResponse.json(websites);
   } catch (error) {
     console.error("Error getting user websites:", error);

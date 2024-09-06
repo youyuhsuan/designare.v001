@@ -27,7 +27,7 @@ export interface ElementLibrary {
 }
 
 export interface LayoutElementData extends BaseElementData {
-  children?: UniqueIdentifier[];
+  children?: LocalElementType[];
   config: any;
   isLayout: true;
 }
@@ -40,6 +40,7 @@ export interface FreeDraggableElementData extends BaseElementData {
 export interface ElementCallbacks {
   onUpdate: (updates: Partial<LocalElementType>) => void;
   onDelete: () => void;
+  onSelect?: (params: { id: string; path: string[] }) => void;
   isSelected: boolean;
 }
 
@@ -76,6 +77,8 @@ export interface ContentProps {
   $isDragging?: boolean;
   $isSelected?: boolean;
   $config?: any;
+  $flexDirection?: string;
+  $width?: string;
   borderRadius?: number;
 }
 

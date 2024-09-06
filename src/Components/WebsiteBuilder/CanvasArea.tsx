@@ -48,7 +48,6 @@ import {
   selectCurrentLayoutSettings,
 } from "@/src/libs/features/websiteBuilder/globalSelect";
 
-// Styled-component 定義了畫布區域的容器樣式
 const CanvasAreaContainer = styled.div`
   width: 100%;
 `;

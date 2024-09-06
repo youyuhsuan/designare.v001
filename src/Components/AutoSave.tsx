@@ -13,6 +13,7 @@ const AutoSave: React.FC<{ id: string }> = ({ id: websiteId }) => {
   const elementLibrary = useAppSelector(selectElementLibrary); // 獲取元素庫的狀態
   const prevElementLibraryRef = useRef<ElementLibrary | null>(null); // 儲存前一個元素庫狀態的參考
 
+  console.log("elementLibrary", elementLibrary);
   // 使用 debounce 函數創建一個防抖動的保存函數
   const debouncedSaveElementLibrary = useMemo(
     () =>
@@ -77,8 +78,6 @@ const AutoSave: React.FC<{ id: string }> = ({ id: websiteId }) => {
 
       // 如果有更新或刪除的元素，則調用 debouncedSaveElementLibrary 進行保存
       if (Object.keys(updates).length > 0 || deletedIds.length > 0) {
-        console.log("Saving updates:", updates);
-        console.log("Deleted IDs:", deletedIds);
         debouncedSaveElementLibrary(updates, deletedIds);
       }
 
@@ -94,7 +93,7 @@ const AutoSave: React.FC<{ id: string }> = ({ id: websiteId }) => {
     };
   }, [elementLibrary, debouncedSaveElementLibrary]); // 當 elementLibrary 或 debouncedSaveElementLibrary 改變時重新執行 useEffect
 
-  return null; // 此組件不需要渲染任何內容
+  return null;
 };
 
 export default AutoSave;

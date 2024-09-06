@@ -2,6 +2,8 @@ import React, { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import styled from "styled-components";
 import { Button } from "@/src/Components/Button";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { firebase_storage } from "@/src/config/firebaseClient";
 
 // 定義 MediaUploader 組件的屬性
 interface MediaUploaderProps {
@@ -83,6 +85,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // 處理拖曳事件
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -104,7 +107,9 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         alert(`檔案大小不能超過 ${maxSize / 1000000}MB`); // 檔案過大提示
         return;
       }
+
       const reader = new FileReader();
+
       reader.onloadend = () => {
         setLoading(false);
         onChange({
@@ -113,6 +118,35 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         });
       };
       reader.readAsDataURL(file); // 讀取檔案為 Data URL
+
+      const storageRef = ref(
+        firebase_storage,
+        `uploads/${Date.now()}_${file.name}`
+      );
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log("progress", progress);
+          setUploadProgress(progress);
+        },
+        (error) => {
+          setLoading(false);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setLoading(false);
+            onChange({
+              type: file.type.startsWith("image/") ? "image" : "video",
+              url: downloadURL,
+            });
+            console.log("downloadURL", downloadURL);
+          });
+        }
+      );
     },
     [maxSize, onChange]
   );
@@ -176,12 +210,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           <p>檔案預覽</p>
           <Preview>
             {value.type === "image" ? (
-              <Image
-                src={value.url}
-                alt="預覽"
-                layout="fill"
-                objectFit="contain"
-              />
+              <Image src={value.url} alt="預覽" layout="fill" />
             ) : (
               <video
                 src={value.url}
