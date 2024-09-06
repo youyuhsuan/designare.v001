@@ -165,11 +165,11 @@ export const toolbarItems: ToolbarItem[] = [
       },
     ],
   },
-  {
-    icon: FaShapes,
-    label: "navbar",
-    type: "navbar",
-    elementType: "Video",
-    content: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-  },
+  // {
+  //   icon: FaShapes,
+  //   label: "navbar",
+  //   type: "navbar",
+  //   elementType: "Video",
+  //   content: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+  // },
 ];

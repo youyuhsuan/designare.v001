@@ -316,12 +316,6 @@ export const elementConfigs: ElementConfigs = {
           },
         },
       },
-      // TODO:之後處理 拖拉
-      zIndex: {
-        label: "層級索引",
-        type: "number",
-        defaultValue: 0,
-      },
     },
     subtypes: {
       text: {
